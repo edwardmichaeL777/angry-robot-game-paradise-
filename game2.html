@@ -1,0 +1,361 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Robot Toilet Game / 机器人马桶游戏</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .page {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            text-align: center;
+            max-width: 600px;
+            width: 100%;
+        }
+        h1 {
+            color: #333;
+        }
+        button {
+            margin: 10px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        #gameCanvas {
+            border: 1px solid #000;
+            margin: 20px auto;
+            display: block;
+        }
+        #game-info {
+            margin-top: 20px;
+        }
+        .control-buttons {
+            margin-top: 20px;
+        }
+        .control-buttons button {
+            margin: 0 10px;
+        }
+    </style>
+</head>
+<body>
+    <div id="page1" class="page">
+        <h1>Robot Toilet Game / 机器人马桶游戏</h1>
+        <p>Choose your language / 选择你的语言</p>
+        <button onclick="setLanguage('en')">English</button>
+        <button onclick="setLanguage('zh')">中文</button>
+    </div>
+
+    <div id="page2" class="page" style="display: none;">
+        <h1 id="rulesTitle"></h1>
+        <div id="rules"></div>
+        <button id="startButton" onclick="startGame()"></button>
+    </div>
+
+    <div id="page3" class="page" style="display: none;">
+        <h1 id="gameTitle"></h1>
+        <canvas id="gameCanvas" width="600" height="400"></canvas>
+        <div id="game-info"></div>
+        <div class="control-buttons">
+            <button id="restartButton" onclick="restartGame()"></button>
+            <button id="backButton" onclick="backToMenu()"></button>
+        </div>
+    </div>
+
+    <script>
+        let language = 'en';
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const MIN_EXPLODE = 15;
+        const MAX_EXPLODE = 25;
+        let currentPlayer = 1;
+        let totalPlunges = 0;
+        let explodeNumber = 0;
+        let currentRoll = 0;
+        let remainingPlunges = 0;
+
+        const translations = {
+            en: {
+                title: "Robot Toilet Game",
+                rules: "Rules: Each player takes turns rolling a dice (0-2). If you roll 0, it's the next player's turn. Otherwise, you need to plunge the toilet that many times. Be careful not to make the toilet explode. Press 'q' to roll the dice, press the spacebar to plunge.",
+                startButton: "Start Game",
+                rollPrompt: "Player {0}, press 'q' to roll the dice",
+                rollResult: "Player {0} rolled a {1}",
+                plungePrompt: "Player {0}, press spacebar to plunge {1} times",
+                plungeResult: "Player {0} plunged. {1} plunges remaining",
+                explosion: "Oh no! The toilet exploded! Player {0} loses!",
+                nextTurn: "Player {0}, press 'q' to roll the dice",
+                restartButton: "Restart Game",
+                backButton: "Back to Menu"
+            },
+            zh: {
+                title: "机器人马桶游戏",
+                rules: "规则：每位玩家轮流掷骰子(0-2)。如果掷到0，直接换下一位玩家。否则，玩家需要通马桶相应次数。小心别让马桶爆炸。按 'q' 键掷骰子，按空格键通马桶。",
+                startButton: "开始游戏",
+                rollPrompt: "玩家 {0}，按 'q' 键掷骰子",
+                rollResult: "玩家 {0} 掷出了 {1}",
+                plungePrompt: "玩家 {0}，按空格键通马桶 {1} 次",
+                plungeResult: "玩家 {0} 通马桶。还需通 {1} 次",
+                explosion: "糟糕！马桶爆炸了！玩家 {0} 输了！",
+                nextTurn: "玩家 {0}，按 'q' 键掷骰子",
+                restartButton: "重新开始",
+                backButton: "返回菜单"
+            }
+        };
+
+        function setLanguage(lang) {
+            language = lang;
+            document.getElementById('page1').style.display = 'none';
+            document.getElementById('page2').style.display = 'block';
+            updateRulesPage();
+        }
+
+        function updateRulesPage() {
+            document.getElementById('rulesTitle').textContent = translations[language].title;
+            document.getElementById('rules').textContent = translations[language].rules;
+            document.getElementById('startButton').textContent = translations[language].startButton;
+        }
+
+        function startGame() {
+            document.getElementById('page2').style.display = 'none';
+            document.getElementById('page3').style.display = 'block';
+            document.getElementById('gameTitle').textContent = translations[language].title;
+            document.getElementById('restartButton').textContent = translations[language].restartButton;
+            document.getElementById('backButton').textContent = translations[language].backButton;
+            initializeGame();
+        }
+
+        function createImages() {
+            const images = {};
+            const imageNames = ['dice0', 'dice1', 'dice2', 'toilet', 'plunger', 'plunger1', 'plunger2'];
+            
+            imageNames.forEach(name => {
+                const canvas = document.createElement('canvas');
+                canvas.width = 100;
+                canvas.height = 100;
+                const ctx = canvas.getContext('2d');
+                
+                switch(name) {
+                    case 'dice0':
+                    case 'dice1':
+                    case 'dice2':
+                        drawDice(ctx, parseInt(name.slice(-1)));
+                        break;
+                    case 'toilet':
+                        drawToilet(ctx);
+                        break;
+                    case 'plunger':
+                        drawPlunger(ctx, 0);
+                        break;
+                    case 'plunger1':
+                        drawPlunger(ctx, 1);
+                        break;
+                    case 'plunger2':
+                        drawPlunger(ctx, 2);
+                        break;
+                }
+                
+                images[name] = new Image();
+                images[name].src = canvas.toDataURL();
+            });
+            return images;
+        }
+
+        function drawDice(ctx, number) {
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, 100, 100);
+            ctx.strokeStyle = 'black';
+            ctx.strokeRect(0, 0, 100, 100);
+            
+            ctx.fillStyle = 'black';
+            if (number === 1) {
+                drawDot(ctx, 50, 50);
+            } else if (number === 2) {
+                drawDot(ctx, 25, 25);
+                drawDot(ctx, 75, 75);
+            }
+        }
+
+        function drawDot(ctx, x, y) {
+            ctx.beginPath();
+            ctx.arc(x, y, 10, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        function drawToilet(ctx) {
+            ctx.fillStyle = 'white';
+            ctx.fillRect(10, 10, 80, 90);
+            ctx.strokeStyle = 'black';
+            ctx.strokeRect(10, 10, 80, 90);
+            
+            ctx.fillStyle = 'lightblue';
+            ctx.fillRect(20, 20, 60, 40);
+        }
+
+        function drawPlunger(ctx, state) {
+            ctx.fillStyle = 'brown';
+            ctx.fillRect(45, 10, 10, 60);
+            
+            ctx.fillStyle = 'green';
+            ctx.beginPath();
+            if (state === 0) {
+                ctx.moveTo(25, 70);
+                ctx.lineTo(75, 70);
+                ctx.lineTo(65, 90);
+                ctx.lineTo(35, 90);
+            } else if (state === 1) {
+                ctx.moveTo(25, 70);
+                ctx.lineTo(75, 70);
+                ctx.lineTo(70, 85);
+                ctx.lineTo(30, 85);
+            } else {
+                ctx.moveTo(20, 70);
+                ctx.lineTo(80, 70);
+                ctx.lineTo(75, 80);
+                ctx.lineTo(25, 80);
+            }
+            ctx.closePath();
+            ctx.fill();
+        }
+
+        const images = createImages();
+
+        function drawRobot(x, y, color, isPlunging, plunges) {
+            ctx.fillStyle = color;
+            ctx.fillRect(x - 25, y - 50, 50, 80);
+            ctx.fillRect(x - 20, y - 80, 40, 30);
+            ctx.fillStyle = 'white';
+            ctx.fillRect(x - 15, y - 75, 10, 10);
+            ctx.fillRect(x + 5, y - 75, 10, 10);
+            
+            if (isPlunging) {
+                let plungerImg = plunges === 1 ? images.plunger1 : images.plunger2;
+                ctx.drawImage(plungerImg, x + (color === 'blue' ? 25 : -65), y - 40, 40, 60);
+            } else {
+                ctx.drawImage(images.plunger, x + (color === 'blue' ? 25 : -35), y - 40, 10, 60);
+            }
+            
+            ctx.fillStyle = color;
+            ctx.fillRect(x - 20, y + 30, 15, 40);
+            ctx.fillRect(x + 5, y + 30, 15, 40);
+        }
+
+        function drawScene(diceRoll = null) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawRobot(150, 200, 'blue', false);
+            drawRobot(450, 200, 'red', false);
+            ctx.drawImage(images.toilet, 250, 200, 100, 120);
+            
+            if (diceRoll !== null) {
+                ctx.drawImage(images[`dice${diceRoll}`], 275, 100, 50, 50);
+            }
+        }
+
+        function animateFlush(player, times) {
+            let count = 0;
+            function animate() {
+                if (count < times) {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    ctx.drawImage(images.toilet, 250, 200, 100, 120);
+                    if (player === 1) {
+                        drawRobot(450, 200, 'red', false);
+                        drawRobot(240, 200, 'blue', true, times);
+                    } else {
+                        drawRobot(150, 200, 'blue', false);
+                        drawRobot(360, 200, 'red', true, times);
+                    }
+                    count++;
+                    setTimeout(animate, 500);
+                } else {
+                    drawScene();
+                }
+            }
+            animate();
+        }
+
+        const rollDice = () => Math.floor(Math.random() * 3);
+
+        const initializeGame = () => {
+            explodeNumber = Math.floor(Math.random() * (MAX_EXPLODE - MIN_EXPLODE + 1)) + MIN_EXPLODE;
+            currentPlayer = 1;
+            totalPlunges = 0;
+            remainingPlunges = 0;
+            updateGameInfo(translations[language].rollPrompt.replace("{0}", currentPlayer));
+            drawScene();
+        };
+
+        const handleRollDice = () => {
+            currentRoll = rollDice();
+            updateGameInfo(translations[language].rollResult.replace("{0}", currentPlayer).replace("{1}", currentRoll));
+            drawScene(currentRoll);
+            
+            if (currentRoll === 0) {
+                currentPlayer = currentPlayer === 1 ? 2 : 1;
+                setTimeout(() => {
+                    updateGameInfo(translations[language].rollPrompt.replace("{0}", currentPlayer));
+                }, 1000);
+            } else {
+                remainingPlunges = currentRoll;
+                updateGameInfo(translations[language].plungePrompt.replace("{0}", currentPlayer).replace("{1}", remainingPlunges));
+            }
+        };
+
+        const handleFlushToilet = () => {
+            if (remainingPlunges > 0) {
+                totalPlunges++;
+                remainingPlunges--;
+                updateGameInfo(translations[language].plungeResult.replace("{0}", currentPlayer).replace("{1}", remainingPlunges));
+                animateFlush(currentPlayer, 1);
+                
+                if (totalPlunges >= explodeNumber) {
+                    setTimeout(() => {
+                        ctx.fillStyle = '#8B4513';
+                        ctx.fillRect(0, 0, canvas.width, canvas.height);
+                        updateGameInfo(translations[language].explosion.replace("{0}", currentPlayer));
+                    }, 500);
+                    return;
+                }
+                
+                if (remainingPlunges === 0) {
+                    setTimeout(() => {
+                        currentPlayer = currentPlayer === 1 ? 2 : 1;
+                        updateGameInfo(translations[language].nextTurn.replace("{0}", currentPlayer));
+                    }, 500);
+                }
+            }
+        };
+
+        const updateGameInfo = (message) => {
+            const gameInfo = document.getElementById('game-info');
+            gameInfo.innerHTML = `<p>${message}</p>`;
+        };
+
+        function restartGame() {
+            initializeGame();
+        }
+
+        function backToMenu() {
+            window.location.href = 'index.html';
+        }
+
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'q' && remainingPlunges === 0) {
+                handleRollDice();
+            } else if (event.key === ' ' && remainingPlunges > 0) {
+                handleFlushToilet();
+            }
+        });
+    </script>
+</body>
+</html>

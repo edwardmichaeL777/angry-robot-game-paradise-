@@ -1,0 +1,132 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Angry Robot Game Paradise</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+        }
+        .language-select {
+            margin-bottom: 20px;
+        }
+        .game-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+        }
+        .game-item {
+            border: 1px solid #ddd;
+            padding: 10px;
+            width: 200px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="language-select">
+        <button onclick="setLanguage('en')" aria-label="Set language to English">English</button>
+        <button onclick="setLanguage('zh')" aria-label="Set language to Chinese">中文</button>
+    </div>
+    <h1 id="title">Angry Robot Game Paradise</h1>
+    <p id="intro">Enjoy our selection of seven exciting games!</p>
+    <div class="game-list">
+        <div class="game-item">
+            <h2 id="game1">Game 1</h2>
+            <p id="desc1">Robot Boxing Match</p>
+            <a href="game1.html"><button id="play1">Play Game 1</button></a>
+        </div>
+        <div class="game-item">
+            <h2 id="game2">Game 2</h2>
+            <p id="desc2">Robot Toilet Game</p>
+            <a href="game2.html"><button id="play2">Play Game 2</button></a>
+        </div>
+        <div class="game-item">
+            <h2 id="game3">Game 3</h2>
+            <p id="desc3">Robot Racing Game</p>
+            <a href="game3.html"><button id="play3">Play Game 3</button></a>
+        </div>
+        <div class="game-item">
+            <h2 id="game4">Game 4</h2>
+            <p id="desc4">Robot Hat Trick</p>
+            <a href="game4.html"><button id="play4">Play Game 4</button></a>
+        </div>
+        <div class="game-item">
+            <h2 id="game5">Game 5</h2>
+            <p id="desc5">Robot Bomb Game</p>
+            <a href="game5.html"><button id="play5">Play Game 5</button></a>
+        </div>
+        <div class="game-item">
+            <h2 id="game6">Game 6</h2>
+            <p id="desc6">Robot Battery Catcher</p>
+            <a href="game6.html"><button id="play6">Play Game 6</button></a>
+        </div>
+        <div class="game-item">
+            <h2 id="game7">Game 7</h2>
+            <p id="desc7">Robot Obstacle Race</p>
+            <a href="game7.html"><button id="play7">Play Game 7</button></a>
+        </div>
+    </div>
+    <script>
+        function setLanguage(lang) {
+            if (lang === 'zh') {
+                document.getElementById('title').innerText = '愤怒机器人游戏天堂';
+                document.getElementById('intro').innerText = '尽情享受我们精选的七款精彩游戏！';
+                document.getElementById('game1').innerText = '游戏 1';
+                document.getElementById('desc1').innerText = '机器人拳击赛';
+                document.getElementById('play1').innerText = '玩游戏 1';
+                document.getElementById('game2').innerText = '游戏 2';
+                document.getElementById('desc2').innerText = '机器人马桶游戏';
+                document.getElementById('play2').innerText = '玩游戏 2';
+                document.getElementById('game3').innerText = '游戏 3';
+                document.getElementById('desc3').innerText = '机器人赛跑游戏';
+                document.getElementById('play3').innerText = '玩游戏 3';
+                document.getElementById('game4').innerText = '游戏 4';
+                document.getElementById('desc4').innerText = '机器人帽子戏法';
+                document.getElementById('play4').innerText = '玩游戏 4';
+                document.getElementById('game5').innerText = '游戏 5';
+                document.getElementById('desc5').innerText = '机器人炸弹游戏';
+                document.getElementById('play5').innerText = '玩游戏 5';
+                document.getElementById('game6').innerText = '游戏 6';
+                document.getElementById('desc6').innerText = '机器人电池捕手';
+                document.getElementById('play6').innerText = '玩游戏 6';
+                document.getElementById('game7').innerText = '游戏 7';
+                document.getElementById('desc7').innerText = '机器人障碍赛';
+                document.getElementById('play7').innerText = '玩游戏 7';
+            } else {
+                document.getElementById('title').innerText = 'Angry Robot Game Paradise';
+                document.getElementById('intro').innerText = 'Enjoy our selection of seven exciting games!';
+                document.getElementById('game1').innerText = 'Game 1';
+                document.getElementById('desc1').innerText = 'Robot Boxing Match';
+                document.getElementById('play1').innerText = 'Play Game 1';
+                document.getElementById('game2').innerText = 'Game 2';
+                document.getElementById('desc2').innerText = 'Robot Toilet Game';
+                document.getElementById('play2').innerText = 'Play Game 2';
+                document.getElementById('game3').innerText = 'Game 3';
+                document.getElementById('desc3').innerText = 'Robot Racing Game';
+                document.getElementById('play3').innerText = 'Play Game 3';
+                document.getElementById('game4').innerText = 'Game 4';
+                document.getElementById('desc4').innerText = 'Robot Hat Trick';
+                document.getElementById('play4').innerText = 'Play Game 4';
+                document.getElementById('game5').innerText = 'Game 5';
+                document.getElementById('desc5').innerText = 'Robot Bomb Game';
+                document.getElementById('play5').innerText = 'Play Game 5';
+                document.getElementById('game6').innerText = 'Game 6';
+                document.getElementById('desc6').innerText = 'Robot Battery Catcher';
+                document.getElementById('play6').innerText = 'Play Game 6';
+                document.getElementById('game7').innerText = 'Game 7';
+                document.getElementById('desc7').innerText = 'Robot Obstacle Race';
+                document.getElementById('play7').innerText = 'Play Game 7';
+            }
+        }
+
+        // Set default language to English
+        setLanguage('en');
+    </script>
+</body>
+</html>

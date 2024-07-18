@@ -1,0 +1,357 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Typing Race Game</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            text-align: center;
+        }
+        .page {
+            display: none;
+        }
+        #languagePage {
+            display: block;
+        }
+        button {
+            font-size: 18px;
+            margin: 10px;
+            padding: 10px 20px;
+            cursor: pointer;
+        }
+        .player {
+            margin-bottom: 20px;
+        }
+        .letters {
+            font-family: monospace;
+            font-size: 24px;
+        }
+        .progress {
+            width: 240px;
+            height: 20px;
+            background-color: #ddd;
+            margin: 0 auto;
+        }
+        .progress-bar {
+            height: 100%;
+            background-color: #4CAF50;
+            width: 0%;
+        }
+        canvas {
+            border: 1px solid black;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div id="languagePage" class="page">
+        <h1>Select Language / 选择语言</h1>
+        <button onclick="setLanguage('en')">English</button>
+        <button onclick="setLanguage('zh')">中文</button>
+    </div>
+
+    <div id="rulesPage" class="page">
+        <h1 id="rulesTitle"></h1>
+        <ul id="rulesList"></ul>
+        <button onclick="startGame()" id="startGameBtn"></button>
+    </div>
+
+    <div id="gamePage" class="page">
+        <h1 id="gameTitle"></h1>
+        <div id="startPrompt"></div>
+        <canvas id="gameCanvas" width="600" height="300"></canvas>
+        <div id="player1" class="player">
+            <h2 id="player1Title"></h2>
+            <div class="letters"></div>
+            <div class="progress"><div class="progress-bar"></div></div>
+        </div>
+        <div id="player2" class="player">
+            <h2 id="player2Title"></h2>
+            <div class="letters"></div>
+            <div class="progress"><div class="progress-bar"></div></div>
+        </div>
+        <div id="winner"></div>
+        <button onclick="restartGame()" id="restartBtn"></button>
+        <button onclick="backToMenu()" id="menuBtn"></button>
+    </div>
+
+    <script>
+    let language = 'en';
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    const translations = {
+        en: {
+            rulesTitle: "Game Rules",
+            rules: [
+                "Both players must press the spacebar to start the game",
+                "Player 1 uses left-side letters (qwerasdfz), Player 2 uses right-side letters (uiophjklm) press the leftest letters of the list",
+                "Correctly type the displayed letter to move the robot forward",
+                "Blue potion (Player 1: X key, Player 2: N key) doubles your speed for 3 seconds",
+                "Green potion (Player 1: C key, Player 2: B key) halves your opponent's speed for 3 seconds",
+                "Each player can use each potion once during the game",
+                "First player to reach the finish line wins"
+            ],
+            startGame: "Start Game",
+            gameTitle: "Typing Race Game",
+            player1: "Player 1",
+            player2: "Player 2",
+            startPrompt: "Both players press spacebar to start!",
+            winner: "wins!",
+            restart: "Restart Game",
+            backToMenu: "Back to Menu"
+        },
+        zh: {
+            rulesTitle: "游戏规则",
+            rules: [
+                "两名玩家都需要按下空格键才能开始游戏",
+                "玩家1使用键盘左侧字母（qwerasdfz），玩家2使用键盘右侧字母（uiophjklm）要按列表最左边的",
+                "正确输入显示的字母，机器人就会向前移动",
+                "蓝色药水（玩家1：X键，玩家2：N键）可以让自己速度翻倍，持续3秒",
+                "绿色药水（玩家1：C键，玩家2：B键）可以让对手速度减半，持续3秒",
+                "每个玩家在游戏中只能使用每种药水一次",
+                "第一个到达终点的玩家获胜"
+            ],
+            startGame: "开始游戏",
+            gameTitle: "打字赛跑游戏",
+            player1: "玩家1",
+            player2: "玩家2",
+            startPrompt: "两名玩家按下空格键开始！",
+            winner: "获胜！",
+            restart: "重新开始",
+            backToMenu: "返回菜单"
+        }
+    };
+
+    function setLanguage(lang) {
+        language = lang;
+        document.getElementById('languagePage').style.display = 'none';
+        document.getElementById('rulesPage').style.display = 'block';
+        updateTexts();
+    }
+
+    function updateTexts() {
+        document.getElementById('rulesTitle').textContent = translations[language].rulesTitle;
+        const rulesList = document.getElementById('rulesList');
+        rulesList.innerHTML = '';
+        translations[language].rules.forEach(rule => {
+            const li = document.createElement('li');
+            li.textContent = rule;
+            rulesList.appendChild(li);
+        });
+        document.getElementById('startGameBtn').textContent = translations[language].startGame;
+        document.getElementById('gameTitle').textContent = translations[language].gameTitle;
+        document.getElementById('player1Title').textContent = translations[language].player1;
+        document.getElementById('player2Title').textContent = translations[language].player2;
+        document.getElementById('startPrompt').textContent = translations[language].startPrompt;
+        document.getElementById('restartBtn').textContent = translations[language].restart;
+        document.getElementById('menuBtn').textContent = translations[language].backToMenu;
+    }
+
+    function startGame() {
+        document.getElementById('rulesPage').style.display = 'none';
+        document.getElementById('gamePage').style.display = 'block';
+        game.init();
+    }
+
+    function restartGame() {
+        game = new Game();
+        document.getElementById('winner').textContent = '';
+        document.getElementById('startPrompt').style.display = 'block';
+        game.init();
+    }
+
+    function backToMenu() {
+        window.location.href = 'index.html';
+    }
+
+    function drawRobot(x, y, color) {
+        ctx.fillStyle = color;
+        ctx.fillRect(x - 25, y - 50, 50, 80);
+        ctx.fillRect(x - 20, y - 80, 40, 30);
+        ctx.fillStyle = 'white';
+        ctx.fillRect(x - 15, y - 75, 10, 10);
+        ctx.fillRect(x + 5, y - 75, 10, 10);
+        ctx.fillStyle = color;
+        ctx.fillRect(x + 25, y - 40, 10, 60);
+        ctx.fillRect(x - 35, y - 40, 10, 60);
+        ctx.fillRect(x - 20, y + 30, 15, 40);
+        ctx.fillRect(x + 5, y + 30, 15, 40);
+    }
+
+    function drawPotion(x, y, color) {
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+        ctx.lineTo(x - 10, y + 20);
+        ctx.lineTo(x + 10, y + 20);
+        ctx.closePath();
+        ctx.fill();
+        ctx.fillRect(x - 5, y + 20, 10, 15);
+    }
+
+    function drawFinishLine(x) {
+        const squareSize = 20;
+        const numSquares = 15;
+        ctx.fillStyle = 'black';
+        for (let i = 0; i < numSquares; i++) {
+            if (i % 2 === 0) {
+                ctx.fillRect(x, i * squareSize, squareSize, squareSize);
+                ctx.fillRect(x + squareSize, (i + 1) * squareSize, squareSize, squareSize);
+            }
+        }
+    }
+
+    class Player {
+        constructor(keys, specialKeys, y, color) {
+            this.position = 0;
+            this.letters = [];
+            this.keys = keys;
+            this.bluePotion = specialKeys[0];
+            this.greenPotion = specialKeys[1];
+            this.blueUsed = false;
+            this.greenUsed = false;
+            this.speedMultiplier = 1;
+            this.x = 50;
+            this.y = y;
+            this.color = color;
+            this.ready = false;
+        }
+
+        generateLetters() {
+            while (this.letters.length < 8) {
+                this.letters.push(this.keys[Math.floor(Math.random() * this.keys.length)]);
+            }
+        }
+
+        move() {
+            this.position += 3 * this.speedMultiplier;
+            this.x = 50 + this.position;
+            this.letters.shift();
+            this.generateLetters();
+        }
+
+        useBluePotion() {
+            if (!this.blueUsed) {
+                this.blueUsed = true;
+                this.speedMultiplier = 2;
+                setTimeout(() => { this.speedMultiplier = 1; }, 3000);
+            }
+        }
+
+        useGreenPotion(opponent) {
+            if (!this.greenUsed) {
+                this.greenUsed = true;
+                opponent.speedMultiplier = 0.5;
+                setTimeout(() => { opponent.speedMultiplier = 1; }, 3000);
+            }
+        }
+
+        draw() {
+            drawRobot(this.x, this.y, this.color);
+        }
+    }
+
+    class Game {
+        constructor() {
+            this.player1 = new Player("qwerasdfz".split(''), ['x', 'c'], 100, 'blue');
+            this.player2 = new Player("uiophjklm".split(''), ['n', 'b'], 220, 'red');
+            this.winner = null;
+            this.bluePotion1 = { x: 200, y: 50 };
+            this.greenPotion1 = { x: 400, y: 50 };
+            this.bluePotion2 = { x: 200, y: 250 };
+            this.greenPotion2 = { x: 400, y: 250 };
+            this.gameStarted = false;
+        }
+
+        init() {
+            this.player1.generateLetters();
+            this.player2.generateLetters();
+            this.updateDisplay();
+            document.addEventListener('keydown', (event) => this.handleKeyPress(event));
+            this.gameLoop();
+        }
+
+        start() {
+            this.gameStarted = true;
+            document.getElementById('startPrompt').style.display = 'none';
+        }
+
+        handleKeyPress(event) {
+            if (!this.gameStarted) {
+                if (event.code === 'Space') {
+                    if (!this.player1.ready) {
+                        this.player1.ready = true;
+                    } else if (!this.player2.ready) {
+                        this.player2.ready = true;
+                        this.start();
+                    }
+                }
+                return;
+            }
+
+            if (this.winner) return;
+            if (this.player1.letters[0] === event.key) {
+                this.player1.move();
+            } else if (this.player2.letters[0] === event.key) {
+                this.player2.move();
+            } else if (event.key === this.player1.bluePotion) {
+                this.player1.useBluePotion();
+            } else if (event.key === this.player1.greenPotion) {
+                this.player1.useGreenPotion(this.player2);
+            } else if (event.key === this.player2.bluePotion) {
+                this.player2.useBluePotion();
+            } else if (event.key === this.player2.greenPotion) {
+                this.player2.useGreenPotion(this.player1);
+            }
+
+            this.updateDisplay();
+
+            if (this.player1.position >= 480 || this.player2.position >= 480) {
+                this.winner = this.player1.position >= 480 ? translations[language].player1 : translations[language].player2;
+                document.getElementById('winner').textContent = `${this.winner} ${translations[language].winner}`;
+            }
+        }
+
+        gameLoop() {
+            this.drawGame();
+            if (!this.winner) {
+                requestAnimationFrame(() => this.gameLoop());
+            }
+        }
+
+        drawGame() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.fillStyle = '#ddd';
+            ctx.fillRect(0, 70, canvas.width, 60);
+            ctx.fillRect(0, 190, canvas.width, 60);
+
+            drawFinishLine(530);
+
+            this.player1.draw();
+            this.player2.draw();
+            if (!this.player1.blueUsed) drawPotion(this.bluePotion1.x, this.bluePotion1.y, 'blue');
+            if (!this.player1.greenUsed) drawPotion(this.greenPotion1.x, this.greenPotion1.y, 'green');
+            if (!this.player2.blueUsed) drawPotion(this.bluePotion2.x, this.bluePotion2.y, 'blue');
+            if (!this.player2.greenUsed) drawPotion(this.greenPotion2.x, this.greenPotion2.y, 'green');
+        }
+
+        updateDisplay() {
+            document.querySelector('#player1 .letters').textContent = this.player1.letters.join(' ');
+            document.querySelector('#player2 .letters').textContent = this.player2.letters.join(' ');
+            document.querySelector('#player1 .progress-bar').style.width = `${(this.player1.position / 480) * 100}%`;
+            document.querySelector('#player2 .progress-bar').style.width = `${(this.player2.position / 480) * 100}%`;
+            this.drawGame();
+        }
+    }
+
+    let game = new Game();
+    </script>
+</body>
+</html>

@@ -1,5 +1,4 @@
-
-htmlCopy<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9745408431725056"
@@ -71,7 +70,6 @@ htmlCopy<!DOCTYPE html>
         <canvas id="gameCanvas" width="600" height="400"></canvas>
         <div id="game-info"></div>
         <div class="control-buttons">
-            <button id="restartButton" onclick="restartGame()"></button>
             <button id="backButton" onclick="backToMenu()"></button>
         </div>
     </div>
@@ -100,7 +98,6 @@ htmlCopy<!DOCTYPE html>
                 plungeResult: "Player {0} plunged. {1} plunges remaining",
                 explosion: "Oh no! The toilet exploded! Player {0} loses!",
                 nextTurn: "Player {0}, press 'q' to roll the dice",
-                restartButton: "Restart Game",
                 backButton: "Back to Menu"
             },
             zh: {
@@ -113,7 +110,6 @@ htmlCopy<!DOCTYPE html>
                 plungeResult: "玩家 {0} 通马桶。还需通 {1} 次",
                 explosion: "糟糕！马桶爆炸了！玩家 {0} 输了！",
                 nextTurn: "玩家 {0}，按 'q' 键掷骰子",
-                restartButton: "重新开始",
                 backButton: "返回菜单"
             }
         };
@@ -135,7 +131,6 @@ htmlCopy<!DOCTYPE html>
             document.getElementById('page2').style.display = 'none';
             document.getElementById('page3').style.display = 'block';
             document.getElementById('gameTitle').textContent = translations[language].title;
-            document.getElementById('restartButton').textContent = translations[language].restartButton;
             document.getElementById('backButton').textContent = translations[language].backButton;
             initializeGame();
         }
@@ -348,10 +343,6 @@ htmlCopy<!DOCTYPE html>
             gameInfo.innerHTML = `<p>${message}</p>`;
         };
 
-        function restartGame() {
-            initializeGame();
-        }
-
         function backToMenu() {
             document.getElementById('page3').style.display = 'none';
             document.getElementById('page1').style.display = 'block';
@@ -368,4 +359,3 @@ htmlCopy<!DOCTYPE html>
     </script>
 </body>
 </html>
-                

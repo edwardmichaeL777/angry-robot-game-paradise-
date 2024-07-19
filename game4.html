@@ -81,9 +81,9 @@
     let score = [0, 0];
     let currentPlayer = 0;
     let hats = [];
-    let hatSpeed = 3;
+    let hatSpeed = 2;
     let lastHatTime = 0;
-    let hatInterval = 1500;
+    let hatInterval = 2000;
 
     const HAT_HEIGHT = 10;
     const MAX_HATS = 10;
@@ -332,8 +332,8 @@
                     hats.push(new Hat('yellow'));
                 }
                 lastHatTime = now;
-                hatSpeed += 0.2; // Increase speed more rapidly
-                hatInterval = Math.min(3000, hatInterval + 50); // Increase interval (decrease frequency) up to a maximum of 3 seconds
+                hatSpeed += 0.1;
+                hatInterval = Math.max(500, hatInterval - 50);
             }
             
             hats = hats.filter(hat => {
@@ -365,9 +365,9 @@
         score = [0, 0];
         currentPlayer = 0;
         hats = [];
-        hatSpeed = 3; // Increased initial speed
+        hatSpeed = 2;
         lastHatTime = 0;
-        hatInterval = 1500; // Decreased initial interval (more frequent at start)
+        hatInterval = 2000;
         robot1.hatsWorn = 0;
         robot2.hatsWorn = 0;
         

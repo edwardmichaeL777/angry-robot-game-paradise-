@@ -1,4 +1,5 @@
-﻿<!DOCTYPE html>
+Certainly. Here's the full HTML code with the updated JavaScript to address the restart button issue and improve the handling of dice rolls:
+htmlCopy<!DOCTYPE html>
 <html lang="en">
 <head>
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9745408431725056"
@@ -86,6 +87,7 @@
         let explodeNumber = 0;
         let currentRoll = 0;
         let remainingPlunges = 0;
+        let gameOver = false;
 
         const translations = {
             en: {
@@ -293,11 +295,14 @@
             currentPlayer = 1;
             totalPlunges = 0;
             remainingPlunges = 0;
+            currentRoll = 0;
+            gameOver = false;
             updateGameInfo(translations[language].rollPrompt.replace("{0}", currentPlayer));
             drawScene();
         };
 
         const handleRollDice = () => {
+            if (gameOver) return;
             currentRoll = rollDice();
             updateGameInfo(translations[language].rollResult.replace("{0}", currentPlayer).replace("{1}", currentRoll));
             drawScene(currentRoll);
@@ -314,27 +319,27 @@
         };
 
         const handleFlushToilet = () => {
-            if (remainingPlunges > 0) {
-                totalPlunges++;
-                remainingPlunges--;
-                updateGameInfo(translations[language].plungeResult.replace("{0}", currentPlayer).replace("{1}", remainingPlunges));
-                animateFlush(currentPlayer, 1);
-                
-                if (totalPlunges >= explodeNumber) {
-                    setTimeout(() => {
-                        ctx.fillStyle = '#8B4513';
-                        ctx.fillRect(0, 0, canvas.width, canvas.height);
-                        updateGameInfo(translations[language].explosion.replace("{0}", currentPlayer));
-                    }, 500);
-                    return;
-                }
-                
-                if (remainingPlunges === 0) {
-                    setTimeout(() => {
-                        currentPlayer = currentPlayer === 1 ? 2 : 1;
-                        updateGameInfo(translations[language].nextTurn.replace("{0}", currentPlayer));
-                    }, 500);
-                }
+            if (gameOver || remainingPlunges === 0) return;
+            totalPlunges++;
+            remainingPlunges--;
+            updateGameInfo(translations[language].plungeResult.replace("{0}", currentPlayer).replace("{1}", remainingPlunges));
+            animateFlush(currentPlayer, 1);
+            
+            if (totalPlunges >= explodeNumber) {
+                gameOver = true;
+                setTimeout(() => {
+                    ctx.fillStyle = '#8B4513';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    updateGameInfo(translations[language].explosion.replace("{0}", currentPlayer));
+                }, 500);
+                return;
+            }
+            
+            if (remainingPlunges === 0) {
+                setTimeout(() => {
+                    currentPlayer = currentPlayer === 1 ? 2 : 1;
+                    updateGameInfo(translations[language].nextTurn.replace("{0}", currentPlayer));
+                }, 500);
             }
         };
 
@@ -348,16 +353,19 @@
         }
 
         function backToMenu() {
-            window.location.href = 'index.html';
+            document.getElementById('page3').style.display = 'none';
+            document.getElementById('page1').style.display = 'block';
         }
 
         document.addEventListener('keydown', (event) => {
-            if (event.key === 'q' && remainingPlunges === 0) {
+            if (event.key === 'q' && remainingPlunges === 0 && !gameOver) {
                 handleRollDice();
-            } else if (event.key === ' ' && remainingPlunges > 0) {
+            }
+            else if (event.key === ' ' && remainingPlunges > 0 && !gameOver) {
                 handleFlushToilet();
             }
         });
     </script>
 </body>
 </html>
+                

@@ -85,6 +85,7 @@
         </div>
         <div class="control-buttons">
             <button id="backButton" onclick="backToMenu()"></button>
+            <button id="restartButton" onclick="restartGame()"></button>
         </div>
     </div>
 
@@ -118,7 +119,8 @@
                 nextTurn: "Player {0}, roll the dice",
                 backButton: "Back to Menu",
                 rollDice: "Roll Dice",
-                flushToilet: "Flush Toilet"
+                flushToilet: "Flush Toilet",
+                restartButton: "Restart Game",
             },
             zh: {
                 title: "机器人马桶游戏",
@@ -135,7 +137,8 @@
                 nextTurn: "玩家 {0}，掷骰子",
                 backButton: "返回菜单",
                 rollDice: "掷骰子",
-                flushToilet: "通马桶"
+                flushToilet: "通马桶",
+                restartButton: "重新开始",
             }
         };
 
@@ -162,6 +165,7 @@
             document.getElementById('page3').style.display = 'block';
             document.getElementById('gameTitle').textContent = translations[language].title;
             document.getElementById('backButton').textContent = translations[language].backButton;
+            document.getElementById('restartButton').textContent = translations[language].restartButton;
             
             if (deviceType === 'cellphone') {
                 document.getElementById('cellphoneControls').style.display = 'block';
@@ -172,7 +176,7 @@
             initializeGame();
         }
 
-         function createImages() {
+        function createImages() {
             const images = {};
             const imageNames = ['dice0', 'dice1', 'dice2', 'toilet', 'plunger', 'plunger1', 'plunger2'];
             
@@ -349,6 +353,7 @@
                 updateGameInfo(translations[language].plungePrompt.replace("{0}", currentPlayer).replace("{1}", remainingPlunges));
             }
         };
+
         const handleFlushToilet = () => {
             if (gameOver || remainingPlunges === 0) return;
             totalPlunges++;
@@ -373,6 +378,11 @@
                 }, 500);
             }
         };
+
+        function restartGame() {
+            initializeGame();
+            drawScene();
+        }
 
         const updateGameInfo = (message) => {
             const gameInfo = document.getElementById('game-info');

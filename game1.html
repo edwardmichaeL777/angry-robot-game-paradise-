@@ -36,6 +36,39 @@
         .control-buttons {
             margin-top: 20px;
         }
+        #cellphoneInterface {
+            display: none;
+            width: 300px;
+            height: 600px;
+            background-color: #333;
+            border-radius: 20px;
+            padding: 20px;
+            position: relative;
+        }
+        #cellphoneScreen {
+            width: 100%;
+            height: 80%;
+            background-color: #fff;
+            border-radius: 10px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .punch-button {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            font-size: 24px;
+            position: absolute;
+            bottom: 20px;
+        }
+        #punchA {
+            left: 20px;
+        }
+        #punchB {
+            right: 20px;
+        }
     </style>
 </head>
 <body>
@@ -49,7 +82,9 @@
     <div id="page2" class="page">
         <h1 id="rulesTitle"></h1>
         <div id="rules"></div>
-        <button id="startButton"></button>
+        <h2 id="deviceChoiceTitle"></h2>
+        <button id="computerButton" onclick="chooseDevice('computer')"></button>
+        <button id="cellphoneButton" onclick="chooseDevice('cellphone')"></button>
     </div>
 
     <div id="page3" class="page">
@@ -65,6 +100,23 @@
         </div>
     </div>
 
+    <div id="cellphoneInterface">
+        <div id="cellphoneScreen">
+            <h2 id="cellphoneGameTitle"></h2>
+            <p id="cellphoneInstructions"></p>
+            <canvas id="cellphoneCanvas" width="280" height="300"></canvas>
+            <div id="cellphoneTimer"></div>
+            <div id="cellphoneScores"></div>
+            <div id="cellphoneResult"></div>
+            <div class="cellphone-control-buttons">
+                <button id="cellphoneRestartButton" onclick="restartGame()"></button>
+                <button id="cellphoneBackButton" onclick="backToMenu()"></button>
+            </div>
+        </div>
+        <button id="punchA" class="punch-button">A</button>
+        <button id="punchB" class="punch-button">B</button>
+    </div>
+
     <script>
         let language = 'en';
         let scoreA = 0;
@@ -74,8 +126,8 @@
         let lastPunchTimeA = 0;
         let lastPunchTimeB = 0;
         const reactionTime = 70;
-        const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
+        let currentDevice = 'computer';
+        let canvas, ctx;
 
         function setLanguage(lang) {
             language = lang;
@@ -102,27 +154,53 @@
                 "6. 结束时得分最高的机器人获胜。"
             ];
             document.getElementById('rules').innerHTML = rules.join('<br>');
-            document.getElementById('startButton').textContent = language === 'en' ? 'Start Game' : '开始游戏';
-            document.getElementById('startButton').onclick = startGame;
+            document.getElementById('deviceChoiceTitle').textContent = language === 'en' ? 'Choose your device' : '选择你的设备';
+            document.getElementById('computerButton').textContent = language === 'en' ? 'Computer' : '电脑';
+            document.getElementById('cellphoneButton').textContent = language === 'en' ? 'Cellphone' : '手机';
         }
 
-        function startGame() {
+        function chooseDevice(device) {
+            currentDevice = device;
             document.getElementById('page2').style.display = 'none';
-            document.getElementById('page3').style.display = 'block';
+            if (device === 'computer') {
+                document.getElementById('page3').style.display = 'block';
+                canvas = document.getElementById('gameCanvas');
+            } else {
+                document.getElementById('cellphoneInterface').style.display = 'block';
+                canvas = document.getElementById('cellphoneCanvas');
+            }
+            ctx = canvas.getContext('2d');
             updateGamePage();
             resetGame();
             drawRobots(false, false);
-            document.addEventListener('keydown', handleKeyPress);
+            if (device === 'computer') {
+                document.addEventListener('keydown', handleKeyPress);
+            } else {
+                document.getElementById('punchA').addEventListener('click', () => handlePunch('A'));
+                document.getElementById('punchB').addEventListener('click', () => handlePunch('B'));
+            }
             gameInterval = setInterval(updateTimer, 1000);
         }
 
         function updateGamePage() {
-            document.getElementById('gameTitle').textContent = language === 'en' ? 'Robot Boxing Match' : '机器人拳击赛';
-            document.getElementById('instructions').textContent = language === 'en' ? 
-                "Robot A: Press 'Z' to punch | Robot B: Press 'L' to punch" :
-                "机器人A: 按'Z'出拳 | 机器人B: 按'L'出拳";
-            document.getElementById('restartButton').textContent = language === 'en' ? 'Restart Game' : '重新开始';
-            document.getElementById('backButton').textContent = language === 'en' ? 'Back to Menu' : '返回菜单';
+            const title = language === 'en' ? 'Robot Boxing Match' : '机器人拳击赛';
+            const instructions = language === 'en' ? 
+                (currentDevice === 'computer' ? "Robot A: Press 'Z' to punch | Robot B: Press 'L' to punch" : "Tap the buttons to punch") :
+                (currentDevice === 'computer' ? "机器人A: 按'Z'出拳 | 机器人B: 按'L'出拳" : "点击按钮出拳");
+            const restartText = language === 'en' ? 'Restart Game' : '重新开始';
+            const backText = language === 'en' ? 'Back to Menu' : '返回菜单';
+            
+            if (currentDevice === 'computer') {
+                document.getElementById('gameTitle').textContent = title;
+                document.getElementById('instructions').textContent = instructions;
+                document.getElementById('restartButton').textContent = restartText;
+                document.getElementById('backButton').textContent = backText;
+            } else {
+                document.getElementById('cellphoneGameTitle').textContent = title;
+                document.getElementById('cellphoneInstructions').textContent = instructions;
+                document.getElementById('cellphoneRestartButton').textContent = restartText;
+                document.getElementById('cellphoneBackButton').textContent = backText;
+            }
             updateScores();
             updateTimer();
         }
@@ -147,21 +225,33 @@
 
         function drawRobots(isAPunching, isBPunching) {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            drawRobot(150, 200, 'blue', isAPunching);
-            drawRobot(250, 200, 'red', isBPunching);
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            drawRobot(centerX - 50, centerY, 'blue', isAPunching);
+            drawRobot(centerX + 50, centerY, 'red', isBPunching);
         }
 
         function updateScores() {
-            document.getElementById('scores').textContent = language === 'en' ?
+            const scoresText = language === 'en' ?
                 `Robot A: ${scoreA} | Robot B: ${scoreB}` :
                 `机器人A: ${scoreA} | 机器人B: ${scoreB}`;
+            if (currentDevice === 'computer') {
+                document.getElementById('scores').textContent = scoresText;
+            } else {
+                document.getElementById('cellphoneScores').textContent = scoresText;
+            }
         }
 
         function updateTimer() {
             timeLeft--;
-            document.getElementById('timer').textContent = language === 'en' ?
+            const timerText = language === 'en' ?
                 `Time: ${timeLeft} seconds` :
                 `时间: ${timeLeft}秒`;
+            if (currentDevice === 'computer') {
+                document.getElementById('timer').textContent = timerText;
+            } else {
+                document.getElementById('cellphoneTimer').textContent = timerText;
+            }
             if (timeLeft <= 0) {
                 endGame();
             }
@@ -169,7 +259,12 @@
 
         function endGame() {
             clearInterval(gameInterval);
-            document.removeEventListener('keydown', handleKeyPress);
+            if (currentDevice === 'computer') {
+                document.removeEventListener('keydown', handleKeyPress);
+            } else {
+                document.getElementById('punchA').removeEventListener('click', () => handlePunch('A'));
+                document.getElementById('punchB').removeEventListener('click', () => handlePunch('B'));
+            }
 
             let resultText = language === 'en' ? 
                 `Game Over! Robot A Score: ${scoreA}, Robot B Score: ${scoreB}<br>` :
@@ -181,28 +276,36 @@
             } else {
                 resultText += language === 'en' ? "It's a Tie!" : "平局！";
             }
-            document.getElementById('result').innerHTML = resultText;
             
-            // Show control buttons
-            document.querySelector('.control-buttons').style.display = 'block';
+            if (currentDevice === 'computer') {
+                document.getElementById('result').innerHTML = resultText;
+                document.querySelector('.control-buttons').style.display = 'block';
+            } else {
+                document.getElementById('cellphoneResult').innerHTML = resultText;
+                document.querySelector('.cellphone-control-buttons').style.display = 'block';
+            }
         }
 
         function handleKeyPress(event) {
-            const currentTime = Date.now();
             if (event.key.toLowerCase() === 'z') {
-                if (currentTime - lastPunchTimeA > reactionTime) {
-                    scoreA++;
-                    lastPunchTimeA = currentTime;
-                    drawRobots(true, false);
-                    setTimeout(() => drawRobots(false, false), 150);
-                }
+                handlePunch('A');
             } else if (event.key.toLowerCase() === 'l') {
-                if (currentTime - lastPunchTimeB > reactionTime) {
-                    scoreB++;
-                    lastPunchTimeB = currentTime;
-                    drawRobots(false, true);
-                    setTimeout(() => drawRobots(false, false), 150);
-                }
+                handlePunch('B');
+            }
+        }
+
+        function handlePunch(robot) {
+            const currentTime = Date.now();
+            if (robot === 'A' && currentTime - lastPunchTimeA > reactionTime) {
+                scoreA++;
+                lastPunchTimeA = currentTime;
+                drawRobots(true, false);
+                setTimeout(() => drawRobots(false, false), 150);
+            } else if (robot === 'B' && currentTime - lastPunchTimeB > reactionTime) {
+                scoreB++;
+                lastPunchTimeB = currentTime;
+                drawRobots(false, true);
+                setTimeout(() => drawRobots(false, false), 150);
             }
             updateScores();
         }
@@ -213,15 +316,25 @@
             timeLeft = 15;
             lastPunchTimeA = 0;
             lastPunchTimeB = 0;
-            document.getElementById('result').innerHTML = '';
+            if (currentDevice === 'computer') {
+                document.getElementById('result').innerHTML = '';
+                document.querySelector('.control-buttons').style.display = 'none';
+            } else {
+                document.getElementById('cellphoneResult').innerHTML = '';
+                document.querySelector('.cellphone-control-buttons').style.display = 'none';
+            }
             updateScores();
-            document.querySelector('.control-buttons').style.display = 'none';
         }
 
         function restartGame() {
             resetGame();
             drawRobots(false, false);
-            document.addEventListener('keydown', handleKeyPress);
+            if (currentDevice === 'computer') {
+                document.addEventListener('keydown', handleKeyPress);
+            } else {
+                document.getElementById('punchA').addEventListener('click', () => handlePunch('A'));
+                document.getElementById('punchB').addEventListener('click', () => handlePunch('B'));
+            }
             gameInterval = setInterval(updateTimer, 1000);
         }
 

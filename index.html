@@ -28,7 +28,7 @@
             width: 200px;
             text-align: center;
         }
-        .story-section, .contact-section {
+        .quote-section, .story-section, .contact-section {
             margin-top: 30px;
             padding: 20px;
             border: 1px solid #ddd;
@@ -84,20 +84,23 @@
         </div>
     </div>
 
+    <div class="quote-section">
+        <h2 id="quoteTitle">Quote of the Day</h2>
+        <p id="quoteContent">"The only limit to our realization of tomorrow is our doubts of today." - Franklin D. Roosevelt</p>
+    </div>
+
     <div class="story-section">
         <h2 id="storyTitle">My Website Creation Story</h2>
         <button onclick="toggleStory()" id="storyButton">Show Story</button>
         <div id="storyContent" class="story-content">
-            
-            <p>I am acollege student from Taiwan.I started to make this is because of a hot and bored summer.If I have free time I will probably make some new game.It took me ninety hours to finish this with  my poor knowledge of html and the help of chatgpt when I am in trouble.</p>
-            
+            <p>I am a college student from Taiwan. I started to make this is because of a hot and bored summer. If I have free time I will probably make some new game. It took me ninety hours to finish this with my poor knowledge of HTML and the help of ChatGPT when I was in trouble.</p>
         </div>
     </div>
 
     <div class="contact-section">
         <h2 id="contactTitle">Contact & Advice</h2>
         <p id="contactIntro">We value your feedback! Please share your advice or any other comments.</p>
-        <p id="emailAddress">Email: your@email.com</p>
+        <p id="emailAddress">Email: rmpcjgps@gmail.com</p>
         <p id="quoteOfAdvice">"The best way to predict the future is to create it." - Alan Kay</p>
     </div>
 
@@ -127,6 +130,8 @@
                 document.getElementById('game7').innerText = '游戏 7';
                 document.getElementById('desc7').innerText = '机器人障碍赛';
                 document.getElementById('play7').innerText = '玩游戏 7';
+                document.getElementById('quoteTitle').innerText = '每日一语';
+                document.getElementById('quoteContent').innerText = '“我们对明天的实现唯一的限制是今天的怀疑。” - 富兰克林·D·罗斯福';
                 document.getElementById('storyTitle').innerText = '我的网站创作故事';
                 document.getElementById('storyButton').innerText = '显示故事';
                 document.getElementById('contactTitle').innerText = '联系与建议';
@@ -135,7 +140,7 @@
                 document.getElementById('quoteOfAdvice').innerText = '"预测未来的最好方法就是创造未来。" - 艾伦·凯';
             } else {
                 document.getElementById('title').innerText = 'Angry Robot Game Paradise';
-                document.getElementById('intro').innerText = 'Enjoy my selection of  exciting games!';
+                document.getElementById('intro').innerText = 'Enjoy my selection of exciting games!';
                 document.getElementById('game1').innerText = 'Game 1';
                 document.getElementById('desc1').innerText = 'Robot Boxing Match';
                 document.getElementById('play1').innerText = 'Play Game 1';
@@ -157,29 +162,28 @@
                 document.getElementById('game7').innerText = 'Game 7';
                 document.getElementById('desc7').innerText = 'Robot Obstacle Race';
                 document.getElementById('play7').innerText = 'Play Game 7';
+                document.getElementById('quoteTitle').innerText = 'Quote of the Day';
+                document.getElementById('quoteContent').innerText = '"The only limit to our realization of tomorrow is our doubts of today." - Franklin D. Roosevelt';
                 document.getElementById('storyTitle').innerText = 'My Website Creation Story';
                 document.getElementById('storyButton').innerText = 'Show Story';
                 document.getElementById('contactTitle').innerText = 'Contact & Advice';
                 document.getElementById('contactIntro').innerText = 'We value your feedback! Please share your advice or any other comments.';
-                document.getElementById('emailAddress').innerText = 'Email:rmpcjgps@gmail.com';
+                document.getElementById('emailAddress').innerText = 'Email: rmpcjgps@gmail.com';
                 document.getElementById('quoteOfAdvice').innerText = '"The best way to predict the future is to create it." - Alan Kay';
             }
         }
 
         function toggleStory() {
-            var content = document.getElementById("storyContent");
-            var button = document.getElementById("storyButton");
-            if (content.style.display === "none" || content.style.display === "") {
-                content.style.display = "block";
-                button.innerText = "Hide Story";
+            const storyContent = document.getElementById('storyContent');
+            const storyButton = document.getElementById('storyButton');
+            if (storyContent.style.display === 'none' || storyContent.style.display === '') {
+                storyContent.style.display = 'block';
+                storyButton.innerText = (document.getElementById('title').innerText === '愤怒机器人游戏天堂') ? '隐藏故事' : 'Hide Story';
             } else {
-                content.style.display = "none";
-                button.innerText = "Show Story";
+                storyContent.style.display = 'none';
+                storyButton.innerText = (document.getElementById('title').innerText === '愤怒机器人游戏天堂') ? '显示故事' : 'Show Story';
             }
         }
-
-      
-        setLanguage('en');
     </script>
 </body>
 </html>

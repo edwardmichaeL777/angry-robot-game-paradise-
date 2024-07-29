@@ -49,6 +49,14 @@
         .control-buttons button {
             margin: 0 10px;
         }
+        #cellphoneControls {
+            display: none;
+            margin-top: 20px;
+        }
+        #cellphoneControls button {
+            font-size: 24px;
+            padding: 15px 30px;
+        }
     </style>
 </head>
 <body>
@@ -62,13 +70,19 @@
     <div id="page2" class="page" style="display: none;">
         <h1 id="rulesTitle"></h1>
         <div id="rules"></div>
-        <button id="startButton" onclick="startGame()"></button>
+        <p id="deviceChoiceText"></p>
+        <button onclick="chooseDevice('computer')">Computer</button>
+        <button onclick="chooseDevice('cellphone')">Cellphone</button>
     </div>
 
     <div id="page3" class="page" style="display: none;">
         <h1 id="gameTitle"></h1>
         <canvas id="gameCanvas" width="600" height="400"></canvas>
         <div id="game-info"></div>
+        <div id="cellphoneControls">
+            <button id="rollDiceButton" onclick="handleRollDice()">Roll Dice</button>
+            <button id="flushToiletButton" onclick="handleFlushToilet()">Flush Toilet</button>
+        </div>
         <div class="control-buttons">
             <button id="backButton" onclick="backToMenu()"></button>
         </div>
@@ -76,6 +90,7 @@
 
     <script>
         let language = 'en';
+        let deviceType = 'computer';
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         const MIN_EXPLODE = 15;
@@ -90,27 +105,37 @@
         const translations = {
             en: {
                 title: "Robot Toilet Game",
-                rules: "Rules: Each player takes turns rolling a dice (0-2). If you roll 0, it's the next player's turn. Otherwise, you need to plunge the toilet that many times. Be careful not to make the toilet explode. Press 'q' to roll the dice, press the spacebar to plunge.",
+                rules: "Rules: Each player takes turns rolling a dice (0-2).Press'q'to roll the dice.Press the spacebar to plunge. If you roll 0, it's the next player's turn. Otherwise, you need to plunge the toilet that many times. Be careful not to make the toilet explode.",
+                deviceChoice: "Choose your device:",
+                computerControls: "Computer controls: Press 'q' to roll the dice, press the spacebar to plunge.",
+                cellphoneControls: "Cellphone controls: Use the on-screen buttons to roll the dice and plunge.",
                 startButton: "Start Game",
-                rollPrompt: "Player {0}, press 'q' to roll the dice",
+                rollPrompt: "Player {0}, roll the dice",
                 rollResult: "Player {0} rolled a {1}",
-                plungePrompt: "Player {0}, press spacebar to plunge {1} times",
+                plungePrompt: "Player {0}, plunge {1} times",
                 plungeResult: "Player {0} plunged. {1} plunges remaining",
                 explosion: "Oh no! The toilet exploded! Player {0} loses!",
-                nextTurn: "Player {0}, press 'q' to roll the dice",
-                backButton: "Back to Menu"
+                nextTurn: "Player {0}, roll the dice",
+                backButton: "Back to Menu",
+                rollDice: "Roll Dice",
+                flushToilet: "Flush Toilet"
             },
             zh: {
                 title: "机器人马桶游戏",
-                rules: "规则：每位玩家轮流掷骰子(0-2)。如果掷到0，直接换下一位玩家。否则，玩家需要通马桶相应次数。小心别让马桶爆炸。按 'q' 键掷骰子，按空格键通马桶。",
+                rules: "规则：每位玩家轮流掷骰子(0-2)。按 'q' 键掷骰子，按空格键通马桶。如果掷到0，直接换下一位玩家。否则，玩家需要通马桶相应次数。小心别让马桶爆炸。",
+                deviceChoice: "选择你的设备：",
+                computerControls: "电脑控制：按 'q' 键掷骰子，按空格键通马桶。",
+                cellphoneControls: "手机控制：使用屏幕上的按钮掷骰子和通马桶。",
                 startButton: "开始游戏",
-                rollPrompt: "玩家 {0}，按 'q' 键掷骰子",
+                rollPrompt: "玩家 {0}，掷骰子",
                 rollResult: "玩家 {0} 掷出了 {1}",
-                plungePrompt: "玩家 {0}，按空格键通马桶 {1} 次",
+                plungePrompt: "玩家 {0}，通马桶 {1} 次",
                 plungeResult: "玩家 {0} 通马桶。还需通 {1} 次",
                 explosion: "糟糕！马桶爆炸了！玩家 {0} 输了！",
-                nextTurn: "玩家 {0}，按 'q' 键掷骰子",
-                backButton: "返回菜单"
+                nextTurn: "玩家 {0}，掷骰子",
+                backButton: "返回菜单",
+                rollDice: "掷骰子",
+                flushToilet: "通马桶"
             }
         };
 
@@ -124,7 +149,12 @@
         function updateRulesPage() {
             document.getElementById('rulesTitle').textContent = translations[language].title;
             document.getElementById('rules').textContent = translations[language].rules;
-            document.getElementById('startButton').textContent = translations[language].startButton;
+            document.getElementById('deviceChoiceText').textContent = translations[language].deviceChoice;
+        }
+
+        function chooseDevice(device) {
+            deviceType = device;
+            startGame();
         }
 
         function startGame() {
@@ -132,10 +162,17 @@
             document.getElementById('page3').style.display = 'block';
             document.getElementById('gameTitle').textContent = translations[language].title;
             document.getElementById('backButton').textContent = translations[language].backButton;
+            
+            if (deviceType === 'cellphone') {
+                document.getElementById('cellphoneControls').style.display = 'block';
+                document.getElementById('rollDiceButton').textContent = translations[language].rollDice;
+                document.getElementById('flushToiletButton').textContent = translations[language].flushToilet;
+            }
+            
             initializeGame();
         }
 
-        function createImages() {
+         function createImages() {
             const images = {};
             const imageNames = ['dice0', 'dice1', 'dice2', 'toilet', 'plunger', 'plunger1', 'plunger2'];
             
@@ -312,7 +349,6 @@
                 updateGameInfo(translations[language].plungePrompt.replace("{0}", currentPlayer).replace("{1}", remainingPlunges));
             }
         };
-
         const handleFlushToilet = () => {
             if (gameOver || remainingPlunges === 0) return;
             totalPlunges++;
@@ -347,14 +383,16 @@
             window.location.href = 'index.html';
         }
 
-        document.addEventListener('keydown', (event) => {
-            if (event.key === 'q' && remainingPlunges === 0 && !gameOver) {
-                handleRollDice();
-            }
-            else if (event.key === ' ' && remainingPlunges > 0 && !gameOver) {
-                handleFlushToilet();
-            }
-        });
+        if (deviceType === 'computer') {
+            document.addEventListener('keydown', (event) => {
+                if (event.key === 'q' && remainingPlunges === 0 && !gameOver) {
+                    handleRollDice();
+                }
+                else if (event.key === ' ' && remainingPlunges > 0 && !gameOver) {
+                    handleFlushToilet();
+                }
+            });
+        }
     </script>
 </body>
 </html>

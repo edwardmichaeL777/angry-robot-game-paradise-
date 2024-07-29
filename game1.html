@@ -20,11 +20,11 @@
             text-align: center;
             display: none;
         }
-        #gameCanvas {
+        #gameCanvas, #cellphoneCanvas {
             border: 1px solid black;
             background-color: #e0e0e0;
         }
-        #timer, #scores, #result {
+        #timer, #scores, #result, #cellphoneTimer, #cellphoneScores, #cellphoneResult {
             font-size: 18px;
             margin: 10px 0;
         }
@@ -33,41 +33,19 @@
             padding: 10px 20px;
             font-size: 16px;
         }
-        .control-buttons {
+        .control-buttons, .cellphone-control-buttons {
             margin-top: 20px;
         }
         #cellphoneInterface {
             display: none;
-            width: 300px;
-            height: 600px;
-            background-color: #333;
-            border-radius: 20px;
-            padding: 20px;
-            position: relative;
-        }
-        #cellphoneScreen {
-            width: 100%;
-            height: 80%;
-            background-color: #fff;
-            border-radius: 10px;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+            text-align: center;
         }
         .punch-button {
             width: 100px;
             height: 100px;
             border-radius: 50%;
             font-size: 24px;
-            position: absolute;
-            bottom: 20px;
-        }
-        #punchA {
-            left: 20px;
-        }
-        #punchB {
-            right: 20px;
+            margin: 10px;
         }
     </style>
 </head>
@@ -83,8 +61,8 @@
         <h1 id="rulesTitle"></h1>
         <div id="rules"></div>
         <h2 id="deviceChoiceTitle"></h2>
-        <button id="computerButton" onclick="chooseDevice('computer')"></button>
-        <button id="cellphoneButton" onclick="chooseDevice('cellphone')"></button>
+        <button id="computerButton" onclick="startGame('computer')"></button>
+        <button id="cellphoneButton" onclick="startGame('cellphone')"></button>
     </div>
 
     <div id="page3" class="page">
@@ -101,20 +79,18 @@
     </div>
 
     <div id="cellphoneInterface">
-        <div id="cellphoneScreen">
-            <h2 id="cellphoneGameTitle"></h2>
-            <p id="cellphoneInstructions"></p>
-            <canvas id="cellphoneCanvas" width="280" height="300"></canvas>
-            <div id="cellphoneTimer"></div>
-            <div id="cellphoneScores"></div>
-            <div id="cellphoneResult"></div>
-            <div class="cellphone-control-buttons">
-                <button id="cellphoneRestartButton" onclick="restartGame()"></button>
-                <button id="cellphoneBackButton" onclick="backToMenu()"></button>
-            </div>
-        </div>
+        <h2 id="cellphoneGameTitle"></h2>
+        <p id="cellphoneInstructions"></p>
+        <canvas id="cellphoneCanvas" width="280" height="300"></canvas>
+        <div id="cellphoneTimer"></div>
+        <div id="cellphoneScores"></div>
+        <div id="cellphoneResult"></div>
         <button id="punchA" class="punch-button">A</button>
         <button id="punchB" class="punch-button">B</button>
+        <div class="cellphone-control-buttons">
+            <button id="cellphoneRestartButton" onclick="restartGame()"></button>
+            <button id="cellphoneBackButton" onclick="backToMenu()"></button>
+        </div>
     </div>
 
     <script>
@@ -155,11 +131,11 @@
             ];
             document.getElementById('rules').innerHTML = rules.join('<br>');
             document.getElementById('deviceChoiceTitle').textContent = language === 'en' ? 'Choose your device' : '选择你的设备';
-            document.getElementById('computerButton').textContent = language === 'en' ? 'Computer' : '电脑';
-            document.getElementById('cellphoneButton').textContent = language === 'en' ? 'Cellphone' : '手机';
+            document.getElementById('computerButton').textContent = language === 'en' ? 'Computer Version' : '电脑版本';
+            document.getElementById('cellphoneButton').textContent = language === 'en' ? 'Cellphone Version' : '手机版本';
         }
 
-        function chooseDevice(device) {
+        function startGame(device) {
             currentDevice = device;
             document.getElementById('page2').style.display = 'none';
             if (device === 'computer') {

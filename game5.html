@@ -81,7 +81,8 @@
         let bombHolder = 0;
         let lastPassTime = Date.now();
         const PASS_DELAY = 300; // 0.3 seconds
-        const EXPLODE_TIME = Math.random() * 15000 + 10000; // 10-25 seconds
+        let explodeTime;
+        let gameStartTime;
         let robots = [];
 
         let language = 'en';
@@ -246,7 +247,7 @@
 
             if (!gameOver) {
                 const now = Date.now();
-                if (now -  EXPLODE_TIME<0 ) {
+                if (now >= explodeTime) {
                     gameOver = true;
                     gameControls.style.display = 'block';
                     if (device === 'cellphone') {
@@ -262,6 +263,8 @@
             gameOver = false;
             bombHolder = 0;
             lastPassTime = Date.now();
+            gameStartTime = Date.now();
+            explodeTime = gameStartTime + Math.random() * 15000 + 10000; // 10-25 seconds from start
 
             rulesMenu.style.display = 'none';
             canvas.style.display = 'block';

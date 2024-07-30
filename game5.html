@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9745408431725056"
@@ -30,7 +30,7 @@
             padding: 10px 20px;
             cursor: pointer;
         }
-        #gameControls {
+        #gameControls, #mobileControls {
             margin-top: 10px;
         }
     </style>
@@ -44,12 +44,18 @@
     <div id="rulesMenu" style="display: none;">
         <h1 id="rulesTitle"></h1>
         <p id="rulesText"></p>
-        <button id="startButton" onclick="startGame()"></button>
+        <h2 id="deviceChoiceTitle"></h2>
+        <button onclick="setDevice('computer')"></button>
+        <button onclick="setDevice('cellphone')"></button>
     </div>
     <canvas id="gameCanvas" width="800" height="600" style="display: none;"></canvas>
     <div id="gameControls" style="display: none;">
         <button id="restartButton" onclick="startGame()"></button>
         <button id="menuButton" onclick="backToMenu()"></button>
+    </div>
+    <div id="mobileControls" style="display: none;">
+        <button id="player1PassButton" onclick="passBomb(1)"></button>
+        <button id="player2PassButton" onclick="passBomb(2)"></button>
     </div>
 
     <script>
@@ -58,6 +64,7 @@
         const languageMenu = document.getElementById('languageMenu');
         const rulesMenu = document.getElementById('rulesMenu');
         const gameControls = document.getElementById('gameControls');
+        const mobileControls = document.getElementById('mobileControls');
 
         let gameOver = false;
         let bombHolder = 0;
@@ -70,24 +77,33 @@
         ];
 
         let language = 'en';
+        let device = 'computer';
         const translations = {
             en: {
                 rulesTitle: "Game Rules",
-                rulesText: "In this game, two players pass a bomb between their robots. Player 1 uses the 'D' key to pass, and Player 2 uses the 'K' key. The bomb will explode after a random time between 10 and 25 seconds. The player holding the bomb when it explodes loses. Be quick and strategic!",
-                startButton: "Start Game",
+                rulesText: "In this game, two players pass a bomb between their robots.Blue robots stand for player 1.Red robot stand for player 2. Player 1 uses the 'D' key to pass, and Player 2 uses the 'K' key. The bomb will explode after a random time between 10 and 25 seconds. The player holding the bomb when it explodes loses. Be quick and strategic!",
+                deviceChoiceTitle: "Choose your device",
+                computerButton: "Computer",
+                cellphoneButton: "Cellphone",
                 gameOver: "Game Over!",
                 playerLoses: (player) => `${player} loses!`,
                 restartButton: "Restart",
-                menuButton: "Back to Menu"
+                menuButton: "Back to Menu",
+                player1PassButton: "Player 1 Pass",
+                player2PassButton: "Player 2 Pass"
             },
             zh: {
                 rulesTitle: "游戏规则",
-                rulesText: "在这个游戏中，两名玩家在他们的机器人之间传递炸弹。玩家1使用'D'键传递，玩家2使用'K'键传递。炸弹会在10到25秒的随机时间后爆炸。炸弹爆炸时拿着炸弹的玩家失败。要快速而有策略！",
-                startButton: "开始游戏",
+                rulesText: "在这个游戏中，两名玩家在他们的机器人之间传递炸弹。藍色機器人代表玩家1。紅色機器人代表玩家2。玩家1使用'D'键传递，玩家2使用'K'键传递。炸弹会在10到25秒的随机时间后爆炸。炸弹爆炸时拿着炸弹的玩家失败。要快速而有策略！",
+                deviceChoiceTitle: "选择你的设备",
+                computerButton: "电脑",
+                cellphoneButton: "手机",
                 gameOver: "游戏结束！",
                 playerLoses: (player) => `${player}失败！`,
                 restartButton: "重新开始",
-                menuButton: "返回菜单"
+                menuButton: "返回菜单",
+                player1PassButton: "玩家1传递",
+                player2PassButton: "玩家2传递"
             }
         };
 
@@ -97,9 +113,18 @@
             rulesMenu.style.display = 'block';
             document.getElementById('rulesTitle').textContent = translations[lang].rulesTitle;
             document.getElementById('rulesText').textContent = translations[lang].rulesText;
-            document.getElementById('startButton').textContent = translations[lang].startButton;
+            document.getElementById('deviceChoiceTitle').textContent = translations[lang].deviceChoiceTitle;
+            document.querySelector('#rulesMenu button:nth-of-type(1)').textContent = translations[lang].computerButton;
+            document.querySelector('#rulesMenu button:nth-of-type(2)').textContent = translations[lang].cellphoneButton;
             document.getElementById('restartButton').textContent = translations[lang].restartButton;
             document.getElementById('menuButton').textContent = translations[lang].menuButton;
+            document.getElementById('player1PassButton').textContent = translations[lang].player1PassButton;
+            document.getElementById('player2PassButton').textContent = translations[lang].player2PassButton;
+        }
+
+        function setDevice(chosenDevice) {
+            device = chosenDevice;
+            startGame();
         }
 
         function drawGame() {
@@ -115,11 +140,11 @@
                 const bomb = robots[bombHolder];
                 drawBomb(bomb.x, bomb.y);
             } else {
-                // Fill the entire canvas with black
+                
                 ctx.fillStyle = 'black';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-                // Draw the game over text
+                
                 ctx.fillStyle = 'white';
                 ctx.font = '48px Arial';
                 ctx.fillText(translations[language].gameOver, canvas.width / 2 - 100, canvas.height / 2);
@@ -185,6 +210,9 @@
                 if (now - lastPassTime > EXPLODE_TIME) {
                     gameOver = true;
                     gameControls.style.display = 'block';
+                    if (device === 'cellphone') {
+                        mobileControls.style.display = 'none';
+                    }
                 }
 
                 requestAnimationFrame(gameLoop);
@@ -200,6 +228,12 @@
             canvas.style.display = 'block';
             gameControls.style.display = 'none';
 
+            if (device === 'cellphone') {
+                mobileControls.style.display = 'block';
+            } else {
+                mobileControls.style.display = 'none';
+            }
+
             gameLoop();
         }
 
@@ -208,7 +242,7 @@
         }
 
         document.addEventListener('keydown', (event) => {
-            if (gameOver) return;
+            if (gameOver || device === 'cellphone') return;
 
             if (event.key === 'd') {
                 passBomb(1);

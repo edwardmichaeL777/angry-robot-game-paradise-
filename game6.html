@@ -19,13 +19,23 @@
         #gameCanvas {
             border: 2px solid black;
         }
-        #languageSelect, #rulesPage, #gamePage {
+        #languageSelect, #rulesPage, #deviceSelect, #gamePage {
             text-align: center;
         }
         button {
             font-size: 18px;
             margin: 10px;
             padding: 10px 20px;
+        }
+        #mobileControls {
+            display: none;
+            margin-top: 10px;
+        }
+        .mobileButton {
+            font-size: 24px;
+            width: 60px;
+            height: 60px;
+            margin: 5px;
         }
     </style>
 </head>
@@ -38,13 +48,24 @@
     <div id="rulesPage" style="display: none;">
         <h1 id="rulesTitle"></h1>
         <p id="rulesText"></p>
-        <button onclick="startGame()" id="startButton"></button>
+        <button onclick="showDeviceSelect()" id="continueButton"></button>
+    </div>
+    <div id="deviceSelect" style="display: none;">
+        <h2 id="deviceSelectTitle"></h2>
+        <button onclick="setDevice('computer')">Computer</button>
+        <button onclick="setDevice('cellphone')">Cellphone</button>
     </div>
     <div id="gamePage" style="display: none;">
         <canvas id="gameCanvas" width="800" height="600"></canvas>
         <div>
             <button onclick="restartGame()" id="restartButton"></button>
             <button onclick="backToMenu()" id="menuButton"></button>
+        </div>
+        <div id="mobileControls">
+            <button class="mobileButton" ontouchstart="mobileControl('left1')" ontouchend="mobileControl('stop1')">←</button>
+            <button class="mobileButton" ontouchstart="mobileControl('right1')" ontouchend="mobileControl('stop1')">→</button>
+            <button class="mobileButton" ontouchstart="mobileControl('left2')" ontouchend="mobileControl('stop2')">←</button>
+            <button class="mobileButton" ontouchstart="mobileControl('right2')" ontouchend="mobileControl('stop2')">→</button>
         </div>
     </div>
 
@@ -53,7 +74,9 @@
         const ctx = canvas.getContext('2d');
         const languageSelect = document.getElementById('languageSelect');
         const rulesPage = document.getElementById('rulesPage');
+        const deviceSelect = document.getElementById('deviceSelect');
         const gamePage = document.getElementById('gamePage');
+        const mobileControls = document.getElementById('mobileControls');
 
         let gameOver = false;
         let score = [0, 0];
@@ -64,6 +87,7 @@
         let gameTime = 90;
         let gameStartTime;
         let language = 'en';
+        let device = 'computer';
 
         const ROBOT_WIDTH = 60;
         const ROBOT_HEIGHT = 100;
@@ -75,6 +99,8 @@
             en: {
                 rulesTitle: "Robot Battery Catcher - Rules",
                 rulesText: "Player 1: Use 'A' and 'D' to move left and right.\nPlayer 2: Use 'J' and 'L' to move left and right.\nCatch yellow batteries to score points.\nAvoid green bottles, they will decrease your score.\nThe game lasts for 90 seconds.",
+                continueButton: "Continue",
+                deviceSelectTitle: "Choose Your Device",
                 startButton: "Start Game",
                 player1Score: "Player 1 Score: ",
                 player2Score: "Player 2 Score: ",
@@ -88,6 +114,8 @@
             zh: {
                 rulesTitle: "机器人电池捕手 - 规则",
                 rulesText: "玩家1：使用'A'和'D'键左右移动。\n玩家2：使用'J'和'L'键左右移动。\n捕捉黄色电池得分。\n避开绿色瓶子，它们会减少你的分数。\n游戏持续90秒。",
+                continueButton: "继续",
+                deviceSelectTitle: "选择你的设备",
                 startButton: "开始游戏",
                 player1Score: "玩家1分数：",
                 player2Score: "玩家2分数：",
@@ -110,9 +138,21 @@
         function updateTexts() {
             document.getElementById('rulesTitle').textContent = translations[language].rulesTitle;
             document.getElementById('rulesText').textContent = translations[language].rulesText;
-            document.getElementById('startButton').textContent = translations[language].startButton;
+            document.getElementById('continueButton').textContent = translations[language].continueButton;
+            document.getElementById('deviceSelectTitle').textContent = translations[language].deviceSelectTitle;
             document.getElementById('restartButton').textContent = translations[language].restartButton;
             document.getElementById('menuButton').textContent = translations[language].menuButton;
+        }
+
+        function showDeviceSelect() {
+            rulesPage.style.display = 'none';
+            deviceSelect.style.display = 'block';
+        }
+
+        function setDevice(selectedDevice) {
+            device = selectedDevice;
+            deviceSelect.style.display = 'none';
+            startGame();
         }
 
         class Robot {
@@ -122,6 +162,8 @@
                 this.width = ROBOT_WIDTH;
                 this.height = ROBOT_HEIGHT;
                 this.color = color;
+                this.moving = false;
+                this.direction = 0;
             }
 
             draw() {
@@ -142,11 +184,21 @@
             }
 
             moveLeft() {
-                this.x = Math.max(0, this.x - 30);
+                this.x = Math.max(0, this.x - 5);
             }
 
             moveRight() {
-                this.x = Math.min(canvas.width - this.width, this.x + 30);
+                this.x = Math.min(canvas.width - this.width, this.x + 5);
+            }
+
+            update() {
+                if (this.moving) {
+                    if (this.direction < 0) {
+                        this.moveLeft();
+                    } else if (this.direction > 0) {
+                        this.moveRight();
+                    }
+                }
             }
         }
 
@@ -220,6 +272,8 @@
 
         function gameLoop() {
             if (!gameOver) {
+                robot1.update();
+                robot2.update();
                 drawGame();
 
                 const now = Date.now();
@@ -261,8 +315,10 @@
 
         function startGame() {
             resetGame();
-            rulesPage.style.display = 'none';
             gamePage.style.display = 'block';
+            if (device === 'cellphone') {
+                mobileControls.style.display = 'block';
+            }
             gameLoop();
         }
 
@@ -270,8 +326,6 @@
             gameOver = false;
             score = [0, 0];
             items = [];
-            // Remove the line that resets itemSpeed
-            // itemSpeed = 1.5;
             lastItemTime = 0;
             itemInterval = 500;
             gameStartTime = Date.now();
@@ -288,21 +342,71 @@
             window.location.href = 'index.html';
         }
 
+        function mobileControl(action) {
+            switch (action) {
+                case 'left1':
+                    robot1.moving = true;
+                    robot1.direction = -1;
+                    break;
+                case 'right1':
+                    robot1.moving = true;
+                    robot1.direction = 1;
+                    break;
+                case 'stop1':
+                    robot1.moving = false;
+                    robot1.direction = 0;
+                    break;
+                case 'left2':
+                    robot2.moving = true;
+                    robot2.direction = -1;
+                    break;
+                case 'right2':
+                    robot2.moving = true;
+                    robot2.direction = 1;
+                    break;
+                case 'stop2':
+                    robot2.moving = false;
+                    robot2.direction = 0;
+                    break;
+            }
+        }
+
         document.addEventListener('keydown', (event) => {
-            if (gameOver) return;
+            if (gameOver || device !== 'computer') return;
 
             switch (event.key) {
                 case 'a':
-                    robot1.moveLeft();
+                    robot1.moving = true;
+                    robot1.direction = -1;
                     break;
                 case 'd':
-                    robot1.moveRight();
+                    robot1.moving = true;
+                    robot1.direction = 1;
                     break;
                 case 'j':
-                    robot2.moveLeft();
+                    robot2.moving = true;
+                    robot2.direction = -1;
                     break;
                 case 'l':
-                    robot2.moveRight();
+                    robot2.moving = true;
+                    robot2.direction = 1;
+                    break;
+            }
+        });
+
+        document.addEventListener('keyup', (event) => {
+            if (gameOver || device !== 'computer') return;
+
+            switch (event.key) {
+                case 'a':
+                case 'd':
+                    robot1.moving = false;
+                    robot1.direction = 0;
+                    break;
+                case 'j':
+                case 'l':
+                    robot2.moving = false;
+                    robot2.direction = 0;
                     break;
             }
         });

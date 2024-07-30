@@ -19,19 +19,30 @@
         }
         #gameCanvas {
             border: 2px solid black;
+            max-width: 100%;
+            max-height: 80vh;
         }
         #languageMenu, #rulesMenu {
             text-align: center;
-            max-width: 600px;
+            max-width: 90%;
+            padding: 10px;
         }
         button {
-            font-size: 18px;
-            margin: 10px;
-            padding: 10px 20px;
+            font-size: 16px;
+            margin: 5px;
+            padding: 8px 16px;
             cursor: pointer;
         }
         #gameControls, #mobileControls {
             margin-top: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        #mobileControls button {
+            font-size: 20px;
+            padding: 15px 30px;
+            margin: 10px;
         }
     </style>
 </head>
@@ -48,7 +59,7 @@
         <button onclick="setDevice('computer')"></button>
         <button onclick="setDevice('cellphone')"></button>
     </div>
-    <canvas id="gameCanvas" width="800" height="600" style="display: none;"></canvas>
+    <canvas id="gameCanvas" style="display: none;"></canvas>
     <div id="gameControls" style="display: none;">
         <button id="restartButton" onclick="startGame()"></button>
         <button id="menuButton" onclick="backToMenu()"></button>
@@ -71,17 +82,14 @@
         let lastPassTime = Date.now();
         const PASS_DELAY = 300; // 0.3 seconds
         const EXPLODE_TIME = Math.random() * 15000 + 10000; // 10-25 seconds
-        const robots = [
-            { x: 500, y: 150 }, { x: 700, y: 300 }, { x: 500, y: 450 },
-            { x: 300, y: 450 }, { x: 100, y: 300 }, { x: 300, y: 150 }
-        ];
+        let robots = [];
 
         let language = 'en';
         let device = 'computer';
         const translations = {
             en: {
                 rulesTitle: "Game Rules",
-                rulesText: "In this game, two players pass a bomb between their robots.Blue robots stand for player 1.Red robot stand for player 2. Player 1 uses the 'D' key to pass, and Player 2 uses the 'K' key. The bomb will explode after a random time between 10 and 25 seconds. The player holding the bomb when it explodes loses. Be quick and strategic!",
+                rulesText: "In this game, two players pass a bomb between their robots. Blue robots stand for player 1. Red robots stand for player 2. Player 1 uses the 'D' key to pass, and Player 2 uses the 'K' key. The bomb will explode after a random time between 10 and 25 seconds. The player holding the bomb when it explodes loses. Be quick and strategic!",
                 deviceChoiceTitle: "Choose your device",
                 computerButton: "Computer",
                 cellphoneButton: "Cellphone",
@@ -94,7 +102,7 @@
             },
             zh: {
                 rulesTitle: "游戏规则",
-                rulesText: "在这个游戏中，两名玩家在他们的机器人之间传递炸弹。藍色機器人代表玩家1。紅色機器人代表玩家2。玩家1使用'D'键传递，玩家2使用'K'键传递。炸弹会在10到25秒的随机时间后爆炸。炸弹爆炸时拿着炸弹的玩家失败。要快速而有策略！",
+                rulesText: "在这个游戏中，两名玩家在他们的机器人之间传递炸弹。蓝色机器人代表玩家1。红色机器人代表玩家2。玩家1使用'D'键传递，玩家2使用'K'键传递。炸弹会在10到25秒的随机时间后爆炸。炸弹爆炸时拿着炸弹的玩家失败。要快速而有策略！",
                 deviceChoiceTitle: "选择你的设备",
                 computerButton: "电脑",
                 cellphoneButton: "手机",
@@ -127,6 +135,37 @@
             startGame();
         }
 
+        function resizeCanvas() {
+            const maxWidth = window.innerWidth * 0.9;
+            const maxHeight = window.innerHeight * 0.7;
+            const aspectRatio = 4 / 3;
+
+            let newWidth = maxWidth;
+            let newHeight = newWidth / aspectRatio;
+
+            if (newHeight > maxHeight) {
+                newHeight = maxHeight;
+                newWidth = newHeight * aspectRatio;
+            }
+
+            canvas.width = newWidth;
+            canvas.height = newHeight;
+
+            // Recalculate robot positions
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const radius = Math.min(canvas.width, canvas.height) * 0.35;
+
+            robots = [
+                { x: centerX, y: centerY - radius },
+                { x: centerX + radius * Math.cos(Math.PI / 6), y: centerY - radius * Math.sin(Math.PI / 6) },
+                { x: centerX + radius * Math.cos(Math.PI / 6), y: centerY + radius * Math.sin(Math.PI / 6) },
+                { x: centerX, y: centerY + radius },
+                { x: centerX - radius * Math.cos(Math.PI / 6), y: centerY + radius * Math.sin(Math.PI / 6) },
+                { x: centerX - radius * Math.cos(Math.PI / 6), y: centerY - radius * Math.sin(Math.PI / 6) }
+            ];
+        }
+
         function drawGame() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -140,52 +179,52 @@
                 const bomb = robots[bombHolder];
                 drawBomb(bomb.x, bomb.y);
             } else {
-                
                 ctx.fillStyle = 'black';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-                
                 ctx.fillStyle = 'white';
-                ctx.font = '48px Arial';
-                ctx.fillText(translations[language].gameOver, canvas.width / 2 - 100, canvas.height / 2);
-                ctx.font = '24px Arial';
+                ctx.font = `${canvas.width * 0.06}px Arial`;
+                ctx.fillText(translations[language].gameOver, canvas.width / 2 - canvas.width * 0.15, canvas.height / 2);
+                ctx.font = `${canvas.width * 0.03}px Arial`;
                 const losingPlayer = bombHolder % 2 === 0 ? 'Player 1' : 'Player 2';
-                ctx.fillText(translations[language].playerLoses(losingPlayer), canvas.width / 2 - 50, canvas.height / 2 + 50);
+                ctx.fillText(translations[language].playerLoses(losingPlayer), canvas.width / 2 - canvas.width * 0.1, canvas.height / 2 + canvas.height * 0.1);
             }
         }
 
         function drawRobot(x, y, color, isPunching) {
+            const scale = canvas.width / 800;
             ctx.fillStyle = color;
-            ctx.fillRect(x - 25, y - 50, 50, 80);
-            ctx.fillRect(x - 20, y - 80, 40, 30);
+            ctx.fillRect(x - 25 * scale, y - 50 * scale, 50 * scale, 80 * scale);
+            ctx.fillRect(x - 20 * scale, y - 80 * scale, 40 * scale, 30 * scale);
             ctx.fillStyle = 'white';
-            ctx.fillRect(x - 15, y - 75, 10, 10);
-            ctx.fillRect(x + 5, y - 75, 10, 10);
+            ctx.fillRect(x - 15 * scale, y - 75 * scale, 10 * scale, 10 * scale);
+            ctx.fillRect(x + 5 * scale, y - 75 * scale, 10 * scale, 10 * scale);
             if (isPunching) {
                 ctx.fillStyle = color;
-                ctx.fillRect(x + (color === 'blue' ? 25 : -65), y - 40, 40, 20);
+                ctx.fillRect(x + (color === 'blue' ? 25 : -65) * scale, y - 40 * scale, 40 * scale, 20 * scale);
             } else {
                 ctx.fillStyle = color;
-                ctx.fillRect(x + (color === 'blue' ? 25 : -35), y - 40, 10, 60);
+                ctx.fillRect(x + (color === 'blue' ? 25 : -35) * scale, y - 40 * scale, 10 * scale, 60 * scale);
             }
-            ctx.fillRect(x - 20, y + 30, 15, 40);
-            ctx.fillRect(x + 5, y + 30, 15, 40);
+            ctx.fillRect(x - 20 * scale, y + 30 * scale, 15 * scale, 40 * scale);
+            ctx.fillRect(x + 5 * scale, y + 30 * scale, 15 * scale, 40 * scale);
         }
 
         function drawBomb(x, y) {
+            const scale = canvas.width / 800;
             ctx.fillStyle = 'black';
             ctx.beginPath();
-            ctx.arc(x, y, 15, 0, 2 * Math.PI);
+            ctx.arc(x, y, 15 * scale, 0, 2 * Math.PI);
             ctx.fill();
             ctx.strokeStyle = 'orange';
-            ctx.lineWidth = 3;
+            ctx.lineWidth = 3 * scale;
             ctx.beginPath();
-            ctx.moveTo(x, y - 15);
-            ctx.quadraticCurveTo(x + 10, y - 25, x + 5, y - 35);
+            ctx.moveTo(x, y - 15 * scale);
+            ctx.quadraticCurveTo(x + 10 * scale, y - 25 * scale, x + 5 * scale, y - 35 * scale);
             ctx.stroke();
             ctx.fillStyle = 'yellow';
             ctx.beginPath();
-            ctx.arc(x + 5, y - 35, 3, 0, 2 * Math.PI);
+            ctx.arc(x + 5 * scale, y - 35 * scale, 3 * scale, 0, 2 * Math.PI);
             ctx.fill();
         }
 
@@ -228,8 +267,10 @@
             canvas.style.display = 'block';
             gameControls.style.display = 'none';
 
+            resizeCanvas();
+
             if (device === 'cellphone') {
-                mobileControls.style.display = 'block';
+                mobileControls.style.display = 'flex';
             } else {
                 mobileControls.style.display = 'none';
             }
@@ -238,7 +279,7 @@
         }
 
         function backToMenu() {
-            window.location.href = 'index.html';
+            window.location.reload();
         }
 
         document.addEventListener('keydown', (event) => {
@@ -250,6 +291,8 @@
                 passBomb(2);
             }
         });
+
+        window.addEventListener('resize', resizeCanvas);
     </script>
 </body>
 </html>

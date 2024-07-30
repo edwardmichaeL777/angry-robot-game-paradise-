@@ -8,30 +8,45 @@
     <title>Robot Boxing Match / 机器人拳击赛</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Roboto', Arial, sans-serif;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            min-height: 100vh;
             margin: 0;
-            background-color: #f0f0f0;
+            background-color: #0f0f1f;
+            color: #e0e0e0;
         }
         .page {
             text-align: center;
             display: none;
+            background-color: #1a1a2e;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(52, 152, 219, 0.5);
         }
         #gameCanvas, #cellphoneCanvas {
-            border: 1px solid black;
-            background-color: #e0e0e0;
+            border: 1px solid #3498db;
+            background-color: #1a1a2e;
+            box-shadow: 0 0 10px rgba(52, 152, 219, 0.5);
         }
         #timer, #scores, #result, #cellphoneTimer, #cellphoneScores, #cellphoneResult {
             font-size: 18px;
             margin: 10px 0;
+            color: #3498db;
         }
         button {
             margin: 10px;
             padding: 10px 20px;
             font-size: 16px;
+            background-color: #2980b9;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #3498db;
         }
         .control-buttons, .cellphone-control-buttons {
             margin-top: 20px;
@@ -46,6 +61,21 @@
             border-radius: 50%;
             font-size: 24px;
             margin: 10px;
+            background-color: #2980b9;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.1s;
+        }
+        .punch-button:hover {
+            background-color: #3498db;
+        }
+        .punch-button:active {
+            transform: scale(0.95);
+        }
+        h1, h2 {
+            color: #3498db;
+            text-shadow: 0 0 5px rgba(52, 152, 219, 0.5);
         }
     </style>
 </head>

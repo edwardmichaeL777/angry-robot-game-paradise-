@@ -246,7 +246,7 @@
 
             if (!gameOver) {
                 const now = Date.now();
-                if (now - lastPassTime > EXPLODE_TIME) {
+                if (now -  EXPLODE_TIME<0 ) {
                     gameOver = true;
                     gameControls.style.display = 'block';
                     if (device === 'cellphone') {

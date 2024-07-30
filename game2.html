@@ -15,7 +15,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            min-height: 100vh;
         }
         .page {
             background-color: #fff;
@@ -23,11 +23,12 @@
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
             padding: 20px;
             text-align: center;
-            max-width: 600px;
+            max-width: 90%;
             width: 100%;
         }
         h1 {
             color: #333;
+            font-size: 1.5em;
         }
         button {
             margin: 10px;
@@ -39,6 +40,8 @@
             border: 1px solid #000;
             margin: 20px auto;
             display: block;
+            max-width: 100%;
+            height: auto;
         }
         #game-info {
             margin-top: 20px;
@@ -54,8 +57,10 @@
             margin-top: 20px;
         }
         #cellphoneControls button {
-            font-size: 24px;
-            padding: 15px 30px;
+            font-size: 18px;
+            padding: 15px 20px;
+            width: 45%;
+            max-width: 150px;
         }
     </style>
 </head>
@@ -77,7 +82,7 @@
 
     <div id="page3" class="page" style="display: none;">
         <h1 id="gameTitle"></h1>
-        <canvas id="gameCanvas" width="600" height="400"></canvas>
+        <canvas id="gameCanvas"></canvas>
         <div id="game-info"></div>
         <div id="cellphoneControls">
             <button id="rollDiceButton" onclick="handleRollDice()">Roll Dice</button>
@@ -106,7 +111,7 @@
         const translations = {
             en: {
                 title: "Robot Toilet Game",
-                rules: "Rules: Each player takes turns rolling a dice (0-2).Press'q'to roll the dice.Press the spacebar to plunge. If you roll 0, it's the next player's turn. Otherwise, you need to plunge the toilet that many times. Be careful not to make the toilet explode.",
+                rules: "Rules: Each player takes turns rolling a dice (0-2). If you roll 0, it's the next player's turn. Otherwise, you need to plunge the toilet that many times. Be careful not to make the toilet explode.",
                 deviceChoice: "Choose your device:",
                 computerControls: "Computer controls: Press 'q' to roll the dice, press the spacebar to plunge.",
                 cellphoneControls: "Cellphone controls: Use the on-screen buttons to roll the dice and plunge.",
@@ -124,7 +129,7 @@
             },
             zh: {
                 title: "机器人马桶游戏",
-                rules: "规则：每位玩家轮流掷骰子(0-2)。按 'q' 键掷骰子，按空格键通马桶。如果掷到0，直接换下一位玩家。否则，玩家需要通马桶相应次数。小心别让马桶爆炸。",
+                rules: "规则：每位玩家轮流掷骰子(0-2)。如果掷到0，直接换下一位玩家。否则，玩家需要通马桶相应次数。小心别让马桶爆炸。",
                 deviceChoice: "选择你的设备：",
                 computerControls: "电脑控制：按 'q' 键掷骰子，按空格键通马桶。",
                 cellphoneControls: "手机控制：使用屏幕上的按钮掷骰子和通马桶。",
@@ -173,7 +178,22 @@
                 document.getElementById('flushToiletButton').textContent = translations[language].flushToilet;
             }
             
+            resizeCanvas();
             initializeGame();
+        }
+
+        function resizeCanvas() {
+            const containerWidth = document.getElementById('page3').offsetWidth;
+            const containerHeight = window.innerHeight * 0.6;
+            const aspectRatio = 3 / 2;
+            
+            if (containerWidth / containerHeight > aspectRatio) {
+                canvas.height = containerHeight;
+                canvas.width = containerHeight * aspectRatio;
+            } else {
+                canvas.width = containerWidth * 0.9;
+                canvas.height = canvas.width / aspectRatio;
+            }
         }
 
         function createImages() {
@@ -272,33 +292,35 @@
         const images = createImages();
 
         function drawRobot(x, y, color, isPlunging, plunges) {
+            const scale = canvas.width / 600;
             ctx.fillStyle = color;
-            ctx.fillRect(x - 25, y - 50, 50, 80);
-            ctx.fillRect(x - 20, y - 80, 40, 30);
+            ctx.fillRect(x * scale - 25 * scale, y * scale - 50 * scale, 50 * scale, 80 * scale);
+            ctx.fillRect(x * scale - 20 * scale, y * scale - 80 * scale, 40 * scale, 30 * scale);
             ctx.fillStyle = 'white';
-            ctx.fillRect(x - 15, y - 75, 10, 10);
-            ctx.fillRect(x + 5, y - 75, 10, 10);
+            ctx.fillRect(x * scale - 15 * scale, y * scale - 75 * scale, 10 * scale, 10 * scale);
+            ctx.fillRect(x * scale + 5 * scale, y * scale - 75 * scale, 10 * scale, 10 * scale);
             
             if (isPlunging) {
                 let plungerImg = plunges === 1 ? images.plunger1 : images.plunger2;
-                ctx.drawImage(plungerImg, x + (color === 'blue' ? 25 : -65), y - 40, 40, 60);
+                ctx.drawImage(plungerImg, x * scale + (color === 'blue' ? 25 : -65) * scale, y * scale - 40 * scale, 40 * scale, 60 * scale);
             } else {
-                ctx.drawImage(images.plunger, x + (color === 'blue' ? 25 : -35), y - 40, 10, 60);
+                ctx.drawImage(images.plunger, x * scale + (color === 'blue' ? 25 : -35) * scale, y * scale - 40 * scale, 10 * scale, 60 * scale);
             }
             
             ctx.fillStyle = color;
-            ctx.fillRect(x - 20, y + 30, 15, 40);
-            ctx.fillRect(x + 5, y + 30, 15, 40);
+            ctx.fillRect(x * scale - 20 * scale, y * scale + 30 * scale, 15 * scale, 40 * scale);
+            ctx.fillRect(x * scale + 5 * scale, y * scale + 30 * scale, 15 * scale, 40 * scale);
         }
 
         function drawScene(diceRoll = null) {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
+            const scale = canvas.width / 600;
             drawRobot(150, 200, 'blue', false);
             drawRobot(450, 200, 'red', false);
-            ctx.drawImage(images.toilet, 250, 200, 100, 120);
+            ctx.drawImage(images.toilet, 250 * scale, 200 * scale, 100 * scale, 120 * scale);
             
             if (diceRoll !== null) {
-                ctx.drawImage(images[`dice${diceRoll}`], 275, 100, 50, 50);
+                ctx.drawImage(images[`dice${diceRoll}`], 275 * scale, 100 * scale, 50 * scale, 50 * scale);
             }
         }
 
@@ -307,7 +329,8 @@
             function animate() {
                 if (count < times) {
                     ctx.clearRect(0, 0, canvas.width, canvas.height);
-                    ctx.drawImage(images.toilet, 250, 200, 100, 120);
+                    const scale = canvas.width / 600;
+                    ctx.drawImage(images.toilet, 250 * scale, 200 * scale, 100 * scale, 120 * scale);
                     if (player === 1) {
                         drawRobot(450, 200, 'red', false);
                         drawRobot(240, 200, 'blue', true, times);
@@ -403,6 +426,11 @@
                 }
             });
         }
+
+        window.addEventListener('resize', () => {
+            resizeCanvas();
+            drawScene(currentRoll);
+        });
     </script>
 </body>
 </html>

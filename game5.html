@@ -8,80 +8,78 @@
     <title>Bomb Game</title>
     <style>
         body {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    margin: 0;
-    background-color: #f0f0f0;
-    font-family: Arial, sans-serif;
-}
-
-#gameCanvas {
-    border: 2px solid black;
-    max-width: 100%;
-    max-height: 80vh;
-}
-
-#languagePage, #rulesPage, #gamePage {
-    text-align: center;
-    max-width: 90%;
-    padding: 10px;
-}
-
-button {
-    font-size: 16px;
-    margin: 5px;
-    padding: 8px 16px;
-    cursor: pointer;
-}
-
-#gameControls {
-    margin-top: 10px;
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-}
-
-.player {
-    margin-bottom: 20px;
-}
-
-.letters {
-    font-family: monospace;
-    font-size: 24px;
-    color: #3498db;
-}
-
-.progress {
-    width: 240px;
-    height: 20px;
-    background-color: #2c3e50;
-    margin: 0 auto;
-}
-
-.progress-bar {
-    height: 100%;
-    background-color: #3498db;
-    width: 0%;
-    transition: width 0.3s;
-}
-
-#winner {
-    font-size: 24px;
-    color: #2ecc71;
-    margin-top: 20px;
-}
-
-#rulesList {
-    text-align: left;
-    padding-left: 20px;
-}
-
-#rulesList li {
-    margin-bottom: 10px;
-}
+            font-family: 'Roboto', Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            text-align: center;
+            background-color: #0f0f1f;
+            color: #e0e0e0;
+        }
+        .page {
+            display: none;
+            background-color: #1a1a2e;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(52, 152, 219, 0.5);
+            padding: 20px;
+        }
+        #languagePage {
+            display: block;
+        }
+        button {
+            font-size: 18px;
+            margin: 10px;
+            padding: 10px 20px;
+            cursor: pointer;
+            background-color: #2980b9;
+            color: white;
+            border: none;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #3498db;
+        }
+        .player {
+            margin-bottom: 20px;
+        }
+        .letters {
+            font-family: monospace;
+            font-size: 24px;
+            color: #3498db;
+        }
+        .progress {
+            width: 240px;
+            height: 20px;
+            background-color: #2c3e50;
+            margin: 0 auto;
+        }
+        .progress-bar {
+            height: 100%;
+            background-color: #3498db;
+            width: 0%;
+            transition: width 0.3s;
+        }
+        canvas {
+            border: 1px solid #3498db;
+            margin-bottom: 20px;
+            box-shadow: 0 0 10px rgba(52, 152, 219, 0.5);
+        }
+        h1, h2 {
+            color: #3498db;
+            text-shadow: 0 0 5px rgba(52, 152, 219, 0.5);
+        }
+        #winner {
+            font-size: 24px;
+            color: #2ecc71;
+            margin-top: 20px;
+        }
+        #rulesList {
+            text-align: left;
+            padding-left: 20px;
+        }
+        #rulesList li {
+            margin-bottom: 10px;
+        }
         </style>
 </head>
 <body>
@@ -118,7 +116,7 @@ button {
         let gameOver = false;
         let bombHolder = 0;
         let lastPassTime = Date.now();
-        const PASS_DELAY = 300; // 0.3 seconds
+        const PASS_DELAY = 300; 
         let explodeTime;
         let gameStartTime;
         let robots = [];
@@ -190,7 +188,7 @@ button {
             canvas.width = newWidth;
             canvas.height = newHeight;
 
-            // Recalculate robot positions
+           
             const centerX = canvas.width / 2;
             const centerY = canvas.height / 2;
             const radius = Math.min(canvas.width, canvas.height) * 0.35;
@@ -302,7 +300,7 @@ button {
             bombHolder = 0;
             lastPassTime = Date.now();
             gameStartTime = Date.now();
-            explodeTime = gameStartTime + Math.random() * 15000 + 10000; // 10-25 seconds from start
+            explodeTime = gameStartTime + Math.random() * 15000 + 10000; 
 
             rulesMenu.style.display = 'none';
             canvas.style.display = 'block';

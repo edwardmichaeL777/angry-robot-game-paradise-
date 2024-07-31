@@ -37,26 +37,6 @@
         button:hover {
             background-color: #3498db;
         }
-        .player {
-            margin-bottom: 20px;
-        }
-        .letters {
-            font-family: monospace;
-            font-size: 24px;
-            color: #3498db;
-        }
-        .progress {
-            width: 240px;
-            height: 20px;
-            background-color: #2c3e50;
-            margin: 0 auto;
-        }
-        .progress-bar {
-            height: 100%;
-            background-color: #3498db;
-            width: 0%;
-            transition: width 0.3s;
-        }
         canvas {
             border: 1px solid #3498db;
             margin-bottom: 20px;
@@ -66,29 +46,19 @@
             color: #3498db;
             text-shadow: 0 0 5px rgba(52, 152, 219, 0.5);
         }
-        #winner {
-            font-size: 24px;
-            color: #2ecc71;
-            margin-top: 20px;
-        }
-        #rulesList {
-            text-align: left;
-            padding-left: 20px;
-        }
-        #rulesList li {
-            margin-bottom: 10px;
-        }
         #mobileControls {
             display: none;
             position: fixed;
             bottom: 20px;
             left: 0;
             right: 0;
+            justify-content: space-around;
         }
         .mobileButton {
             font-size: 24px;
             padding: 15px 30px;
             margin: 0 10px;
+            user-select: none;
         }
     </style>
 </head>
@@ -369,7 +339,7 @@
                 ITEM_HEIGHT = Math.floor(canvas.height * 0.1);
             }
             initRobots();
-                        gameLoop();
+            gameLoop();
         }
 
         function resetGame() {
@@ -389,9 +359,8 @@
         }
 
         function backToMenu() {
-            window.location.href = 'index.html';
+            window.location.reload();
         }
-
         function mobileControl(player, direction) {
             if (player === 1) {
                 robot1.moving = true;
@@ -453,15 +422,21 @@
         });
 
         // Mobile control event listeners
-        document.getElementById('leftButton1').addEventListener('touchstart', () => mobileControl(1, -1));
-        document.getElementById('rightButton1').addEventListener('touchstart', () => mobileControl(1, 1));
-        document.getElementById('leftButton2').addEventListener('touchstart', () => mobileControl(2, -1));
-        document.getElementById('rightButton2').addEventListener('touchstart', () => mobileControl(2, 1));
+        const mobileButtons = document.querySelectorAll('.mobileButton');
+        mobileButtons.forEach(button => {
+            button.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                const player = button.id.includes('1') ? 1 : 2;
+                const direction = button.id.includes('left') ? -1 : 1;
+                mobileControl(player, direction);
+            });
 
-        document.getElementById('leftButton1').addEventListener('touchend', () => stopMobileControl(1));
-        document.getElementById('rightButton1').addEventListener('touchend', () => stopMobileControl(1));
-        document.getElementById('leftButton2').addEventListener('touchend', () => stopMobileControl(2));
-        document.getElementById('rightButton2').addEventListener('touchend', () => stopMobileControl(2));
+            button.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                const player = button.id.includes('1') ? 1 : 2;
+                stopMobileControl(player);
+            });
+        });
 
         // Resize event listener for responsive design
         window.addEventListener('resize', () => {

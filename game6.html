@@ -247,35 +247,61 @@
         }
 
         function drawGame() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            robot1.draw();
-            robot2.draw();
+    robot1.draw();
+    robot2.draw();
 
-            items.forEach(item => {
-                item.draw();
-                item.update();
-            });
+    items.forEach(item => {
+        item.draw();
+        item.update();
+    });
 
-            ctx.fillStyle = 'white';
-            ctx.font = '18px Arial';
-            ctx.fillText(`${translations[language].player1Score}${score[0]}`, 10, 25);
-            ctx.fillText(`${translations[language].player2Score}${score[1]}`, canvas.width - 150, 25);
-            
-            const remainingTime = Math.max(0, gameTime - Math.floor((Date.now() - gameStartTime) / 1000));
-            ctx.fillText(`${translations[language].time}${remainingTime}s`, canvas.width / 2 - 40, 25);
+    ctx.fillStyle = 'white';
+    ctx.font = '18px Arial';
 
-            if (gameOver) {
-                ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-                ctx.fillStyle = 'white';
-                ctx.font = '36px Arial';
-                ctx.fillText(translations[language].gameOver, canvas.width / 2 - 80, canvas.height / 2);
-                ctx.font = '24px Arial';
-                const winner = score[0] > score[1] ? translations[language].player1Score : (score[1] > score[0] ? translations[language].player2Score : translations[language].tie);
-                ctx.fillText(`${winner} ${score[0] !== score[1] ? translations[language].winner : ''}`, canvas.width / 2 - 50, canvas.height / 2 + 40);
-            }
+    if (device === 'cellphone') {
+        // Player 1 score on top left
+        ctx.textAlign = 'left';
+        ctx.fillText(`${translations[language].player1Score}${score[0]}`, 10, 25);
+
+        // Player 2 score on top right
+        ctx.textAlign = 'right';
+        ctx.fillText(`${translations[language].player2Score}${score[1]}`, canvas.width - 10, 25);
+
+        // Time remaining on top center
+        ctx.textAlign = 'center';
+        const remainingTime = Math.max(0, gameTime - Math.floor((Date.now() - gameStartTime) / 1000));
+        ctx.fillText(`${translations[language].time}${remainingTime}s`, canvas.width / 2, 25);
+    } else {
+        // Original layout for computer version
+        ctx.textAlign = 'left';
+        ctx.fillText(`${translations[language].player1Score}${score[0]}`, 10, 25);
+        ctx.fillText(`${translations[language].player2Score}${score[1]}`, canvas.width - 150, 25);
+        
+        const remainingTime = Math.max(0, gameTime - Math.floor((Date.now() - gameStartTime) / 1000));
+        ctx.fillText(`${translations[language].time}${remainingTime}s`, canvas.width / 2 - 40, 25);
+    }
+
+    if (gameOver) {
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = 'white';
+        ctx.font = '36px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText(translations[language].gameOver, canvas.width / 2, canvas.height / 2);
+        ctx.font = '24px Arial';
+        let winnerText;
+        if (score[0] > score[1]) {
+            winnerText = `${translations[language].player1Score} ${translations[language].winner}`;
+        } else if (score[1] > score[0]) {
+            winnerText = `${translations[language].player2Score} ${translations[language].winner}`;
+        } else {
+            winnerText = translations[language].tie;
         }
+        ctx.fillText(winnerText, canvas.width / 2, canvas.height / 2 + 40);
+    }
+}
 
         function checkCollision(robot, item) {
             return Math.abs(robot.x + robot.width / 2 - (item.x + item.width / 2)) < ERROR_ALLOWANCE &&

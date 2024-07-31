@@ -80,6 +80,35 @@
         #rulesList li {
             margin-bottom: 10px;
         }
+        #gameControls {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+}
+
+#restartButtonContainer {
+    flex: 1;
+    text-align: left;
+}
+
+#menuButtonContainer {
+    flex: 1;
+    text-align: right;
+}
+
+#restartButton, #menuButton {
+    font-size: 18px;
+    padding: 10px 20px;
+    cursor: pointer;
+    background-color: #2980b9;
+    color: white;
+    border: none;
+    transition: background-color 0.3s;
+}
+
+#restartButton:hover, #menuButton:hover {
+    background-color: #3498db;
+}
         </style>
 </head>
 <body>
@@ -97,9 +126,13 @@
     </div>
     <canvas id="gameCanvas" style="display: none;"></canvas>
     <div id="gameControls" style="display: none;">
+    <div id="restartButtonContainer">
         <button id="restartButton" onclick="startGame()"></button>
+    </div>
+    <div id="menuButtonContainer">
         <button id="menuButton" onclick="backToMenu()"></button>
     </div>
+</div>
     <div id="mobileControls" style="display: none;">
         <button id="player1PassButton" onclick="passBomb(1)"></button>
         <button id="player2PassButton" onclick="passBomb(2)"></button>

@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9745408431725056"
@@ -220,10 +220,23 @@
                 playerY = player.y - 40;
             }
 
-            return (player.x < obstacle.x + OBSTACLE_WIDTH &&
+            // Check if the player is touching the obstacle
+            const isColliding = (player.x < obstacle.x + OBSTACLE_WIDTH &&
                 player.x + PLAYER_WIDTH > obstacle.x &&
                 playerY < obstacle.y + obstacle.height &&
                 playerY + playerHeight > obstacle.y);
+
+            // If it's a high obstacle (green) and the player is not crouching, it's a collision
+            if (obstacle.type === 'crouch' && !player.isCrouching && isColliding) {
+                return true;
+            }
+
+            // For low obstacles (brown), any collision is a failure
+            if (obstacle.type === 'jump' && isColliding) {
+                return true;
+            }
+
+            return false;
         }
 
         function gameLoop() {

@@ -246,7 +246,7 @@
             robot2 = new Robot(3 * canvas.width / 4 - ROBOT_WIDTH / 2, 'red');
         }
 
-        function drawGame() {
+       function drawGame() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     robot1.draw();
@@ -260,26 +260,24 @@
     ctx.fillStyle = 'white';
     ctx.font = '18px Arial';
 
+    const remainingTime = Math.max(0, gameTime - Math.floor((Date.now() - gameStartTime) / 1000));
+
     if (device === 'cellphone') {
         // Player 1 score on top left
         ctx.textAlign = 'left';
         ctx.fillText(`${translations[language].player1Score}${score[0]}`, 10, 25);
+        
+        // Time remaining under Player 1 score
+        ctx.fillText(`${translations[language].time}${remainingTime}s`, 10, 50);
 
         // Player 2 score on top right
         ctx.textAlign = 'right';
         ctx.fillText(`${translations[language].player2Score}${score[1]}`, canvas.width - 10, 25);
-
-        // Time remaining on top center
-        ctx.textAlign = 'center';
-        const remainingTime = Math.max(0, gameTime - Math.floor((Date.now() - gameStartTime) / 1000));
-        ctx.fillText(`${translations[language].time}${remainingTime}s`, canvas.width / 2, 25);
     } else {
         // Original layout for computer version
         ctx.textAlign = 'left';
         ctx.fillText(`${translations[language].player1Score}${score[0]}`, 10, 25);
         ctx.fillText(`${translations[language].player2Score}${score[1]}`, canvas.width - 150, 25);
-        
-        const remainingTime = Math.max(0, gameTime - Math.floor((Date.now() - gameStartTime) / 1000));
         ctx.fillText(`${translations[language].time}${remainingTime}s`, canvas.width / 2 - 40, 25);
     }
 

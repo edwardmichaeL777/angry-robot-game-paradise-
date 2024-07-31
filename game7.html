@@ -7,10 +7,50 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Obstacle Race Game</title>
     <style>
-        body { text-align: center; font-family: Arial, sans-serif; }
-        .section { display: none; padding-top: 50px; }
-        button { font-size: 20px; margin: 10px; padding: 10px 20px; }
-        canvas { border: 1px solid black; display: block; margin: 20px auto; }
+        body {
+            font-family: 'Roboto', Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #0f0f1f;
+            color: #e0e0e0;
+            text-align: center;
+        }
+        .section {
+            display: none;
+            padding-top: 50px;
+        }
+        h1 {
+            color: #3498db;
+            text-shadow: 0 0 5px rgba(52, 152, 219, 0.5);
+        }
+        button {
+            background-color: #2980b9;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            margin: 10px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            font-size: 20px;
+        }
+        button:hover {
+            background-color: #3498db;
+        }
+        canvas {
+            border: 1px solid #3498db;
+            display: block;
+            margin: 20px auto;
+            box-shadow: 0 0 10px rgba(52, 152, 219, 0.5);
+        }
+        #rulesSection, #gameSection {
+            margin-top: 30px;
+            padding: 20px;
+            border: 1px solid #3498db;
+            border-radius: 5px;
+            background-color: #1a1a2e;
+            box-shadow: 0 0 10px rgba(52, 152, 219, 0.5);
+        }
     </style>
 </head>
 <body>

@@ -78,6 +78,18 @@
         #rulesList li {
             margin-bottom: 10px;
         }
+        #mobileControls {
+            display: none;
+            position: fixed;
+            bottom: 20px;
+            left: 0;
+            right: 0;
+        }
+        .mobileButton {
+            font-size: 24px;
+            padding: 15px 30px;
+            margin: 0 10px;
+        }
     </style>
 </head>
 <body>
@@ -100,14 +112,10 @@
             <button onclick="backToMenu()" id="menuButton"></button>
         </div>
         <div id="mobileControls">
-            <div id="player1Controls">
-                <button class="mobileButton" onmousedown="mobileControl('left1')" onmouseup="mobileControl('stop1')">←</button>
-                <button class="mobileButton" onmousedown="mobileControl('right1')" onmouseup="mobileControl('stop1')">→</button>
-            </div>
-            <div id="player2Controls">
-                <button class="mobileButton" onmousedown="mobileControl('left2')" onmouseup="mobileControl('stop2')">←</button>
-                <button class="mobileButton" onmousedown="mobileControl('right2')" onmouseup="mobileControl('stop2')">→</button>
-            </div>
+            <button class="mobileButton" id="leftButton1">←</button>
+            <button class="mobileButton" id="rightButton1">→</button>
+            <button class="mobileButton" id="leftButton2">←</button>
+            <button class="mobileButton" id="rightButton2">→</button>
         </div>
     </div>
 
@@ -279,7 +287,7 @@
                 item.update();
             });
 
-            ctx.fillStyle = 'black';
+            ctx.fillStyle = 'white';
             ctx.font = '18px Arial';
             ctx.fillText(`${translations[language].player1Score}${score[0]}`, 10, 25);
             ctx.fillText(`${translations[language].player2Score}${score[1]}`, canvas.width - 150, 25);
@@ -350,7 +358,7 @@
             rulesPage.style.display = 'none';
             gamePage.style.display = 'block';
             if (device === 'cellphone') {
-                mobileControls.style.display = 'block';
+                mobileControls.style.display = 'flex';
                 canvas.width = window.innerWidth * 0.9;
                 canvas.height = window.innerHeight * 0.6;
                 
@@ -361,7 +369,7 @@
                 ITEM_HEIGHT = Math.floor(canvas.height * 0.1);
             }
             initRobots();
-            gameLoop();
+                        gameLoop();
         }
 
         function resetGame() {
@@ -384,32 +392,23 @@
             window.location.href = 'index.html';
         }
 
-        function mobileControl(action) {
-            switch (action) {
-                case 'left1':
-                    robot1.moving = true;
-                    robot1.direction = -1;
-                    break;
-                case 'right1':
-                    robot1.moving = true;
-                    robot1.direction = 1;
-                    break;
-                    case 'stop1':
-                    robot1.moving = false;
-                    robot1.direction = 0;
-                    break;
-                case 'left2':
-                    robot2.moving = true;
-                    robot2.direction = -1;
-                    break;
-                case 'right2':
-                    robot2.moving = true;
-                    robot2.direction = 1;
-                    break;
-                case 'stop2':
-                    robot2.moving = false;
-                    robot2.direction = 0;
-                    break;
+        function mobileControl(player, direction) {
+            if (player === 1) {
+                robot1.moving = true;
+                robot1.direction = direction;
+            } else {
+                robot2.moving = true;
+                robot2.direction = direction;
+            }
+        }
+
+        function stopMobileControl(player) {
+            if (player === 1) {
+                robot1.moving = false;
+                robot1.direction = 0;
+            } else {
+                robot2.moving = false;
+                robot2.direction = 0;
             }
         }
 
@@ -452,6 +451,17 @@
                     break;
             }
         });
+
+        // Mobile control event listeners
+        document.getElementById('leftButton1').addEventListener('touchstart', () => mobileControl(1, -1));
+        document.getElementById('rightButton1').addEventListener('touchstart', () => mobileControl(1, 1));
+        document.getElementById('leftButton2').addEventListener('touchstart', () => mobileControl(2, -1));
+        document.getElementById('rightButton2').addEventListener('touchstart', () => mobileControl(2, 1));
+
+        document.getElementById('leftButton1').addEventListener('touchend', () => stopMobileControl(1));
+        document.getElementById('rightButton1').addEventListener('touchend', () => stopMobileControl(1));
+        document.getElementById('leftButton2').addEventListener('touchend', () => stopMobileControl(2));
+        document.getElementById('rightButton2').addEventListener('touchend', () => stopMobileControl(2));
 
         // Resize event listener for responsive design
         window.addEventListener('resize', () => {

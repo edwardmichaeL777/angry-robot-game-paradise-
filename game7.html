@@ -210,24 +210,33 @@
         }
 
         function checkCollision(player, obstacle) {
-            let playerHeight = PLAYER_HEIGHT;
-            let playerY = player.y;
+    let playerHeight = PLAYER_HEIGHT;
+    let playerY = player.y;
 
-            if (player.isCrouching) {
-                playerHeight = PLAYER_HEIGHT / 2;
-                playerY = player.y + PLAYER_HEIGHT / 2;
-            } else if (player.isJumping) {
-                playerY = player.y - 40;
-            }
+    if (player.isCrouching) {
+        playerHeight = PLAYER_HEIGHT / 2;
+        playerY = player.y + PLAYER_HEIGHT / 2;
+    } else if (player.isJumping) {
+        playerY = player.y - 40;
+    }
 
-            const isColliding = (player.x < obstacle.x + OBSTACLE_WIDTH &&
-                player.x + PLAYER_WIDTH > obstacle.x &&
-                playerY < obstacle.y + obstacle.height &&
-                playerY + playerHeight > obstacle.y);
+    const isColliding = (player.x < obstacle.x + OBSTACLE_WIDTH &&
+        player.x + PLAYER_WIDTH > obstacle.x &&
+        playerY < obstacle.y + obstacle.height &&
+        playerY + playerHeight > obstacle.y);
 
-            // Any collision now results in failure
-            return isColliding;
-        }
+    // For low obstacles (jump type), any collision is a failure
+    if (obstacle.type === 'jump' && isColliding) {
+        return true;
+    }
+
+    // For high obstacles (crouch type), failure if not crouching
+    if (obstacle.type === 'crouch' && !player.isCrouching && isColliding) {
+        return true;
+    }
+
+    return false;
+}
 
         function gameLoop() {
     const canvas = document.getElementById('gameCanvas');

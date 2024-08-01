@@ -180,8 +180,9 @@
             document.getElementById('page2').style.display = 'none';
             document.getElementById('page3').style.display = 'block';
             document.getElementById('gameTitle').textContent = translations[language].title;
-            document.getElementById('backButton').textContent = translations[language].backButton;
-            document.getElementById('restartButton').textContent = translations[language].restartButton;
+            
+            // Hide the control buttons at game start
+            document.querySelector('.control-buttons').style.display = 'none';
             
             if (deviceType === 'cellphone') {
                 document.getElementById('cellphoneControls').style.display = 'block';
@@ -401,6 +402,7 @@
                     ctx.fillStyle = '#8B4513';
                     ctx.fillRect(0, 0, canvas.width, canvas.height);
                     updateGameInfo(translations[language].explosion.replace("{0}", currentPlayer));
+                    showControlButtons(); // Show the control buttons when the game ends
                 }, 500);
                 return;
             }
@@ -413,9 +415,23 @@
             }
         };
 
+        function showControlButtons() {
+            document.querySelector('.control-buttons').style.display = 'block';
+            document.getElementById('backButton').textContent = translations[language].backButton;
+            document.getElementById('restartButton').textContent = translations[language].restartButton;
+        }
+
         function restartGame() {
+            document.querySelector('.control-buttons').style.display = 'none';
+            currentPlayer = 1;
+            totalPlunges = 0;
+            explodeNumber = 0;
+            currentRoll = 0;
+            remainingPlunges = 0;
+            gameOver = false;
             initializeGame();
             drawScene();
+            updateGameInfo(translations[language].rollPrompt.replace("{0}", currentPlayer));
         }
 
         const updateGameInfo = (message) => {

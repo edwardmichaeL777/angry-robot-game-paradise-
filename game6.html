@@ -72,8 +72,8 @@
         <h1 id="rulesTitle"></h1>
         <p id="rulesText"></p>
         <h2 id="deviceSelectTitle"></h2>
-        <button onclick="setDevice('computer')">Computer</button>
-        <button onclick="setDevice('cellphone')">Cellphone</button>
+        <button id="computerButton" onclick="setDevice('computer')"></button>
+        <button id="cellphoneButton" onclick="setDevice('cellphone')"></button>
     </div>
     <div id="gamePage" style="display: none;">
         <canvas id="gameCanvas" width="800" height="600"></canvas>
@@ -127,7 +127,8 @@
                 tie: "It's a tie!",
                 restartButton: "Restart Game",
                 menuButton: "Back to Menu",
-                
+                computerButton: "Computer",
+                cellphoneButton: "Cellphone"
             },
             zh: {
                 rulesTitle: "机器人电池捕手 - 规则",
@@ -141,7 +142,8 @@
                 tie: "平局！",
                 restartButton: "重新开始",
                 menuButton: "返回菜单",
-                 
+                computerButton: "电脑",
+                cellphoneButton: "手机"
             }
         };
 
@@ -158,8 +160,8 @@
             document.getElementById('deviceSelectTitle').textContent = translations[language].deviceSelectTitle;
             document.getElementById('restartButton').textContent = translations[language].restartButton;
             document.getElementById('menuButton').textContent = translations[language].menuButton;
-            document.getElementById('computerButton').textContent = language === 'en' ? 'Computer' : '电脑';
-            document.getElementById('cellphoneButton').textContent = language === 'en' ? 'Cellphone' : '手机';
+            document.getElementById('computerButton').textContent = translations[language].computerButton;
+            document.getElementById('cellphoneButton').textContent = translations[language].cellphoneButton;
         }
 
         function setDevice(selectedDevice) {

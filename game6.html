@@ -263,18 +263,18 @@
     const remainingTime = Math.max(0, gameTime - Math.floor((Date.now() - gameStartTime) / 1000));
 
     if (device === 'cellphone') {
-        // Player 1 score on top left
+        
         ctx.textAlign = 'left';
         ctx.fillText(`${translations[language].player1Score}${score[0]}`, 10, 25);
         
-        // Time remaining under Player 1 score
+       
         ctx.fillText(`${translations[language].time}${remainingTime}s`, 10, 50);
 
-        // Player 2 score on top right
+        
         ctx.textAlign = 'right';
         ctx.fillText(`${translations[language].player2Score}${score[1]}`, canvas.width - 10, 25);
     } else {
-        // Original layout for computer version
+        
         ctx.textAlign = 'left';
         ctx.fillText(`${translations[language].player1Score}${score[0]}`, 10, 25);
         ctx.fillText(`${translations[language].player2Score}${score[1]}`, canvas.width - 150, 25);
@@ -391,6 +391,10 @@
                 robot2.direction = direction;
             }
         }
+        function restartGame() {
+    resetGame();
+    gameLoop();
+}
 
         function stopMobileControl(player) {
             if (player === 1) {
@@ -442,7 +446,7 @@
             }
         });
 
-        // Mobile control event listeners
+        
         const mobileButtons = document.querySelectorAll('.mobileButton');
         mobileButtons.forEach(button => {
             button.addEventListener('touchstart', (e) => {
@@ -459,24 +463,24 @@
             });
         });
 
-        // Resize event listener for responsive design
+        
         window.addEventListener('resize', () => {
             if (device === 'cellphone') {
                 canvas.width = window.innerWidth * 0.9;
                 canvas.height = window.innerHeight * 0.6;
                 
-                // Adjust sizes for mobile
+                
                 ROBOT_WIDTH = Math.floor(canvas.width * 0.15);
                 ROBOT_HEIGHT = Math.floor(canvas.height * 0.25);
                 ITEM_WIDTH = Math.floor(canvas.width * 0.1);
                 ITEM_HEIGHT = Math.floor(canvas.height * 0.1);
 
-                // Reposition robots
+                
                 robot1.x = canvas.width / 4 - ROBOT_WIDTH / 2;
                 robot2.x = 3 * canvas.width / 4 - ROBOT_WIDTH / 2;
                 robot1.y = robot2.y = canvas.height - ROBOT_HEIGHT - 50;
 
-                // Redraw game
+                
                 drawGame();
             }
         });

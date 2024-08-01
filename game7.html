@@ -230,80 +230,99 @@
         }
 
         function gameLoop() {
-            const canvas = document.getElementById('gameCanvas');
-            const ctx = canvas.getContext('2d');
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
 
-            if (gameOver) return;
+    if (gameOver) return;
 
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            if (!singlePlayerMode) {
-                ctx.strokeStyle = 'black';
-                ctx.beginPath();
-                ctx.moveTo(0, LANE_HEIGHT);
-                ctx.lineTo(canvas.width, LANE_HEIGHT);
-                ctx.stroke();
+    if (!singlePlayerMode) {
+        ctx.strokeStyle = 'black';
+        ctx.beginPath();
+        ctx.moveTo(0, LANE_HEIGHT);
+        ctx.lineTo(canvas.width, LANE_HEIGHT);
+        ctx.stroke();
+    }
+
+    drawPlayer(ctx, player1, 'blue');
+    if (!singlePlayerMode) drawPlayer(ctx, player2, 'red');
+
+    let player1Failed = false;
+    let player2Failed = false;
+
+    // Check collisions and update obstacles for player 1
+    for (let i = obstacles1.length - 1; i >= 0; i--) {
+        let obstacle = obstacles1[i];
+        obstacle.x -= gameSpeed;
+        drawObstacle(ctx, obstacle);
+        
+        if (checkCollision(player1, obstacle)) {
+            player1Failed = true;
+            break;  // Exit the loop immediately if a collision is detected
+        }
+        
+        if (obstacle.x + OBSTACLE_WIDTH < player1.x && !obstacle.passed) {
+            obstacle.passed = true;
+            score += 1;
+        }
+        
+        if (obstacle.x + OBSTACLE_WIDTH < 0) {
+            obstacles1.splice(i, 1);  // Remove obstacle if it's off-screen
+        }
+    }
+
+    // Check collisions and update obstacles for player 2 (if in two-player mode)
+    if (!singlePlayerMode) {
+        for (let i = obstacles2.length - 1; i >= 0; i--) {
+            let obstacle = obstacles2[i];
+            obstacle.x -= gameSpeed;
+            drawObstacle(ctx, obstacle);
+            
+            if (checkCollision(player2, obstacle)) {
+                player2Failed = true;
+                break;  // Exit the loop immediately if a collision is detected
             }
-
-            drawPlayer(ctx, player1, 'blue');
-            if (!singlePlayerMode) drawPlayer(ctx, player2, 'red');
-
-            obstacles1 = obstacles1.filter(obstacle => obstacle.x > -OBSTACLE_WIDTH);
-            if (!singlePlayerMode) obstacles2 = obstacles2.filter(obstacle => obstacle.x > -OBSTACLE_WIDTH);
-
-            let player1Failed = false;
-            let player2Failed = false;
-
-            obstacles1.forEach(obstacle => {
-                obstacle.x -= gameSpeed;
-                drawObstacle(ctx, obstacle);
-                if (checkCollision(player1, obstacle)) player1Failed = true;
-                if (obstacle.x + OBSTACLE_WIDTH < player1.x && !obstacle.passed) {
-                    obstacle.passed = true;
-                    score += 1;
-                }
-            });
-
-            if (!singlePlayerMode) {
-                obstacles2.forEach(obstacle => {
-                    obstacle.x -= gameSpeed;
-                    drawObstacle(ctx, obstacle);
-                    if (checkCollision(player2, obstacle)) player2Failed = true;
-                });
-            }
-
-            if (obstacles1.length === 0 || canvas.width - obstacles1[obstacles1.length - 1].x >= OBSTACLE_SPACING) {
-                obstacles1.push(createObstacle(1));
-            }
-            if (!singlePlayerMode && (obstacles2.length === 0 || canvas.width - obstacles2[obstacles2.length - 1].x >= OBSTACLE_SPACING)) {
-                obstacles2.push(createObstacle(2));
-            }
-
-            gameSpeed += 0.001;
-
-            if (player1Failed && player2Failed) {
-                gameOver = 'Tie';
-            } else if (player1Failed) {
-                gameOver = 'Player 1';
-            } else if (player2Failed) {
-                gameOver = 'Player 2';
-            }
-
-            if (gameOver) {
-                ctx.fillStyle = 'black';
-                ctx.font = '30px Arial';
-                if (gameOver === 'Tie') {
-                    ctx.fillText(`${texts[lang].gameOver} ${texts[lang].tie}`, canvas.width / 2 - 150, canvas.height / 2);
-                } else {
-                    ctx.fillText(`${texts[lang].gameOver} ${gameOver} ${texts[lang].failed}`, canvas.width / 2 - 150, canvas.height / 2);
-                }
-                if (singlePlayerMode) {
-                    ctx.fillText(`${texts[lang].score} ${score}`, canvas.width / 2 - 50, canvas.height / 2 + 40);
-                }
-            } else {
-                requestAnimationFrame(gameLoop);
+            
+            if (obstacle.x + OBSTACLE_WIDTH < 0) {
+                obstacles2.splice(i, 1);  // Remove obstacle if it's off-screen
             }
         }
+    }
+
+    // Add new obstacles if needed
+    if (obstacles1.length === 0 || canvas.width - obstacles1[obstacles1.length - 1].x >= OBSTACLE_SPACING) {
+        obstacles1.push(createObstacle(1));
+    }
+    if (!singlePlayerMode && (obstacles2.length === 0 || canvas.width - obstacles2[obstacles2.length - 1].x >= OBSTACLE_SPACING)) {
+        obstacles2.push(createObstacle(2));
+    }
+
+    gameSpeed += 0.001;
+
+    if (player1Failed && player2Failed) {
+        gameOver = 'Tie';
+    } else if (player1Failed) {
+        gameOver = 'Player 1';
+    } else if (player2Failed) {
+        gameOver = 'Player 2';
+    }
+
+    if (gameOver) {
+        ctx.fillStyle = 'black';
+        ctx.font = '30px Arial';
+        if (gameOver === 'Tie') {
+            ctx.fillText(`${texts[lang].gameOver} ${texts[lang].tie}`, canvas.width / 2 - 150, canvas.height / 2);
+        } else {
+            ctx.fillText(`${texts[lang].gameOver} ${gameOver} ${texts[lang].failed}`, canvas.width / 2 - 150, canvas.height / 2);
+        }
+        if (singlePlayerMode) {
+            ctx.fillText(`${texts[lang].score} ${score}`, canvas.width / 2 - 50, canvas.height / 2 + 40);
+        }
+    } else {
+        requestAnimationFrame(gameLoop);
+    }
+}
 
         function restartGame() {
             initGame();

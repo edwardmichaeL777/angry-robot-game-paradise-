@@ -230,9 +230,16 @@
         return true;
     }
 
-    // For high obstacles (crouch type), failure if not crouching
-    if (obstacle.type === 'crouch' && !player.isCrouching && isColliding) {
-        return true;
+    // For high obstacles (crouch type), failure if not crouching, regardless of actual collision
+    if (obstacle.type === 'crouch') {
+        const playerHeadY = player.y;
+        const isHeadInObstacleZone = (player.x < obstacle.x + OBSTACLE_WIDTH &&
+            player.x + PLAYER_WIDTH > obstacle.x &&
+            playerHeadY < obstacle.y + obstacle.height);
+
+        if (isHeadInObstacleZone && !player.isCrouching) {
+            return true;
+        }
     }
 
     return false;

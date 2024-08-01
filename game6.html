@@ -127,8 +127,7 @@
                 tie: "It's a tie!",
                 restartButton: "Restart Game",
                 menuButton: "Back to Menu",
-                computer: "computer",
-                cellphone: "cellphone"
+                
             },
             zh: {
                 rulesTitle: "机器人电池捕手 - 规则",
@@ -142,8 +141,7 @@
                 tie: "平局！",
                 restartButton: "重新开始",
                 menuButton: "返回菜单",
-                 computer: "电脑",
-                cellphone: "手机"
+                 
             }
         };
 
@@ -160,6 +158,8 @@
             document.getElementById('deviceSelectTitle').textContent = translations[language].deviceSelectTitle;
             document.getElementById('restartButton').textContent = translations[language].restartButton;
             document.getElementById('menuButton').textContent = translations[language].menuButton;
+            document.getElementById('computerButton').textContent = language === 'en' ? 'Computer' : '电脑';
+            document.getElementById('cellphoneButton').textContent = language === 'en' ? 'Cellphone' : '手机';
         }
 
         function setDevice(selectedDevice) {

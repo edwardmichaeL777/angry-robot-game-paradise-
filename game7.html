@@ -177,15 +177,14 @@
         }
 
         function createObstacle(lane) {
-            const type = Math.random() < 0.5 ? 'jump' : 'crouch';
-            return {
-                x: 800,
-                y: lane * LANE_HEIGHT - (type === 'jump' ? JUMP_OBSTACLE_HEIGHT : LANE_HEIGHT / 2),
-                type: type,
-                height: type === 'jump' ? JUMP_OBSTACLE_HEIGHT : CROUCH_OBSTACLE_HEIGHT
-            };
-        }
-
+    const type = Math.random() < 0.5 ? 'jump' : 'crouch';
+    return {
+        x: 800,
+        y: lane * LANE_HEIGHT - (type === 'jump' ? JUMP_OBSTACLE_HEIGHT : LANE_HEIGHT / 2),
+        type: type,
+        height: type === 'jump' ? JUMP_OBSTACLE_HEIGHT : CROUCH_OBSTACLE_HEIGHT
+    };
+}
         function drawPlayer(ctx, player, color) {
             const x = player.x + PLAYER_WIDTH / 2;
             let y = player.y + PLAYER_HEIGHT;
@@ -225,21 +224,14 @@
         playerY < obstacle.y + obstacle.height &&
         playerY + playerHeight > obstacle.y);
 
-    // For low obstacles (jump type), any collision is a failure
-    if (obstacle.type === 'jump' && isColliding) {
-        return true;
+    // For low obstacles (jump type), fail if crouching or doing nothing
+    if (obstacle.type === 'jump' && (player.isCrouching || !player.isJumping)) {
+        return isColliding;
     }
 
-    // For high obstacles (crouch type), failure if not crouching, regardless of actual collision
-    if (obstacle.type === 'crouch') {
-        const playerHeadY = player.y;
-        const isHeadInObstacleZone = (player.x < obstacle.x + OBSTACLE_WIDTH &&
-            player.x + PLAYER_WIDTH > obstacle.x &&
-            playerHeadY < obstacle.y + obstacle.height);
-
-        if (isHeadInObstacleZone && !player.isCrouching) {
-            return true;
-        }
+    // For high obstacles (crouch type), fail if jumping or doing nothing
+    if (obstacle.type === 'crouch' && (player.isJumping || !player.isCrouching)) {
+        return isColliding;
     }
 
     return false;

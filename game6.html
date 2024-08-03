@@ -87,6 +87,10 @@
             <button class="mobileButton" id="leftButton2">←</button>
             <button class="mobileButton" id="rightButton2">→</button>
         </div>
+        <div id="gameControls" style="display: none;">
+    <button onclick="restartGame()" id="restartButton"></button>
+    <button onclick="backToMenu()" id="menuButton"></button>
+</div>
     </div>
 
     <script>
@@ -96,6 +100,7 @@
         const rulesPage = document.getElementById('rulesPage');
         const gamePage = document.getElementById('gamePage');
         const mobileControls = document.getElementById('mobileControls');
+        const gameControls = document.getElementById('gameControls');
 
         let gameOver = false;
         let score = [0, 0];
@@ -304,6 +309,12 @@
             winnerText = translations[language].tie;
         }
         ctx.fillText(winnerText, canvas.width / 2, canvas.height / 2 + 40);
+        
+        // Show game controls when game is over
+        gameControls.style.display = 'block';
+    } else {
+        // Hide game controls during gameplay
+        gameControls.style.display = 'none';
     }
 }
 
@@ -355,8 +366,9 @@
 
         function startGame() {
             resetGame();
-            rulesPage.style.display = 'none';
-            gamePage.style.display = 'block';
+    rulesPage.style.display = 'none';
+    gamePage.style.display = 'block';
+    gameControls.style.display = 'none';
             if (device === 'cellphone') {
                 mobileControls.style.display = 'flex';
                 canvas.width = window.innerWidth * 0.9;
@@ -373,16 +385,16 @@
         }
 
         function resetGame() {
-            gameOver = false;
-            score = [0, 0];
-            items = [];
-            lastItemTime = 0;
-            itemInterval = 500;
-            itemSpeed = 1.0;
-            gameStartTime = Date.now();
-            initRobots();
-        }
-
+    gameOver = false;
+    score = [0, 0];
+    items = [];
+    lastItemTime = 0;
+    itemInterval = 500;
+    itemSpeed = 1.0;
+    gameStartTime = Date.now();
+    initRobots();
+    gameControls.style.display = 'none'; // Hide controls when resetting the game
+}
         function backToMenu() {
             window.location.href = 'index.html';
         }

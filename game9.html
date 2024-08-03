@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Robot Balloon Shooter</title>
+    <style>
+        body {
+            font-family: 'Roboto', Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #0f0f1f;
+            color: #e0e0e0;
+            text-align: center;
+        }
+        .page {
+            display: none;
+            padding-top: 50px;
+        }
+        h1 {
+            color: #3498db;
+            text-shadow: 0 0 5px rgba(52, 152, 219, 0.5);
+        }
+        button {
+            background-color: #2980b9;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            margin: 10px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            font-size: 20px;
+        }
+        button:hover {
+            background-color: #3498db;
+        }
+        canvas {
+            border: 1px solid #3498db;
+            display: block;
+            margin: 20px auto;
+            box-shadow: 0 0 10px rgba(52, 152, 219, 0.5);
+        }
+        #rulesSection {
+            margin-top: 30px;
+            padding: 20px;
+            border: 1px solid #3498db;
+            border-radius: 5px;
+            background-color: #1a1a2e;
+            box-shadow: 0 0 10px rgba(52, 152, 219, 0.5);
+        }
+    </style>
+</head>
+<body>
+    <div id="languagePage" class="page">
+        <h1>Select Language / 选择语言</h1>
+        <button onclick="setLanguage('en')">English</button>
+        <button onclick="setLanguage('zh')">中文</button>
+    </div>
+
+    <div id="rulesPage" class="page">
+        <h1 id="rulesTitle"></h1>
+        <div id="rulesSection"></div>
+        <button onclick="startGame()" id="startGameBtn"></button>
+    </div>
+
+    <div id="gamePage" class="page">
+        <canvas id="gameCanvas" width="800" height="600"></canvas>
+        <div id="gameControls">
+            <button onclick="restartGame()" id="restartBtn"></button>
+            <button onclick="backToMenu()" id="menuBtn"></button>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        let language = 'en';
+        let gameOver = false;
+        let score = 0;
+        let timeLeft = 60;
+        let startTime, endTime;
+
+        const translations = {
+            rulesTitle: {
+                en: "Game Rules",
+                zh: "游戏规则"
+            },
+            rules: {
+                en: "Press 'V' to fire bullets. Green balloons: 5 points, Red: 4 points, Yellow: 3 points. Each shot costs 1 point. Aim carefully and score as much as you can in 60 seconds!",
+                zh: "按'V'键发射子弹。绿色气球：5分，红色：4分，黄色：3分。每次射击扣1分。瞄准射击，在60秒内获得最高分！"
+            },
+            startGame: {
+                en: "Start Game",
+                zh: "开始游戏"
+            },
+            score: {
+                en: "Score",
+                zh: "分数"
+            },
+            time: {
+                en: "Time",
+                zh: "时间"
+            },
+            gameOver: {
+                en: "Game Over!",
+                zh: "游戏结束！"
+            },
+            finalScore: {
+                en: "Final Score",
+                zh: "最终得分"
+            },
+            restart: {
+                en: "Restart",
+                zh: "重新开始"
+            },
+            backToMenu: {
+                en: "Back to Menu",
+                zh: "返回菜单"
+            }
+        };
+
+        let robot = {
+            x: canvas.width / 2,
+            y: canvas.height - 100,
+            width: 50,
+            height: 80,
+            angle: 0,
+            swingSpeed: 0.01
+        };
+
+        let bullets = [];
+        let balloons = [];
+
+        function setLanguage(lang) {
+            language = lang;
+            document.getElementById('languagePage').style.display = 'none';
+            document.getElementById('rulesPage').style.display = 'block';
+            updateTexts();
+        }
+
+        function updateTexts() {
+            document.getElementById('rulesTitle').textContent = translations.rulesTitle[language];
+            document.getElementById('rulesSection').textContent = translations.rules[language];
+            document.getElementById('startGameBtn').textContent = translations.startGame[language];
+            document.getElementById('restartBtn').textContent = translations.restart[language];
+            document.getElementById('menuBtn').textContent = translations.backToMenu[language];
+        }
+
+        function startGame() {
+            document.getElementById('rulesPage').style.display = 'none';
+            document.getElementById('gamePage').style.display = 'block';
+            gameOver = false;
+            score = 0;
+            startTime = Date.now();
+            endTime = startTime + 60000; 
+            bullets = [];
+            balloons = [];
+            gameLoop();
+        }
+
+        function restartGame() {
+            startGame();
+        }
+
+        function backToMenu() {
+            window.location.href = 'index.html';
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'v' && !gameOver) {
+                fireBullet();
+            }
+        });
+
+        function fireBullet() {
+            const angle = robot.angle;
+            bullets.push({
+                x: robot.x,
+                y: robot.y,
+                radius: 5,
+                speed: 5,
+                dx: Math.sin(angle) * 5,
+                dy: -Math.cos(angle) * 5
+            });
+            score--; 
+        }
+
+        function createBalloon() {
+            const colors = ['green', 'red', 'yellow'];
+            const color = colors[Math.floor(Math.random() * colors.length)];
+            balloons.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * (canvas.height / 2 - 30),
+                radius: 15,
+                color: color,
+                speed: Math.random() * 2 + 1,
+                dx: (Math.random() - 0.5) * 2
+            });
+        }
+
+        function update() {
+            
+            robot.angle = Math.sin(Date.now() * robot.swingSpeed) * Math.PI / 6;
+
+            
+            bullets.forEach((bullet, index) => {
+                bullet.x += bullet.dx;
+                bullet.y += bullet.dy;
+                if (bullet.y + bullet.radius < 0 || bullet.y - bullet.radius > canvas.height ||
+                    bullet.x + bullet.radius < 0 || bullet.x - bullet.radius > canvas.width) {
+                    bullets.splice(index, 1);
+                }
+            });
+
+            
+            balloons.forEach((balloon) => {
+                balloon.x += balloon.dx;
+
+               
+                if (balloon.x - balloon.radius < 0 || balloon.x + balloon.radius > canvas.width) {
+                    balloon.dx = -balloon.dx;
+                }
+            });
+
+            
+            bullets.forEach((bullet, bIndex) => {
+                balloons.forEach((balloon, balloonIndex) => {
+                    const dx = bullet.x - balloon.x;
+                    const dy = bullet.y - balloon.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+
+                    if (distance < bullet.radius + balloon.radius) {
+                        
+                        bullets.splice(bIndex, 1);
+                        balloons.splice(balloonIndex, 1);
+
+                        
+                        if (balloon.color === 'green') score += 5;
+                        else if (balloon.color === 'red') score += 4;
+                        else if (balloon.color === 'yellow') score += 3;
+                    }
+                });
+            });
+
+            
+            if (Math.random() < 0.02) {
+                createBalloon();
+            }
+
+            
+            let currentTime = Date.now();
+            if (currentTime < endTime) {
+                timeLeft = Math.ceil((endTime - currentTime) / 1000);
+            } else {
+                timeLeft = 0;
+                gameOver = true;
+            }
+        }
+
+        function drawRobot(x, y, angle) {
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.rotate(angle);
+
+            
+            ctx.fillStyle = 'gray';
+            ctx.fillRect(-25, -40, 50, 80);
+            
+            
+            ctx.fillRect(-20, -70, 40, 30);
+            
+            ctx.fillStyle = 'black';
+            ctx.fillRect(-15, -65, 10, 10);
+            ctx.fillRect(5, -65, 10, 10);
+            
+           
+            ctx.strokeStyle = 'gray';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(0, -70);
+            ctx.lineTo(0, -85);
+            ctx.stroke();
+            ctx.fillStyle = 'red';
+            ctx.beginPath();
+            ctx.arc(0, -85, 3, 0, Math.PI * 2);
+            ctx.fill();
+            
+            
+            ctx.fillStyle = 'gray';
+            ctx.fillRect(-35, -30, 10, 60);
+            ctx.fillRect(25, -30, 10, 60);
+            
+            
+            ctx.fillRect(-20, 40, 15, 40);
+            ctx.fillRect(5, 40, 15, 40);
+
+            ctx.restore();
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            
+            ctx.strokeStyle = 'white';
+            ctx.beginPath();
+            ctx.moveTo(0, canvas.height / 2);
+            ctx.lineTo(canvas.width, canvas.height / 2);
+            ctx.stroke();
+
+            
+            drawRobot(robot.x, robot.y, robot.angle);
+
+            
+            ctx.fillStyle = 'white';
+            bullets.forEach(bullet => {
+                ctx.beginPath();
+                ctx.arc(bullet.x, bullet.y, bullet.radius, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            
+            balloons.forEach(balloon => {
+                ctx.fillStyle = balloon.color;
+                ctx.beginPath();
+                ctx.arc(balloon.x, balloon.y, balloon.radius, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            
+            ctx.fillStyle = 'white';
+            ctx.font = '20px Arial';
+            ctx.fillText(`${translations.score[language]}: ${score}`, 10, 30);
+            ctx.fillText(`${translations.time[language]}: ${timeLeft}`, canvas.width - 100, 30);
+
+            if (gameOver) {
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = 'white';
+                ctx.font = '40px Arial';
+                ctx.fillText(`${translations.gameOver[language]} ${translations.finalScore[language]}: ${score}`, canvas.width / 2 - 200, canvas.height / 2);
+            }
+        }
+
+        function gameLoop() {
+            if (!gameOver) {
+                update();
+                draw();
+                requestAnimationFrame(gameLoop);
+            } else {
+                draw();
+                document.getElementById('gameControls').style.display = 'block';
+            }
+        }
+
+        
+        document.getElementById('languagePage').style.display = 'block';
+    </script>
+</body>
+</html>

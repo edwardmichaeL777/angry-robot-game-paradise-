@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Math Challenge / 数学挑战</title>
+    <style>
+        body {
+            font-family: 'Roboto', Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #0f0f1f;
+            color: #e0e0e0;
+        }
+        .page {
+            text-align: center;
+            display: none;
+            background-color: #1a1a2e;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(52, 152, 219, 0.5);
+        }
+        #gameArea {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 20px 0;
+        }
+        #blackboard {
+            width: 300px;
+            height: 100px;
+            background-color: #2c3e50;
+            margin: 20px auto;
+            border: 10px solid #8b4513;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            color: white;
+        }
+        #gameCanvas {
+            width: 150px;
+            height: 200px;
+            border: 1px solid #3498db;
+            background-color: #1a1a2e;
+            box-shadow: 0 0 10px rgba(52, 152, 219, 0.5);
+        }
+        .answer-slots {
+            display: flex;
+            justify-content: space-around;
+            margin: 20px 0;
+        }
+        .slot {
+            width: 100px;
+            height: 50px;
+            background-color: #2980b9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 20px;
+            color: white;
+            cursor: pointer;
+        }
+        #scores, #timer {
+            font-size: 18px;
+            margin: 10px 0;
+            color: #3498db;
+        }
+        button {
+            margin: 10px;
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #2980b9;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #3498db;
+        }
+        #cellphoneInterface {
+            display: none;
+        }
+        .cellphone-button {
+            width: 120px;
+            height: 60px;
+            border-radius: 10px;
+            font-size: 24px;
+            margin: 10px;
+            background-color: #2980b9;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        #cellphoneInterface {
+            display: flex;
+            justify-content: center;
+            width: 100%;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+        .cellphone-column {
+            display: flex;
+            flex-direction: column;
+        }
+        #endGameScreen {
+            background-color: black;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div id="page1" class="page" style="display: block;">
+        <h1>Welcome to Math Challenge<br>欢迎来到数学挑战</h1>
+        <p>Choose your language / 选择你的语言</p>
+        <button onclick="setLanguage('en')">English</button>
+        <button onclick="setLanguage('zh')">中文</button>
+    </div>
+
+    <div id="playerSelection" class="page">
+        <h1 id="playerSelectionTitle"></h1>
+        <button onclick="setPlayerMode(1)">1 Player</button>
+        <button onclick="setPlayerMode(2)">2 Players</button>
+    </div>
+
+    <div id="page2" class="page">
+        <h1 id="rulesTitle"></h1>
+        <div id="rules"></div>
+        <h2 id="deviceChoiceTitle"></h2>
+        <button id="computerButton" onclick="startGame('computer')"></button>
+        <button id="cellphoneButton" onclick="startGame('cellphone')"></button>
+    </div>
+
+    <div id="page3" class="page">
+        <h1 id="gameTitle"></h1>
+        <div id="timer"></div>
+        <div id="scores"></div>
+        <div id="gameArea">
+            <canvas id="gameCanvas" width="150" height="200"></canvas>
+            <div id="blackboard"></div>
+        </div>
+        <div class="answer-slots">
+            <div class="slot" id="slot1"></div>
+            <div class="slot" id="slot2"></div>
+            <div class="slot" id="slot3"></div>
+        </div>
+        <div id="computerControls">
+            <p id="computerInstructions"></p>
+        </div>
+        <div id="cellphoneInterface"></div>
+    </div>
+
+    <div id="endGameScreen" class="page">
+        <h1 id="endGameTitle"></h1>
+        <p id="endGameResult"></p>
+        <button onclick="resetGame()">Play Again</button>
+        <button onclick="backToMenu()">Back to Menu</button>
+    </div>
+
+    <script>
+        let language = 'en';
+        let currentDevice = 'computer';
+        let currentQuestion = {};
+        let scores = [0, 0];
+        let timeLeft = 60;
+        let gameInterval;
+        let answerSlots = ['', '', ''];
+        let canvas, ctx;
+        let questionAnswered = false;
+        let playerMode = 2;
+        let playerAnswered = [false, false];
+
+        function setLanguage(lang) {
+            language = lang;
+            document.getElementById('page1').style.display = 'none';
+            document.getElementById('playerSelection').style.display = 'block';
+            updatePlayerSelectionPage();
+        }
+
+        function updatePlayerSelectionPage() {
+            document.getElementById('playerSelectionTitle').textContent = 
+                language === 'en' ? 'Choose Player Mode' : '选择玩家模式';
+        }
+
+        function setPlayerMode(mode) {
+            playerMode = mode;
+            document.getElementById('playerSelection').style.display = 'none';
+            document.getElementById('page2').style.display = 'block';
+            updateRulesPage();
+        }
+
+        function updateRulesPage() {
+            document.getElementById('rulesTitle').textContent = language === 'en' ? 'Math Challenge Rules' : '数学挑战规则';
+            const rules = language === 'en' ? [
+                "1. The game lasts for 60 seconds.",
+                playerMode === 2 ? "2. Two players compete to solve math problems." : "2. Solve as many math problems as you can.",
+                "3. Each correct answer scores one point.",
+                playerMode === 2 ? "4. The player with the most points at the end wins." : "4. If you answer incorrectly, the game ends.",
+                playerMode === 2 ? "5. In case of a tie, the game ends in a draw." : "5. Try to get the highest score possible.",
+                playerMode === 2 ? "6. The first player to answer correctly gets the point." : "",
+                playerMode === 2 ? "7. If both players answer incorrectly, the game moves to the next question." : "",
+            ] : [
+                "1. 游戏持续60秒。",
+                playerMode === 2 ? "2. 两名玩家竞争解决数学问题。" : "2. 尽可能多地解决数学问题。",
+                "3. 每个正确答案得一分。",
+                playerMode === 2 ? "4. 结束时得分最高的玩家获胜。" : "4. 如果回答错误，游戏立即结束。",
+                playerMode === 2 ? "5. 如果平局，游戏以平局结束。" : "5. 尝试获得最高分。",
+                playerMode === 2 ? "6. 第一个回答正确的玩家得分。" : "",
+                playerMode === 2 ? "7. 如果两名玩家都回答错误，游戏进入下一个问题。" : "",
+            ];
+            document.getElementById('rules').innerHTML = rules.join('<br>');
+            document.getElementById('deviceChoiceTitle').textContent = language === 'en' ? 'Choose your device' : '选择你的设备';
+            document.getElementById('computerButton').textContent = language === 'en' ? 'Computer' : '电脑';
+            document.getElementById('cellphoneButton').textContent = language === 'en' ? 'Cellphone' : '手机';
+        }
+
+        function startGame(device) {
+            currentDevice = device;
+            document.getElementById('page2').style.display = 'none';
+            document.getElementById('page3').style.display = 'block';
+            if (device === 'computer') {
+                document.getElementById('computerControls').style.display = 'block';
+                document.getElementById('cellphoneInterface').style.display = 'none';
+                document.getElementById('computerInstructions').textContent = language === 'en' ? 
+                    playerMode === 2 ? "Player 1: Press Q, W, or E. Player 2: Press I, O, or P to select the corresponding answer" : 
+                    "Press Q, W, or E to select the corresponding answer" : 
+                    playerMode === 2 ? "玩家1：按 Q、W 或 E 键。玩家2：按 I、O 或 P 键选择对应的答案" : 
+                    "按 Q、W 或 E 键选择对应的答案";
+            } else {
+                document.getElementById('computerControls').style.display = 'none';
+                document.getElementById('cellphoneInterface').style.display = 'flex';
+            }
+            canvas = document.getElementById('gameCanvas');
+            ctx = canvas.getContext('2d');
+            resetGame();
+        }
+
+        function generateQuestion() {
+            const patterns = [
+                '3a*1a', '3a+1a', '3a-1a', '3a+2a', '3a-2a',
+                '2a*2a', '2a+2a', '2a-2a', '2a*1a', '2a+1a',
+                '2a-1a', '1a*1a', '1a+1a', '1a-1a'
+            ];
+            const pattern = patterns[Math.floor(Math.random() * patterns.length)];
+            let num1, num2, operator;
+
+            if (pattern.includes('3a')) {
+                num1 = Math.floor(Math.random() * 900) + 100; // 3-digit number
+            } else if (pattern.includes('2a')) {
+                num1 = Math.floor(Math.random() * 90) + 10; // 2-digit number
+            } else {
+                num1 = Math.floor(Math.random() * 9) + 1; // 1-digit number
+            }
+
+            if (pattern.includes('*1a') || pattern.includes('+1a') || pattern.includes('-1a')) {
+                num2 = Math.floor(Math.random() * 9) + 1; // 1-digit number
+            } else {
+                num2 = Math.floor(Math.random() * 90) + 10; // 2-digit number
+            }
+
+            operator = pattern.includes('*') ? '*' : pattern.includes('+') ? '+' : '-';
+
+            let answer;
+            switch(operator) {
+                case '*': answer = num1 * num2; break;
+                case '+': answer = num1 + num2; break;
+                case '-': 
+                    if (num1 < num2) {
+                        [num1, num2] = [num2, num1]; // Swap to ensure positive result
+                    }
+                    answer = num1 - num2; 
+                    break;
+            }
+
+            currentQuestion = {
+                question: `${num1} ${operator} ${num2} = ?`,
+                answer: answer
+            };
+
+            document.getElementById('blackboard').textContent = currentQuestion.question;
+
+            answerSlots = [
+                currentQuestion.answer,
+                Math.floor(Math.random() * (answer * 2)) + 1,
+                Math.floor(Math.random() * (answer * 2)) + 1
+            ].sort(() => Math.random() - 0.5);
+
+            for (let i = 0; i < 3; i++) {
+                document.getElementById(`slot${i+1}`).textContent = answerSlots[i];
+            }
+
+            drawRobot();
+            questionAnswered = false;
+            playerAnswered = [false, false];
+
+            if (currentDevice === 'cellphone') {
+                const cellphoneInterface = document.getElementById('cellphoneInterface');
+                cellphoneInterface.innerHTML = '';
+                if (playerMode === 2) {
+                    cellphoneInterface.innerHTML = `
+                        <div class="cellphone-column">
+                            <button class="cellphone-button" onclick="playerInput(1, 'Q')">1</button>
+                            <button class="cellphone-button" onclick="playerInput(1, 'W')">2</button>
+                            <button class="cellphone-button" onclick="playerInput(1, 'E')">3</button>
+                        </div>
+                        <div class="cellphone-column">
+                            <button class="cellphone-button" onclick="playerInput(2, 'I')">1</button>
+                            <button class="cellphone-button" onclick="playerInput(2, 'O')">2</button>
+                            <button class="cellphone-button" onclick="playerInput(2, 'P')">3</button>
+                        </div>
+                    `;
+                } else {
+                    cellphoneInterface.innerHTML = `
+                        <div class="cellphone-column">
+                            <button class="cellphone-button" onclick="playerInput(1, 'Q')">1</button>
+                            <button class="cellphone-button" onclick="playerInput(1, 'W')">2</button>
+                            <button class="cellphone-button" onclick="playerInput(1, 'E')">3</button>
+                        </div>
+                    `;
+                }
+            }
+        }
+
+        function drawRobot() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw body
+            ctx.fillStyle = 'blue';
+            ctx.fillRect(45, 80, 60, 96);
+            
+            // Draw head
+            ctx.fillRect(51, 32, 48, 48);
+            
+            // Draw eyes
+            ctx.fillStyle = 'white';
+            ctx.fillRect(57, 44, 12, 12);
+            ctx.fillRect(81, 44, 12, 12);
+            
+            // Draw arms
+            ctx.fillStyle = 'blue';
+            ctx.fillRect(15, 92, 30, 12);
+            ctx.fillRect(105, 92, 30, 12);
+            
+            // Draw legs
+            ctx.fillRect(51, 176, 18, 24);
+            ctx.fillRect(81, 176, 18, 24);
+            
+            // Draw professor hat
+            ctx.fillStyle = 'black';
+            ctx.fillRect(39, 20, 72, 12);
+            ctx.fillRect(51, 0, 48, 20);
+        }
+
+        function playerInput(player, key) {
+            if (questionAnswered || playerAnswered[player - 1]) return;
+            
+            const slotIndex = player === 1 ? ['Q', 'W', 'E'].indexOf(key) : ['I', 'O', 'P'].indexOf(key);
+            if (slotIndex === -1) return;
+
+            playerAnswered[player - 1] = true;
+
+            if (answerSlots[slotIndex] === currentQuestion.answer) {
+                scores[player - 1]++;
+                updateScores();
+                questionAnswered = true;
+                generateQuestion();
+            } else if (playerMode === 1) {
+                endGame(); // End the game immediately for single-player mode on wrong answer
+            } else if (playerMode === 2 && playerAnswered[0] && playerAnswered[1]) {
+                generateQuestion();
+            }
+        }
+
+        function updateScores() {
+            if (playerMode === 2) {
+                document.getElementById('scores').textContent = language === 'en' ?
+                `Player 1: ${scores[0]} | Player 2: ${scores[1]}` :
+                    `玩家1: ${scores[0]} | 玩家2: ${scores[1]}`;
+            } else {
+                document.getElementById('scores').textContent = language === 'en' ?
+                    `Score: ${scores[0]}` :
+                    `得分: ${scores[0]}`;
+            }
+        }
+
+        function updateTimer() {
+            document.getElementById('timer').textContent = language === 'en' ?
+                `Time left: ${timeLeft}s` :
+                `剩余时间: ${timeLeft}秒`;
+            if (timeLeft <= 0) {
+                endGame();
+            }
+        }
+
+        function endGame() {
+            clearInterval(gameInterval);
+            document.getElementById('page3').style.display = 'none';
+            document.getElementById('endGameScreen').style.display = 'block';
+            
+            document.getElementById('endGameTitle').textContent = language === 'en' ? "Game Over" : "游戏结束";
+            
+            let resultText;
+            if (playerMode === 2) {
+                if (scores[0] === scores[1]) {
+                    resultText = language === 'en' ? 
+                        `It's a tie! Score: ${scores[0]} - ${scores[1]}` : 
+                        `平局！得分：${scores[0]} - ${scores[1]}`;
+                } else {
+                    const winner = scores[0] > scores[1] ? 1 : 2;
+                    resultText = language === 'en' ? 
+                        `Player ${winner} wins! Score: ${scores[0]} - ${scores[1]}` : 
+                        `玩家${winner}获胜！得分：${scores[0]} - ${scores[1]}`;
+                }
+            } else {
+                resultText = language === 'en' ? 
+                    `Game Over! Your final score: ${scores[0]}` : 
+                    `游戏结束！你的最终得分：${scores[0]}`;
+            }
+            
+            document.getElementById('endGameResult').textContent = resultText;
+        }
+
+        function resetGame() {
+            scores = [0, 0];
+            timeLeft = 60;
+            updateScores();
+            generateQuestion();
+            clearInterval(gameInterval);
+            gameInterval = setInterval(() => {
+                timeLeft--;
+                updateTimer();
+            }, 1000);
+            updateTimer();
+            document.getElementById('endGameScreen').style.display = 'none';
+            document.getElementById('page3').style.display = 'block';
+        }
+
+        function backToMenu() {
+            window.location.href = 'index.html';
+        }
+
+        document.addEventListener('keydown', function(event) {
+            if (currentDevice === 'computer') {
+                if (['Q', 'W', 'E'].includes(event.key.toUpperCase())) {
+                    playerInput(1, event.key.toUpperCase());
+                } else if (playerMode === 2 && ['I', 'O', 'P'].includes(event.key.toUpperCase())) {
+                    playerInput(2, event.key.toUpperCase());
+                }
+            }
+        });
+
+        document.getElementById('gameTitle').textContent = language === 'en' ? 'Math Challenge' : '数学挑战';
+    </script>
+</body>
+</html>

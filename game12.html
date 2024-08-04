@@ -1,1 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bicycle Typing Game</title>
+    <style>
+        body {
+            font-family: 'Roboto', Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            text-align: center;
+            background-color: #0f0f1f;
+            color: #e0e0e0;
+        }
+        .page {
+            display: none;
+            background-color: #1a1a2e;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(52, 152, 219, 0.5);
+            padding: 20px;
+        }
+        #languagePage {
+            display: block;
+        }
+        button {
+            font-size: 18px;
+            margin: 10px;
+            padding: 10px 20px;
+            cursor: pointer;
+            background-color: #2980b9;
+            color: white;
+            border: none;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #3498db;
+        }
+        .player {
+            margin-bottom: 20px;
+        }
+        .letters {
+            font-family: monospace;
+            font-size: 24px;
+        }
+        canvas {
+            border: 1px solid #3498db;
+            margin-bottom: 20px;
+            box-shadow: 0 0 10px rgba(52, 152, 219, 0.5);
+        }
+        h1, h2 {
+            color: #3498db;
+            text-shadow: 0 0 5px rgba(52, 152, 219, 0.5);
+        }
+        #timer, #result {
+            font-size: 24px;
+            color: #2ecc71;
+            margin-top: 20px;
+        }
+        #rulesList {
+            text-align: left;
+            padding-left: 20px;
+        }
+        #rulesList li {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div id="languagePage" class="page">
+        <h1>Select Language / 选择语言</h1>
+        <button onclick="setLanguage('en')">English</button>
+        <button onclick="setLanguage('zh')">中文</button>
+    </div>
 
+    <div id="rulesPage" class="page">
+        <h1 id="rulesTitle"></h1>
+        <ul id="rulesList"></ul>
+        <button onclick="startGame()" id="startGameBtn"></button>
+    </div>
+
+    <div id="gamePage" class="page">
+        <h1 id="gameTitle"></h1>
+        <div id="startPrompt"></div>
+        <canvas id="gameCanvas" width="800" height="300"></canvas>
+        <div id="player1" class="player">
+            <h2></h2>
+            <div class="letters"></div>
+        </div>
+        <div id="player2" class="player">
+            <h2></h2>
+            <div class="letters"></div>
+        </div>
+        <div id="player3" class="player">
+            <h2></h2>
+            <div class="letters"></div>
+        </div>
+        <div id="timer"></div>
+        <div id="result"></div>
+        <button onclick="restartGame()" id="restartBtn"></button>
+        <button onclick="backToMenu()" id="menuBtn"></button>
+    </div>
+
+    <script>
+    let language = 'en';
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    const translations = {
+        en: {
+            rulesTitle: "Game Rules",
+            rules: [
+                "Players take turns pressing keys to move the bicycle",
+                "Player 1 uses keys: qweasdzxc",
+                "Player 2 uses keys: iopjklbnm",
+                "Player 3 uses keys: 789456123",
+                "Correctly type the displayed letters to move the bicycle forward",
+                "Work together to reach the finish line as quickly as possible",
+                "The game ends when the bicycle reaches the finish line",
+                "This game cannot be played on mobile devices",
+            ],
+            startGame: "Start Game",
+            gameTitle: "Bicycle Typing Game",
+            player1: "Player 1",
+            player2: "Player 2",
+            player3: "Player 3",
+            startPrompt: "Press spacebar to start!",
+            restart: "Restart Game",
+            backToMenu: "Back to Menu"
+        },
+        zh: {
+            rulesTitle: "游戏规则",
+            rules: [
+                "玩家轮流按键以移动自行车",
+                "玩家1使用键盘按键：qweasdzxc",
+                "玩家2使用键盘按键：iopjklbnm",
+                "玩家3使用键盘按键：789456123",
+                "正确输入显示的字母，自行车就会向前移动",
+                "合作尽快到达终点线",
+                "当自行车到达终点线时游戏结束",
+                "此游戏无法在移动设备上进行运行",
+            ],
+            startGame: "开始游戏",
+            gameTitle: "自行车打字游戏",
+            player1: "玩家1",
+            player2: "玩家2",
+            player3: "玩家3",
+            startPrompt: "按下空格键开始！",
+            restart: "重新开始",
+            backToMenu: "返回菜单",
+        }
+    };
+
+    function setLanguage(lang) {
+        language = lang;
+        document.getElementById('languagePage').style.display = 'none';
+        document.getElementById('rulesPage').style.display = 'block';
+        updateTexts();
+    }
+
+    function updateTexts() {
+        document.getElementById('rulesTitle').textContent = translations[language].rulesTitle;
+        const rulesList = document.getElementById('rulesList');
+        rulesList.innerHTML = '';
+        translations[language].rules.forEach(rule => {
+            const li = document.createElement('li');
+            li.textContent = rule;
+            rulesList.appendChild(li);
+        });
+        document.getElementById('startGameBtn').textContent = translations[language].startGame;
+        document.getElementById('gameTitle').textContent = translations[language].gameTitle;
+        document.getElementById('startPrompt').textContent = translations[language].startPrompt;
+        document.getElementById('restartBtn').textContent = translations[language].restart;
+        document.getElementById('menuBtn').textContent = translations[language].backToMenu;
+        document.querySelectorAll('.player h2').forEach((el, index) => {
+            el.textContent = translations[language][`player${index + 1}`];
+        });
+    }
+
+    function startGame() {
+        document.getElementById('rulesPage').style.display = 'none';
+        document.getElementById('gamePage').style.display = 'block';
+        game.init();
+    }
+
+    function restartGame() {
+        game = new Game();
+        document.getElementById('result').textContent = '';
+        document.getElementById('startPrompt').style.display = 'block';
+        document.getElementById('restartBtn').style.display = 'none';
+        document.getElementById('menuBtn').style.display = 'none';
+        game.init();
+    }
+
+   
+
+    function drawFinishLine(x) {
+        const squareSize = 20;
+        const numSquares = 15;
+        ctx.fillStyle = 'black';
+        for (let i = 0; i < numSquares; i++) {
+            if (i % 2 === 0) {
+                ctx.fillRect(x, i * squareSize, squareSize, squareSize);
+                ctx.fillRect(x + squareSize, (i + 1) * squareSize, squareSize, squareSize);
+            }
+        }
+    }
+
+    class Player {
+        constructor(keys, color) {
+            this.position = 0;
+            this.letters = [];
+            this.keys = keys;
+            this.color = color;
+        }
+
+        generateLetters() {
+            while (this.letters.length < 5) {
+                this.letters.push(this.keys[Math.floor(Math.random() * this.keys.length)]);
+            }
+        }
+
+        move() {
+            this.letters.shift();
+            this.generateLetters();
+        }
+    }
+
+    class Game {
+        constructor() {
+            this.players = [
+                new Player("qweasdzxc".split(''), 'red'),
+                new Player("iopjklbnm".split(''), 'green'),
+                new Player("789456123".split(''), 'blue')
+            ];
+            this.currentPlayerIndex = 0;
+            this.bicyclePosition = 0;
+            this.timer = 0;
+            this.gameStarted = false;
+            this.gameEnded = false;
+            this.startTime = 0;
+            this.timerInterval = null;
+        }
+
+        init() {
+            this.players.forEach(player => player.generateLetters());
+            this.updateDisplay();
+            document.addEventListener('keydown', (event) => this.handleKeyPress(event));
+            this.gameLoop();
+        }
+
+        start() {
+            this.gameStarted = true;
+            this.startTime = Date.now();
+            document.getElementById('startPrompt').style.display = 'none';
+            document.getElementById('restartBtn').style.display = 'none';
+            document.getElementById('menuBtn').style.display = 'none';
+            this.timerInterval = setInterval(() => this.updateTimer(), 1000);
+        }
+
+        handleKeyPress(event) {
+            if (!this.gameStarted) {
+                if (event.code === 'Space') {
+                    this.start();
+                }
+                return;
+            }
+
+            if (this.gameEnded) return;
+
+            const currentPlayer = this.players[this.currentPlayerIndex];
+            if (currentPlayer.letters[0] === event.key) {
+                currentPlayer.move();
+                this.bicyclePosition += 8; // Reduced movement to finish in about 90 clicks
+                this.currentPlayerIndex = (this.currentPlayerIndex + 1) % this.players.length;
+                this.updateDisplay();
+            }
+
+            if (this.bicyclePosition >= 700) {
+                this.gameEnded = true;
+                this.showResults();
+                clearInterval(this.timerInterval);
+            }
+        }
+
+        updateTimer() {
+            if (this.gameStarted && !this.gameEnded) {
+                this.timer++;
+                document.getElementById('timer').textContent = `Time: ${this.timer}s`;
+            }
+        }
+
+        gameLoop() {
+            this.drawGame();
+            if (!this.gameEnded) {
+                requestAnimationFrame(() => this.gameLoop());
+            }
+        }
+
+        drawBicycle(x, y) {
+            const wheelRadius = 20;
+            const frameLength = 60;
+
+            // Draw frame
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            ctx.lineTo(x + frameLength, y - frameLength/2);
+            ctx.lineTo(x + frameLength*2, y);
+            ctx.strokeStyle = 'black';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+
+            // Draw triangular wheels
+            this.drawTriangleWheel(x, y, wheelRadius);
+            this.drawTriangleWheel(x + frameLength*2, y, wheelRadius);
+
+            // Draw robot
+            this.drawRobot(x + frameLength, y - frameLength/2 - 40);
+        }
+
+        drawTriangleWheel(x, y, radius) {
+            ctx.beginPath();
+            for (let i = 0; i < 3; i++) {
+                const angle = (i * 2 * Math.PI / 3) - (Math.PI / 2);
+                ctx.lineTo(x + radius * Math.cos(angle), y + radius * Math.sin(angle));
+            }
+            ctx.closePath();
+            ctx.strokeStyle = 'black';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        }
+
+        drawRobot(x, y) {
+            const currentPlayer = this.players[this.currentPlayerIndex];
+            ctx.fillStyle = currentPlayer.color;
+            ctx.fillRect(x - 25, y - 50, 50, 80);
+            ctx.fillRect(x - 20, y - 80, 40, 30);
+            ctx.fillStyle = 'white';
+            ctx.fillRect(x - 15, y - 75, 10, 10);
+            ctx.fillRect(x + 5, y - 75, 10, 10);
+            ctx.fillStyle = currentPlayer.color;
+            ctx.fillRect(x + 25, y - 40, 10, 60);
+            ctx.fillRect(x - 35, y - 40, 10, 60);
+            ctx.fillRect(x - 20, y + 30, 15, 40);
+            ctx.fillRect(x + 5, y + 30, 15, 40);
+        }
+
+        drawGame() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw road
+            ctx.fillStyle = '#ddd';
+            ctx.fillRect(0, 150, canvas.width, 100);
+
+            // Draw bicycle with robot
+            this.drawBicycle(50 + this.bicyclePosition, 200);
+
+            // Draw finish line
+            drawFinishLine(750);
+
+            // Draw timer
+            ctx.fillStyle = 'white';
+            ctx.font = '20px Arial';
+            ctx.fillText(`Time: ${this.timer}s`, 10, 30);
+        }
+
+        updateDisplay() {
+            this.players.forEach((player, index) => {
+                const playerElement = document.getElementById(`player${index + 1}`);
+                playerElement.querySelector('.letters').textContent = player.letters.join(' ');
+                playerElement.style.color = player.color;
+            });
+            document.querySelector(`#player${this.currentPlayerIndex + 1} h2`).textContent = translations[language][`player${this.currentPlayerIndex + 1}`];
+            this.drawGame();
+        }
+
+        showResults() {
+            document.getElementById('result').textContent = `Congratulations! You finished in ${this.timer} seconds!`;
+            document.getElementById('restartBtn').style.display = 'inline-block';
+            document.getElementById('menuBtn').style.display = 'inline-block';
+        }
+    }
+
+    let game = new Game();
+    </script>
+</body>
+</html>

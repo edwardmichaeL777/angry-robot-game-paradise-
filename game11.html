@@ -1,1 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rock Paper Scissors Game</title>
+    <style>
+        body {
+            font-family: 'Roboto', Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            text-align: center;
+            background-color: #0f0f1f;
+            color: #e0e0e0;
+        }
+        .page {
+            display: none;
+            background-color: #1a1a2e;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(52, 152, 219, 0.5);
+            padding: 20px;
+        }
+        #languagePage {
+            display: block;
+        }
+        button {
+            font-size: 18px;
+            margin: 10px;
+            padding: 10px 20px;
+            cursor: pointer;
+            background-color: #2980b9;
+            color: white;
+            border: none;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #3498db;
+        }
+        canvas {
+            border: 1px solid #3498db;
+            margin-bottom: 20px;
+            box-shadow: 0 0 10px rgba(52, 152, 219, 0.5);
+        }
+        h1, h2 {
+            color: #3498db;
+            text-shadow: 0 0 5px rgba(52, 152, 219, 0.5);
+        }
+        #gameInfo, #timer, #scoreboard {
+            font-size: 24px;
+            color: #2ecc71;
+            margin-top: 20px;
+        }
+        #rulesList {
+            text-align: left;
+            padding-left: 20px;
+        }
+        #rulesList li {
+            margin-bottom: 10px;
+        }
+        #gameControls {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+        #restartButtonContainer {
+            flex: 1;
+            text-align: left;
+        }
+        #menuButtonContainer {
+            flex: 1;
+            text-align: right;
+        }
+        #restartButton, #menuButton {
+            font-size: 18px;
+            padding: 10px 20px;
+            cursor: pointer;
+            background-color: #2980b9;
+            color: white;
+            border: none;
+            transition: background-color 0.3s;
+        }
+        #restartButton:hover, #menuButton:hover {
+            background-color: #3498db;
+        }
+        #choiceButtons {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        .choiceButton {
+            width: 80px;
+            height: 80px;
+            margin: 0 10px;
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-position: center;
+            cursor: pointer;
+            border: 2px solid #3498db;
+            border-radius: 10px;
+        }
+        #rockButton {
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="45" fill="%23808080"/></svg>');
+        }
+        #paperButton {
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect x="10" y="10" width="80" height="80" fill="%23ffffff"/></svg>');
+        }
+        #scissorsButton {
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><path d="M30,30 L70,70 M30,70 L70,30" stroke="%23000000" stroke-width="10"/></svg>');
+        }
+    </style>
+</head>
+<body>
+   <div id="languagePage" class="page">
+    <h1>Select Language / 选择语言</h1>
+    <button onclick="setLanguage('en')">English</button>
+    <button onclick="setLanguage('zh')">中文</button>
+   </div>
+    <div id="modePage" class="page">
+    <h1 id="modeTitle"></h1>
+    <button id="singlePlayerButton" onclick="setMode('single')"></button>
+    <button id="twoPlayerButton" onclick="setMode('two')"></button>
+   </div>
+    <div id="rulesPage" class="page">
+        <h1 id="rulesTitle"></h1>
+        <ul id="rulesList"></ul>
+        <button id="startGameButton" onclick="startGame()"></button>
+    </div>
+    <div id="gamePage" class="page">
+        <canvas id="gameCanvas"></canvas>
+        <div id="timer"></div>
+        <div id="scoreboard"></div>
+        <div id="gameInfo"></div>
+        <div id="choiceButtons">
+            <div id="rockButton" class="choiceButton" onclick="makeChoice(1, 'rock')"></div>
+            <div id="paperButton" class="choiceButton" onclick="makeChoice(1, 'paper')"></div>
+            <div id="scissorsButton" class="choiceButton" onclick="makeChoice(1, 'scissors')"></div>
+        </div>
+        <div id="gameControls">
+            <div id="restartButtonContainer">
+                <button id="restartButton" onclick="startGame()"></button>
+            </div>
+            <div id="menuButtonContainer">
+                <button id="menuButton" onclick="backToMenu()"></button>
+            </div>
+        </div>
+    </div>
 
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const gameInfo = document.getElementById('gameInfo');
+        const timerElement = document.getElementById('timer');
+        const scoreboardElement = document.getElementById('scoreboard');
+
+        let language = 'en';
+        let gameMode = 'single';
+        let player1Choice = null;
+        let player2Choice = null;
+        let result = null;
+        let timer = null;
+        let timeLeft = 5;
+        let scores = {player1: 0, player2: 0};
+        let gameInProgress = false;
+        let inputLocked = false;
+
+        const translations = {
+            en: {
+                modeTitle: "Select Game Mode",
+                singlePlayerButton: "Single Player",
+                twoPlayerButton: "Two Players",
+                rulesTitle: "Game Rules",
+                rules: [
+                    "First player to reach 5 points wins",
+                    "You have 5 seconds to make a choice",
+                    "Single player: Use buttons to choose",
+                    "Two players: Player 1 uses Q (Rock), W (Paper), E (Scissors)",
+                    "Two players: Player 2 uses I (Rock), O (Paper), P (Scissors)",
+                    "If a player doesn't choose in time, the other player scores a point",
+                    "Two-player mode does not work on mobile devices"
+                    
+                ],
+                startGameButton: "Start Game",
+                restartButton: "Play Again",
+                menuButton: "Back to Menu",
+                chooseMove: "Choose your move!",
+                player1Wins: "Player 1 wins!",
+                player2Wins: "Player 2 wins!",
+                computerWins: "Computer wins!",
+                tie: "It's a tie!",
+                timeUp: "Time's up!",
+                player1: "Player 1",
+                player2: "Player 2",
+                computer: "Computer",
+                score: "Score"
+            },
+            zh: {
+                modeTitle: "选择游戏模式",
+                singlePlayerButton: "单人游戏",
+                twoPlayerButton: "双人游戏",
+                rulesTitle: "游戏规则",
+                rules: [
+                    "第一个达到5分的玩家获胜",
+                    "你有5秒钟的时间做出选择",
+                    "单人游戏：使用按钮选择",
+                    "双人游戏：玩家1使用 Q（石头），W（布），E（剪刀）",
+                    "双人游戏：玩家2使用 I（石头），O（布），P（剪刀）",
+                    "如果玩家未能及时选择，另一位玩家得分",
+                    "双人模式无法在移动设备上运行"
+                ],
+                startGameButton: "开始游戏",
+                restartButton: "再玩一次",
+                menuButton: "返回菜单",
+                chooseMove: "选择你的动作！",
+                player1Wins: "玩家1获胜！",
+                player2Wins: "玩家2获胜！",
+                computerWins: "电脑获胜！",
+                tie: "平局！",
+                timeUp: "时间到！",
+                player1: "玩家1",
+                player2: "玩家2",
+                computer: "电脑",
+                score: "得分"
+            }
+        };
+
+        function setLanguage(lang) {
+            language = lang;
+            document.getElementById('languagePage').style.display = 'none';
+            document.getElementById('modePage').style.display = 'block';
+            updateModePage();
+        }
+
+        function updateModePage() {
+            document.getElementById('modeTitle').textContent = translations[language].modeTitle;
+            document.getElementById('singlePlayerButton').textContent = translations[language].singlePlayerButton;
+            document.getElementById('twoPlayerButton').textContent = translations[language].twoPlayerButton;
+        }
+
+        function setMode(mode) {
+            gameMode = mode;
+            document.getElementById('modePage').style.display = 'none';
+            showRules();
+        }
+
+        function showRules() {
+            document.getElementById('rulesPage').style.display = 'block';
+            updateRulesPage();
+        }
+
+        function updateRulesPage() {
+            document.getElementById('rulesTitle').textContent = translations[language].rulesTitle;
+            const rulesList = document.getElementById('rulesList');
+            rulesList.innerHTML = '';
+            translations[language].rules.forEach(rule => {
+                const li = document.createElement('li');
+                li.textContent = rule;
+                rulesList.appendChild(li);
+            });
+            document.getElementById('startGameButton').textContent = translations[language].startGameButton;
+            document.getElementById('restartButton').textContent = translations[language].restartButton;
+            document.getElementById('menuButton').textContent = translations[language].menuButton;
+        }
+
+        function startGame() {
+            document.getElementById('rulesPage').style.display = 'none';
+            document.getElementById('gamePage').style.display = 'block';
+            resetGame();
+            resizeCanvas();
+            drawGame();
+            startTimer();
+            gameInProgress = true;
+            updateButtonVisibility();
+        }
+
+        function resetGame() {
+            player1Choice = null;
+            player2Choice = null;
+            result = null;
+            scores = {player1: 0, player2: 0};
+            gameInfo.textContent = translations[language].chooseMove;
+            updateScoreboard();
+        }
+
+        function resizeCanvas() {
+            canvas.width = 400;
+            canvas.height = 300;
+        }
+
+        function drawGame() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawRobot(canvas.width / 4, canvas.height / 2, 'blue', player1Choice !== null);
+            drawRobot(3 * canvas.width / 4, canvas.height / 2, 'red', player2Choice !== null);
+            if (player1Choice) {
+                drawChoice(player1Choice, 100, canvas.height / 2);
+            }
+            if (player2Choice) {
+                drawChoice(player2Choice, canvas.width - 100, canvas.height / 2);
+            }
+        }
+
+        function drawRobot(x, y, color, isPunching) {
+            ctx.fillStyle = color;
+            ctx.fillRect(x - 25, y - 50, 50, 80);
+            ctx.fillRect(x - 20, y - 80, 40, 30);
+            ctx.fillStyle = 'white';
+            ctx.fillRect(x - 15, y - 75, 10, 10);
+            ctx.fillRect(x + 5, y - 75, 10, 10);
+            if (isPunching) {
+                ctx.fillStyle = color;
+                ctx.fillRect(x + (color === 'blue' ? 25 : -65), y - 40, 40, 20);
+            } else {
+                ctx.fillStyle = color;
+                ctx.fillRect(x + (color === 'blue' ? 25 : -35), y - 40, 10, 60);
+            }
+            ctx.fillRect(x - 20, y + 30, 15, 40);
+            ctx.fillRect(x + 5, y + 30, 15, 40);
+        }
+
+        function drawChoice(choice, x, y) {
+            const size = 40;
+            ctx.beginPath();
+            if (choice === 'rock') {
+                ctx.arc(x, y, size / 2, 0, Math.PI * 2);
+            } else if (choice === 'paper') {
+                ctx.rect(x - size / 2, y - size / 2, size, size);
+            } else if (choice === 'scissors') {
+                ctx.moveTo(x - size / 2, y - size / 2);
+                ctx.lineTo(x + size / 2, y + size / 2);
+                ctx.moveTo(x - size / 2, y + size / 2);
+                ctx.lineTo(x + size / 2, y - size / 2);
+            }
+            ctx.strokeStyle = '#2ecc71';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+        }
+
+        function makeChoice(player, choice) {
+            if (inputLocked) return;  // If input is locked, return immediately
+
+            if (player === 1) {
+                player1Choice = choice;
+                if (gameMode === 'single') {
+                    player2Choice = ['rock', 'paper', 'scissors'][Math.floor(Math.random() * 3)];
+                    determineWinner();
+                } else if (player2Choice) {
+                    determineWinner();
+                }
+            } else {
+                player2Choice = choice;
+                if (player1Choice) {
+                    determineWinner();
+                }
+            }
+            drawGame();
+            
+            if (gameMode === 'two' && player1Choice && player2Choice) {
+                clearInterval(timer);
+            }
+        }
+
+        function determineWinner() {
+            clearInterval(timer);
+            if (player1Choice === player2Choice) {
+                result = 'tie';
+            } else if (
+                (player1Choice === 'rock' && player2Choice === 'scissors') ||
+                (player1Choice === 'paper' && player2Choice === 'rock') ||
+                (player1Choice === 'scissors' && player2Choice === 'paper')
+            ) {
+                result = 'player1';
+                scores.player1++;
+            } else {
+                result = 'player2';
+                scores.player2++;
+            }
+            updateGameInfo();
+            updateScoreboard();
+            inputLocked = true;
+            setTimeout(() => {
+                inputLocked = false;  // Unlock input after 2 seconds
+                if (scores.player1 === 5 || scores.player2 === 5) {
+                    endGame();
+                } else {
+                    startNextRound();
+                }
+            }, 2000);
+        }
+
+        function updateGameInfo() {
+            if (result === 'tie') {
+                gameInfo.textContent = translations[language].tie;
+            } else if (result === 'player1') {
+                gameInfo.textContent = gameMode === 'single' ? translations[language].player1Wins : translations[language].player1Wins;
+            } else {
+                gameInfo.textContent = gameMode === 'single' ? translations[language].computerWins : translations[language].player2Wins;
+            }
+        }
+
+        function updateScoreboard() {
+            const player2Name = gameMode === 'single' ? translations[language].computer : translations[language].player2;
+            scoreboardElement.textContent = `${translations[language].score}: ${translations[language].player1} ${scores.player1} - ${player2Name} ${scores.player2}`;
+        }
+
+        function startTimer() {
+            timeLeft = 5;
+            updateTimerDisplay();
+            timer = setInterval(() => {
+                timeLeft--;
+                updateTimerDisplay();
+                if (timeLeft === 0) {
+                    clearInterval(timer);
+                    handleTimeUp();
+                }
+            }, 1000);
+        }
+
+        function handleTimeUp() {
+            if (!player1Choice && !player2Choice) {
+                gameInfo.textContent = translations[language].timeUp;
+                setTimeout(startNextRound, 3000);
+            } else if (!player1Choice) {
+                gameInfo.textContent = translations[language].timeUp;
+                if (gameMode === 'single') {
+                    player2Choice = ['rock', 'paper', 'scissors'][Math.floor(Math.random() * 3)];
+                }
+                scores.player2++;
+                updateScoreboard();
+                if (scores.player2 === 5) {
+                    endGame();
+                } else {
+                    setTimeout(startNextRound, 3000);
+                }
+            } else if (gameMode === 'two' && !player2Choice) {
+                gameInfo.textContent = translations[language].timeUp;
+                scores.player1++;
+                updateScoreboard();
+                if (scores.player1 === 5) {
+                    endGame();
+                } else {
+                    setTimeout(startNextRound, 3000);
+                }
+            } else {
+                determineWinner();
+            }
+            drawGame();
+        }
+
+        function updateTimerDisplay() {
+            timerElement.textContent = `${translations[language].chooseMove} ${timeLeft}`;
+        }
+
+        function startNextRound() {
+            player1Choice = null;
+            player2Choice = null;
+            drawGame();
+            startTimer();
+        }
+
+        function endGame() {
+            clearInterval(timer);
+            if (scores.player1 === 5) {
+                gameInfo.textContent = translations[language].player1Wins;
+            } else {
+                gameInfo.textContent = gameMode === 'single' ? translations[language].computerWins : translations[language].player2Wins;
+            }
+            gameInProgress = false;
+            updateButtonVisibility();
+        }
+
+        function backToMenu() {
+            document.getElementById('gamePage').style.display = 'none';
+            document.getElementById('languagePage').style.display = 'block';
+            clearInterval(timer);
+            gameInProgress = false;
+            updateButtonVisibility();
+        }
+
+        function updateButtonVisibility() {
+            const restartButton = document.getElementById('restartButton');
+            const menuButton = document.getElementById('menuButton');
+            const choiceButtons = document.getElementById('choiceButtons');
+            
+            if (gameInProgress) {
+                restartButton.style.display = 'none';
+                menuButton.style.display = 'none';
+                choiceButtons.style.display = gameMode === 'single' ? 'flex' : 'none';
+            } else {
+                restartButton.style.display = 'block';
+                menuButton.style.display = 'block';
+                choiceButtons.style.display = 'flex';
+            }
+        }
+
+        document.addEventListener('keydown', (event) => {
+            if (document.getElementById('gamePage').style.display === 'block' && timeLeft > 0 && gameInProgress && !inputLocked) {
+                if (event.key === 'q' || event.key === 'w' || event.key === 'e') {
+                    makeChoice(1, event.key === 'q' ? 'rock' : event.key === 'w' ? 'paper' : 'scissors');
+                } else if (gameMode === 'two' && (event.key === 'i' || event.key === 'o' || event.key === 'p')) {
+                    makeChoice(2, event.key === 'i' ? 'rock' : event.key === 'o' ? 'paper' : 'scissors');
+                }
+            }
+        });
+
+        window.addEventListener('resize', resizeCanvas);
+    </script>
+</body>
+</html>

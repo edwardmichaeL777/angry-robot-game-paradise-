@@ -469,11 +469,7 @@
         }
 
         function backToMenu() {
-            document.getElementById('gamePage').style.display = 'none';
-            document.getElementById('languagePage').style.display = 'block';
-            clearInterval(timer);
-            gameInProgress = false;
-            updateButtonVisibility();
+            window.location.href = 'index.html';
         }
 
         function updateButtonVisibility() {

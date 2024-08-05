@@ -563,3 +563,44 @@
         endGame();
     }
 }
+
+        function updateScores() {
+            player1Score.textContent = scores[0];
+            player2Score.textContent = scores[1];
+        }
+
+        function updateCurrentPlayerIndicator() {
+            document.getElementById('player1Title').classList.toggle('current-player', currentPlayer === 1);
+            document.getElementById('player2Title').classList.toggle('current-player', currentPlayer === 2);
+        }
+
+        function endGame() {
+            let winner;
+            if (scores[0] > scores[1]) {
+                winner = translations[language].player1;
+            } else if (scores[1] > scores[0]) {
+                winner = translations[language].player2;
+            } else {
+                winner = robotFound ? (currentPlayer === 1 ? translations[language].player2 : translations[language].player1) : "It's a tie!";
+            }
+            resultDiv.textContent = `${winner} wins!`;
+            document.getElementById('resetBtn').style.display = 'inline-block';
+            document.getElementById('backToMenuBtn').style.display = 'inline-block';
+        }
+
+        function resetGame() {
+            gameBoard.innerHTML = '';
+            currentPlayer = 1;
+            flippedCards = [];
+            matchedPairs = 0;
+            scores = [0, 0];
+            robotFound = false;
+            updateScores();
+            resultDiv.textContent = '';
+            document.getElementById('resetBtn').style.display = 'none';
+            document.getElementById('backToMenuBtn').style.display = 'none';
+            initializeGame();
+        }
+    </script>
+</body>
+</html>

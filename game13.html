@@ -103,10 +103,6 @@
             font-weight: bold;
             text-decoration: underline;
         }
-        #timer {
-            font-size: 24px;
-            margin-bottom: 20px;
-        }
     </style>
 </head>
 <body>
@@ -114,12 +110,6 @@
         <h1>Select Language / 选择语言</h1>
         <button onclick="setLanguage('en')">English</button>
         <button onclick="setLanguage('zh')">中文</button>
-    </div>
-
-    <div id="modePage" class="page">
-        <h1 id="modeTitle"></h1>
-        <button onclick="setMode('single')" id="singlePlayerBtn"></button>
-        <button onclick="setMode('multi')" id="multiPlayerBtn"></button>
     </div>
 
     <div id="rulesPage" class="page">
@@ -130,13 +120,12 @@
 
     <div id="gamePage" class="page">
         
-        <div id="timer"></div>
         <div class="score-board">
             <div class="player">
                 <h2 id="player1Title"></h2>
                 <p><span id="scoreText1"></span> <span id="player1-score">0</span></p>
             </div>
-            <div class="player" id="player2Div">
+            <div class="player">
                 <h2 id="player2Title"></h2>
                 <p><span id="scoreText2"></span> <span id="player2-score">0</span></p>
             </div>
@@ -149,23 +138,10 @@
 
     <script>
         let language = 'en';
-        let gameMode = 'single';
         const translations = {
             en: {
-                modeTitle: "Select Game Mode",
-                singlePlayer: "Single Player",
-                multiPlayer: "Two Players",
                 rulesTitle: "Game Rules",
-                singlePlayerRules: [
-                    "Flip two cards at a time.",
-                    "If the cards match, you score two points and get another turn.",
-                    "If the cards don't match, they flip back.",
-                    "The Robot card is special and awards one point, ending your turn immediately.",
-                    "The Robot card remains face up once found.",
-                    "The game ends when all pairs are matched.",
-                    "Try to complete the game in the shortest time possible!"
-                ],
-                multiPlayerRules: [
+                rules: [
                     "Players take turns flipping two cards at a time.",
                     "If the cards match, the player scores two points and gets another turn.",
                     "If the cards don't match, they flip back, and it's the other player's turn.",
@@ -181,24 +157,11 @@
                 player2: "Player 2",
                 score: "Score:",
                 reset: "Reset Game",
-                backToMenu: "Back to Menu",
-                time: "Time:"
+                backToMenu: "Back to Menu"
             },
             zh: {
-                modeTitle: "选择游戏模式",
-                singlePlayer: "单人模式",
-                multiPlayer: "双人模式",
                 rulesTitle: "游戏规则",
-                singlePlayerRules: [
-                    "每次翻开两张卡片。",
-                    "如果卡片匹配，你得两分并可以继续翻牌。",
-                    "如果卡片不匹配，它们会翻回去。",
-                    "机器人卡是特殊的，可以得一分，但立即结束你的回合。",
-                    "机器人卡一旦被发现就保持正面朝上。",
-                    "当所有配对都被找到时，游戏结束。",
-                    "尽量在最短的时间内完成游戏！"
-                ],
-                multiPlayerRules: [
+                rules: [
                     "玩家轮流翻开两张卡片。",
                     "如果卡片匹配，玩家得两分并可以继续翻牌。",
                     "如果卡片不匹配，它们会翻回去，轮到另一位玩家。",
@@ -214,8 +177,7 @@
                 player2: "玩家2",
                 score: "得分：",
                 reset: "重新开始",
-                backToMenu: "返回菜单",
-                time: "时间："
+                backToMenu: "返回菜单"
             }
         };
 
@@ -238,26 +200,15 @@
         function setLanguage(lang) {
             language = lang;
             document.getElementById('languagePage').style.display = 'none';
-            document.getElementById('modePage').style.display = 'block';
-            updateTexts();
-        }
-
-        function setMode(mode) {
-            gameMode = mode;
-            document.getElementById('modePage').style.display = 'none';
             document.getElementById('rulesPage').style.display = 'block';
             updateTexts();
         }
 
         function updateTexts() {
-            document.getElementById('modeTitle').textContent = translations[language].modeTitle;
-            document.getElementById('singlePlayerBtn').textContent = translations[language].singlePlayer;
-            document.getElementById('multiPlayerBtn').textContent = translations[language].multiPlayer;
             document.getElementById('rulesTitle').textContent = translations[language].rulesTitle;
             const rulesList = document.getElementById('rulesList');
             rulesList.innerHTML = '';
-            const rules = gameMode === 'single' ? translations[language].singlePlayerRules : translations[language].multiPlayerRules;
-            rules.forEach(rule => {
+            translations[language].rules.forEach(rule => {
                 const li = document.createElement('li');
                 li.textContent = rule;
                 rulesList.appendChild(li);
@@ -277,18 +228,13 @@
             document.getElementById('gamePage').style.display = 'block';
             document.getElementById('resetBtn').style.display = 'none';
             document.getElementById('backToMenuBtn').style.display = 'none';
-            if (gameMode === 'single') {
-                document.getElementById('player2Div').style.display = 'none';
-                startTimer();
-            } else {
-                document.getElementById('player2Div').style.display = 'block';
-                document.getElementById('timer').style.display = 'none';
-            }
             initializeGame();
         }
 
         function backToMenu() {
-            window.location.href = 'index.html';
+            document.getElementById('gamePage').style.display = 'none';
+            document.getElementById('languagePage').style.display = 'block';
+            resetGame();
         }
 
         const gameBoard = document.getElementById('game-board');
@@ -300,8 +246,6 @@
         let matchedPairs = 0;
         let scores = [0, 0];
         let robotFound = false;
-        let startTime;
-        let timerInterval;
 
         function createCard(symbol) {
             const card = document.createElement('div');
@@ -319,153 +263,54 @@
             return card;
         }
 
-        // ... (Keep all the drawSymbol functions as they were)
+        function drawSymbol(canvas, symbolName) {
+            const ctx = canvas.getContext('2d');
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 2;
 
-        function shuffleArray(array) {
-            for (let i = array.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [array[i], array[j]] = [array[j], array[i]];
+            switch (symbolName) {
+                case 'Resistor':
+                    drawResistor(ctx);
+                    break;
+                case 'Capacitor':
+                    drawCapacitor(ctx);
+                    break;
+                case 'Inductor':
+                    drawInductor(ctx);
+                    break;
+                case 'Diode':
+                    drawDiode(ctx);
+                    break;
+                case 'Transistor':
+                    drawTransistor(ctx);
+                    break;
+                case 'LED':
+                    drawLED(ctx);
+                    break;
+                case 'Switch':
+                    drawSwitch(ctx);
+                    break;
+                case 'Battery':
+                    drawBattery(ctx);
+                    break;
+                case 'Ground':
+                    drawGround(ctx);
+                    break;
+                case 'Antenna':
+                    drawAntenna(ctx);
+                    break;
+                case 'Transformer':
+                    drawTransformer(ctx);
+                    break;
+                case 'Fuse':
+                    drawFuse(ctx);
+                    break;
+                case 'Robot':
+                    drawRobot(ctx);
+                    break;
             }
         }
 
-        function initializeGame() {
-            const cardSymbols = [...electricalSymbols.slice(0, -1), ...electricalSymbols.slice(0, -1), electricalSymbols[electricalSymbols.length - 1]];
-            shuffleArray(cardSymbols);
-
-            for (let i = 0; i < 25; i++) {
-                gameBoard.appendChild(createCard(cardSymbols[i]));
-            }
-            updateCurrentPlayerIndicator();
-        }
-
-        function flipCard(card) {
-            if (flippedCards.length < 2 && !card.classList.contains('flipped')) {
-                card.classList.add('flipped');
-                flippedCards.push(card);
-
-                if (flippedCards.length === 2) {
-                    setTimeout(checkMatch, 1000);
-                }
-            }
-        }
-
-        function checkMatch() {
-            const [card1, card2] = flippedCards;
-            const symbol1 = card1.querySelector('.card-text').textContent;
-            const symbol2 = card2.querySelector('.card-text').textContent;
-
-            if (symbol1 === symbol2) {
-                if (symbol1.includes('Robot')) {
-                    robotFound = true;
-                    scores[currentPlayer - 1]++;
-                    updateScores();
-                    if (gameMode === 'multi') {
-                        currentPlayer = currentPlayer === 1 ? 2 : 1;
-                    }
-                } else {
-                    scores[currentPlayer - 1] += 2;
-                    matchedPairs++;
-                    updateScores();
-                }
-            } else {
-                if (symbol1.includes('Robot') || symbol2.includes('Robot')) {
-                    if (symbol1.includes('Robot')) {
-                        robotFound = true;
-                                                scores[currentPlayer - 1]++;
-                        card2.classList.remove('flipped');
-                    } else {
-                        robotFound = true;
-                        scores[currentPlayer - 1]++;
-                        card1.classList.remove('flipped');
-                    }
-                    updateScores();
-                    if (gameMode === 'multi') {
-                        currentPlayer = currentPlayer === 1 ? 2 : 1;
-                    }
-                } else {
-                    card1.classList.remove('flipped');
-                    card2.classList.remove('flipped');
-                    if (gameMode === 'multi') {
-                        currentPlayer = currentPlayer === 1 ? 2 : 1;
-                    }
-                }
-            }
-
-            flippedCards = [];
-            updateCurrentPlayerIndicator();
-
-            if (matchedPairs === 12) {
-                endGame();
-            }
-        }
-
-        function updateScores() {
-            player1Score.textContent = scores[0];
-            if (gameMode === 'multi') {
-                player2Score.textContent = scores[1];
-            }
-        }
-
-        function updateCurrentPlayerIndicator() {
-            if (gameMode === 'multi') {
-                document.getElementById('player1Title').classList.toggle('current-player', currentPlayer === 1);
-                document.getElementById('player2Title').classList.toggle('current-player', currentPlayer === 2);
-            }
-        }
-
-        function endGame() {
-            clearInterval(timerInterval);
-            let winner;
-            if (gameMode === 'single') {
-                const endTime = new Date().getTime();
-                const timeTaken = Math.floor((endTime - startTime) / 1000);
-                winner = `${translations[language].player1} wins!\n${translations[language].time} ${timeTaken} ${translations[language].seconds}`;
-            } else {
-                if (scores[0] > scores[1]) {
-                    winner = translations[language].player1;
-                } else if (scores[1] > scores[0]) {
-                    winner = translations[language].player2;
-                } else {
-                    winner = robotFound ? (currentPlayer === 1 ? translations[language].player2 : translations[language].player1) : "It's a tie!";
-                }
-                winner += " wins!";
-            }
-            resultDiv.textContent = winner;
-            document.getElementById('resetBtn').style.display = 'inline-block';
-            document.getElementById('backToMenuBtn').style.display = 'inline-block';
-        }
-
-        function resetGame() {
-            gameBoard.innerHTML = '';
-            currentPlayer = 1;
-            flippedCards = [];
-            matchedPairs = 0;
-            scores = [0, 0];
-            robotFound = false;
-            updateScores();
-            resultDiv.textContent = '';
-            document.getElementById('resetBtn').style.display = 'none';
-            document.getElementById('backToMenuBtn').style.display = 'none';
-            clearInterval(timerInterval);
-            document.getElementById('timer').textContent = '';
-            initializeGame();
-            if (gameMode === 'single') {
-                startTimer();
-            }
-        }
-
-        function startTimer() {
-            startTime = new Date().getTime();
-            timerInterval = setInterval(updateTimer, 1000);
-        }
-
-        function updateTimer() {
-            const currentTime = new Date().getTime();
-            const elapsedTime = Math.floor((currentTime - startTime) / 1000);
-            document.getElementById('timer').textContent = `${translations[language].time} ${elapsedTime} ${translations[language].seconds}`;
-        }
-
-        // Add these functions to draw the symbols
         function drawResistor(ctx) {
             ctx.beginPath();
             ctx.moveTo(10, 40);
@@ -550,7 +395,6 @@
             ctx.lineTo(80, 15);
             ctx.stroke();
         }
-
         function drawSwitch(ctx) {
             ctx.beginPath();
             ctx.moveTo(10, 40);
@@ -648,52 +492,113 @@
             ctx.stroke();
         }
 
-        function drawSymbol(canvas, symbolName) {
-            const ctx = canvas.getContext('2d');
-            ctx.strokeStyle = '#ffffff';
-            ctx.lineWidth = 2;
-
-            switch (symbolName) {
-                case 'Resistor':
-                    drawResistor(ctx);
-                    break;
-                case 'Capacitor':
-                    drawCapacitor(ctx);
-                    break;
-                case 'Inductor':
-                    drawInductor(ctx);
-                    break;
-                case 'Diode':
-                    drawDiode(ctx);
-                    break;
-                case 'Transistor':
-                    drawTransistor(ctx);
-                    break;
-                case 'LED':
-                    drawLED(ctx);
-                    break;
-                case 'Switch':
-                    drawSwitch(ctx);
-                    break;
-                case 'Battery':
-                    drawBattery(ctx);
-                    break;
-                case 'Ground':
-                    drawGround(ctx);
-                    break;
-                case 'Antenna':
-                    drawAntenna(ctx);
-                    break;
-                case 'Transformer':
-                    drawTransformer(ctx);
-                    break;
-                case 'Fuse':
-                    drawFuse(ctx);
-                    break;
-                case 'Robot':
-                    drawRobot(ctx);
-                    break;
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
             }
+        }
+
+        function initializeGame() {
+            const cardSymbols = [...electricalSymbols.slice(0, -1), ...electricalSymbols.slice(0, -1), electricalSymbols[electricalSymbols.length - 1]];
+            shuffleArray(cardSymbols);
+
+            for (let i = 0; i < 25; i++) {
+                gameBoard.appendChild(createCard(cardSymbols[i]));
+            }
+            updateCurrentPlayerIndicator();
+        }
+
+        function flipCard(card) {
+            if (flippedCards.length < 2 && !card.classList.contains('flipped')) {
+                card.classList.add('flipped');
+                flippedCards.push(card);
+
+                if (flippedCards.length === 2) {
+                    setTimeout(checkMatch, 1000);
+                }
+            }
+        }
+
+        function checkMatch() {
+    const [card1, card2] = flippedCards;
+    const symbol1 = card1.querySelector('.card-text').textContent;
+    const symbol2 = card2.querySelector('.card-text').textContent;
+
+    if (symbol1 === symbol2) {
+        if (symbol1.includes('Robot')) {
+            robotFound = true;
+            scores[currentPlayer - 1]++;
+            updateScores();
+            currentPlayer = currentPlayer === 1 ? 2 : 1;
+        } else {
+            scores[currentPlayer - 1] += 2;
+            matchedPairs++;
+            updateScores();
+        }
+    } else {
+        if (symbol1.includes('Robot') || symbol2.includes('Robot')) {
+            if (symbol1.includes('Robot')) {
+                robotFound = true;
+                scores[currentPlayer - 1]++;
+                card2.classList.remove('flipped');
+            } else {
+                robotFound = true;
+                scores[currentPlayer - 1]++;
+                card1.classList.remove('flipped');
+            }
+            updateScores();
+            currentPlayer = currentPlayer === 1 ? 2 : 1;
+        } else {
+            card1.classList.remove('flipped');
+            card2.classList.remove('flipped');
+            currentPlayer = currentPlayer === 1 ? 2 : 1;
+        }
+    }
+
+    flippedCards = [];
+    updateCurrentPlayerIndicator();
+
+    if (matchedPairs === 12) {
+        endGame();
+    }
+}
+        function updateScores() {
+            player1Score.textContent = scores[0];
+            player2Score.textContent = scores[1];
+        }
+
+        function updateCurrentPlayerIndicator() {
+            document.getElementById('player1Title').classList.toggle('current-player', currentPlayer === 1);
+            document.getElementById('player2Title').classList.toggle('current-player', currentPlayer === 2);
+        }
+
+        function endGame() {
+            let winner;
+            if (scores[0] > scores[1]) {
+                winner = translations[language].player1;
+            } else if (scores[1] > scores[0]) {
+                winner = translations[language].player2;
+            } else {
+                winner = robotFound ? (currentPlayer === 1 ? translations[language].player2 : translations[language].player1) : "It's a tie!";
+            }
+            resultDiv.textContent = `${winner} wins!`;
+            document.getElementById('resetBtn').style.display = 'inline-block';
+            document.getElementById('backToMenuBtn').style.display = 'inline-block';
+        }
+
+        function resetGame() {
+            gameBoard.innerHTML = '';
+            currentPlayer = 1;
+            flippedCards = [];
+            matchedPairs = 0;
+            scores = [0, 0];
+            robotFound = false;
+            updateScores();
+            resultDiv.textContent = '';
+            document.getElementById('resetBtn').style.display = 'none';
+            document.getElementById('backToMenuBtn').style.display = 'none';
+            initializeGame();
         }
     </script>
 </body>

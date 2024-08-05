@@ -129,7 +129,7 @@
     </div>
 
     <div id="gamePage" class="page">
-        <h1 id="gameTitle"></h1>
+        
         <div id="timer"></div>
         <div class="score-board">
             <div class="player">
@@ -288,9 +288,7 @@
         }
 
         function backToMenu() {
-            document.getElementById('gamePage').style.display = 'none';
-            document.getElementById('languagePage').style.display = 'block';
-            resetGame();
+            window.location.href = 'index.html';
         }
 
         const gameBoard = document.getElementById('game-board');

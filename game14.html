@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Memory Challenge</title>
+    <style>
+        body {
+            font-family: 'Roboto', Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #0f0f1f;
+            color: #e0e0e0;
+            text-align: center;
+        }
+        .page {
+            display: none;
+            padding-top: 50px;
+        }
+        h1 {
+            color: #3498db;
+            text-shadow: 0 0 5px rgba(52, 152, 219, 0.5);
+        }
+        button {
+            background-color: #2980b9;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            margin: 10px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            font-size: 20px;
+        }
+        button:hover {
+            background-color: #3498db;
+        }
+        #game-container {
+            border: 1px solid #3498db;
+            display: block;
+            margin: 20px auto;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(52, 152, 219, 0.5);
+            max-width: 600px;
+        }
+        #display-area {
+            font-size: 48px;
+            margin-bottom: 20px;
+            height: 60px;
+            color: #3498db;
+        }
+        #user-input {
+            font-size: 24px;
+            padding: 5px;
+            width: 200px;
+            background-color: #1a1a2e;
+            color: #e0e0e0;
+            border: 1px solid #3498db;
+        }
+        #result {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        #score {
+            font-size: 18px;
+        }
+        #rulesSection {
+            margin-top: 30px;
+            padding: 20px;
+            border: 1px solid #3498db;
+            border-radius: 5px;
+            background-color: #1a1a2e;
+            box-shadow: 0 0 10px rgba(52, 152, 219, 0.5);
+        }
+        #input-area {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        #robotCanvas {
+            margin-left: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div id="languagePage" class="page">
+        <h1>Select Language / 选择语言</h1>
+        <button onclick="setLanguage('en')">English</button>
+        <button onclick="setLanguage('zh')">中文</button>
+    </div>
+
+    <div id="rulesPage" class="page">
+        <h1 id="rulesTitle"></h1>
+        <div id="rulesSection"></div>
+        <button onclick="startGame()" id="startGameBtn"></button>
+    </div>
+
+    <div id="gamePage" class="page">
+        <div id="game-container">
+            <div id="display-area"></div>
+            <div id="input-area">
+                <input type="text" id="user-input" disabled>
+                <button id="submit-btn" disabled>Submit</button>
+                <canvas id="robotCanvas" width="100" height="100" style="display: inline-block; vertical-align: middle;"></canvas>
+            </div>
+            <div id="result"></div>
+            <div id="score">Score: 0</div>
+        </div>
+        <div id="gameControls">
+            <button onclick="restartGame()" id="restartBtn"></button>
+            <button onclick="backToMenu()" id="menuBtn"></button>
+        </div>
+    </div>
+
+    <script>
+        let language = 'en';
+        let gameOver = false;
+        let score = 0;
+        let level = 1;
+        let currentPattern = '';
+
+        const translations = {
+            rulesTitle: {
+                en: "Game Rules",
+                zh: "游戏规则"
+            },
+            rules: {
+                en: "Remember the pattern shown briefly on the screen. Type it correctly to score points and advance. One wrong answer ends the game. The challenge increases with each level!",
+                zh: "记住屏幕上短暂显示的图案。正确输入以得分并前进。一次错误回答将结束游戏。每一级的挑战都会增加！"
+            },
+            startGame: {
+                en: "Start Game",
+                zh: "开始游戏"
+            },
+            score: {
+                en: "Score",
+                zh: "分数"
+            },
+            gameOver: {
+                en: "Game Over!",
+                zh: "游戏结束！"
+            },
+            finalScore: {
+                en: "Final Score",
+                zh: "最终得分"
+            },
+            restart: {
+                en: "Restart",
+                zh: "重新开始"
+            },
+            backToMenu: {
+                en: "Back to Menu",
+                zh: "返回菜单"
+            },
+            submit: {
+                en: "Submit",
+                zh: "提交"
+            }
+        };
+
+        const canvas = document.getElementById('robotCanvas');
+        const ctx = canvas.getContext('2d');
+
+        function drawRobot() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Scale down the robot to fit the smaller canvas
+            ctx.scale(0.8, 0.8);
+            
+            // Draw body
+            ctx.fillStyle = 'blue';
+            ctx.fillRect(45, 80, 60, 96);
+            
+            // Draw head
+            ctx.fillRect(51, 32, 48, 48);
+            
+            // Draw eyes
+            ctx.fillStyle = 'white';
+            ctx.fillRect(57, 44, 12, 12);
+            ctx.fillRect(81, 44, 12, 12);
+            
+            // Draw arms
+            ctx.fillStyle = 'blue';
+            ctx.fillRect(15, 92, 30, 12);
+            ctx.fillRect(105, 92, 30, 12);
+            
+            // Draw legs
+            ctx.fillRect(51, 176, 18, 24);
+            ctx.fillRect(81, 176, 18, 24);
+            
+            // Draw professor hat
+            ctx.fillStyle = 'black';
+            ctx.fillRect(39, 20, 72, 12);
+            ctx.fillRect(51, 0, 48, 20);
+            
+            // Reset the scale
+            ctx.setTransform(1, 0, 0, 1, 0, 0);
+        }
+
+        function setLanguage(lang) {
+            language = lang;
+            document.getElementById('languagePage').style.display = 'none';
+            document.getElementById('rulesPage').style.display = 'block';
+            updateTexts();
+        }
+
+        function updateTexts() {
+            document.getElementById('rulesTitle').textContent = translations.rulesTitle[language];
+            document.getElementById('rulesSection').textContent = translations.rules[language];
+            document.getElementById('startGameBtn').textContent = translations.startGame[language];
+            document.getElementById('restartBtn').textContent = translations.restart[language];
+            document.getElementById('menuBtn').textContent = translations.backToMenu[language];
+            document.getElementById('submit-btn').textContent = translations.submit[language];
+        }
+
+        function startGame() {
+            document.getElementById('rulesPage').style.display = 'none';
+            document.getElementById('gamePage').style.display = 'block';
+            document.getElementById('gameControls').style.display = 'none'; // Hide controls
+            gameOver = false;
+            score = 0;
+            level = 1;
+            updateScore();
+            drawRobot(); // Draw the robot
+            startRound();
+        }
+
+        function restartGame() {
+            startGame();
+        }
+
+        function backToMenu() {
+            document.getElementById('gamePage').style.display = 'none';
+            document.getElementById('languagePage').style.display = 'block';
+        }
+
+        function generatePattern() {
+            const patternLength = 3 + Math.floor(level / 2);
+            const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            let pattern = '';
+            for (let i = 0; i < patternLength; i++) {
+                pattern += characters.charAt(Math.floor(Math.random() * characters.length));
+            }
+            return pattern;
+        }
+
+        function startRound() {
+            currentPattern = generatePattern();
+            document.getElementById('display-area').textContent = currentPattern;
+            document.getElementById('user-input').value = '';
+            document.getElementById('user-input').disabled = true;
+            document.getElementById('submit-btn').disabled = true;
+            document.getElementById('result').textContent = '';
+
+            setTimeout(() => {
+                document.getElementById('display-area').textContent = '';
+                document.getElementById('user-input').disabled = false;
+                document.getElementById('submit-btn').disabled = false;
+                document.getElementById('user-input').focus();
+            }, 2000 + (level * 500));
+        }
+
+        function checkAnswer() {
+            const userAnswer = document.getElementById('user-input').value.toUpperCase();
+            if (userAnswer === currentPattern) {
+                document.getElementById('result').textContent = translations.score[language] + ': +1';
+                score++;
+                level++;
+                updateScore();
+                setTimeout(startRound, 2000);
+            } else {
+                gameOver = true;
+                document.getElementById('result').textContent = `${translations.gameOver[language]} ${translations.finalScore[language]}: ${score}`;
+                document.getElementById('gameControls').style.display = 'block'; // Show controls
+            }
+        }
+
+        function updateScore() {
+            document.getElementById('score').textContent = `${translations.score[language]}: ${score}`;
+        }
+
+        document.getElementById('submit-btn').addEventListener('click', checkAnswer);
+        document.getElementById('user-input').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                checkAnswer();
+            }
+        });
+
+        document.getElementById('languagePage').style.display = 'block';
+    </script>
+</body>
+</html>

@@ -155,6 +155,8 @@
                 rollDice: "掷骰子",
                 flushToilet: "通马桶",
                 restartButton: "重新开始",
+                 computer: "电脑",
+    cellphone: "手机",
             }
         };
 
@@ -166,10 +168,14 @@
         }
 
         function updateRulesPage() {
-            document.getElementById('rulesTitle').textContent = translations[language].title;
-            document.getElementById('rules').textContent = translations[language].rules;
-            document.getElementById('deviceChoiceText').textContent = translations[language].deviceChoice;
-        }
+    document.getElementById('rulesTitle').textContent = translations[language].title;
+    document.getElementById('rules').textContent = translations[language].rules;
+    document.getElementById('deviceChoiceText').textContent = translations[language].deviceChoice;
+    
+    // Update device selection buttons
+    document.querySelector('button[onclick="chooseDevice(\'computer\')"]').textContent = translations[language].computer;
+    document.querySelector('button[onclick="chooseDevice(\'cellphone\')"]').textContent = translations[language].cellphone;
+}
 
         function chooseDevice(device) {
             deviceType = device;

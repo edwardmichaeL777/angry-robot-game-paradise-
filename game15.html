@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>10 Second Challenge</title>
+    <style>
+        body {
+            font-family: 'Roboto', Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #0f0f1f;
+            color: #e0e0e0;
+            text-align: center;
+        }
+        .page {
+            display: none;
+            padding-top: 50px;
+        }
+        h1 {
+            color: #3498db;
+            text-shadow: 0 0 5px rgba(52, 152, 219, 0.5);
+        }
+        button {
+            background-color: #2980b9;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            margin: 10px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            font-size: 20px;
+        }
+        button:hover {
+            background-color: #3498db;
+        }
+        #game-container {
+            border: 1px solid #3498db;
+            display: block;
+            margin: 20px auto;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(52, 152, 219, 0.5);
+            max-width: 600px;
+        }
+        #display-area {
+            font-size: 48px;
+            margin-bottom: 20px;
+            height: 60px;
+            color: #3498db;
+        }
+        #result {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        #rulesSection {
+            margin-top: 30px;
+            padding: 20px;
+            border: 1px solid #3498db;
+            border-radius: 5px;
+            background-color: #1a1a2e;
+            box-shadow: 0 0 10px rgba(52, 152, 219, 0.5);
+        }
+        #robotCanvas {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div id="languagePage" class="page">
+        <h1>Choose Your Language / 选择你的语言</h1>
+        <button onclick="setLanguage('en')">English</button>
+        <button onclick="setLanguage('zh')">中文</button>
+    </div>
+
+    <div id="rulesPage" class="page">
+        <h1 id="rulesTitle"></h1>
+        <div id="rulesSection"></div>
+        <button onclick="startGame()" id="startGameBtn"></button>
+    </div>
+
+    <div id="gamePage" class="page">
+        <div id="game-container">
+            <div id="display-area">0.00</div>
+            <button id="controlBtn"></button>
+            <div id="result"></div>
+            <canvas id="robotCanvas" width="150" height="200"></canvas>
+        </div>
+        <div id="gameControls">
+            <button onclick="restartGame()" id="restartBtn"></button>
+            <button onclick="backToMenu()" id="menuBtn"></button>
+        </div>
+    </div>
+
+    <script>
+        let timer;
+        let isRunning = false;
+        let startTime;
+        const canvas = document.getElementById('robotCanvas');
+        const ctx = canvas.getContext('2d');
+        let language = 'en';
+
+        const translations = {
+            en: {
+                title: "10 Second Challenge",
+                rules: "Try to stop the timer at exactly 10.00 seconds. Press the button to start and stop the timer. The closer you get to 10 seconds, the better your score!",
+                startBtn: "Start Game",
+                controlBtn: "Start",
+                restartBtn: "Restart",
+                menuBtn: "Back to Menu",
+                difference: "Difference"
+            },
+            zh: {
+                title: "10秒挑战",
+                rules: "尝试在恰好10.00秒时停止计时器。按下按钮开始和停止计时器。越接近10秒，你的分数就越高！",
+                startBtn: "开始游戏",
+                controlBtn: "开始",
+                restartBtn: "重新开始",
+                menuBtn: "返回菜单",
+                difference: "差异"
+            }
+        };
+
+        function setLanguage(lang) {
+            language = lang;
+            document.getElementById('languagePage').style.display = 'none';
+            document.getElementById('rulesPage').style.display = 'block';
+            updateTexts();
+        }
+
+        function updateTexts() {
+            document.getElementById('rulesTitle').textContent = translations[language].title;
+            document.getElementById('rulesSection').textContent = translations[language].rules;
+            document.getElementById('startGameBtn').textContent = translations[language].startBtn;
+            document.getElementById('controlBtn').textContent = translations[language].controlBtn;
+            document.getElementById('restartBtn').textContent = translations[language].restartBtn;
+            document.getElementById('menuBtn').textContent = translations[language].menuBtn;
+        }
+
+        function startGame() {
+            document.getElementById('rulesPage').style.display = 'none';
+            document.getElementById('gamePage').style.display = 'block';
+            resetGame();
+            drawRobot();
+        }
+
+        function resetGame() {
+            clearInterval(timer);
+            isRunning = false;
+            document.getElementById('display-area').textContent = '0.00';
+            document.getElementById('controlBtn').textContent = translations[language].controlBtn;
+            document.getElementById('result').textContent = '';
+            document.getElementById('controlBtn').addEventListener('click', toggleTimer);
+            showGameControls();
+        }
+
+        function toggleTimer() {
+            if (!isRunning) {
+                startTimer();
+            } else {
+                stopTimer();
+            }
+        }
+
+        function startTimer() {
+            isRunning = true;
+            startTime = Date.now();
+            document.getElementById('controlBtn').textContent = translations[language].controlBtn === "Start" ? "Stop" : "停止";
+            timer = setInterval(updateDisplay, 10);
+            hideGameControls();
+        }
+
+        function stopTimer() {
+            isRunning = false;
+            clearInterval(timer);
+            const endTime = Date.now();
+            const elapsedTime = (endTime - startTime) / 1000;
+            document.getElementById('display-area').textContent = elapsedTime.toFixed(2);
+            document.getElementById('controlBtn').textContent = translations[language].controlBtn;
+            calculateScore(elapsedTime);
+            showGameControls();
+        }
+
+        function updateDisplay() {
+            const currentTime = Date.now();
+            const elapsedTime = (currentTime - startTime) / 1000;
+            document.getElementById('display-area').textContent = elapsedTime.toFixed(2);
+        }
+
+        function calculateScore(time) {
+            const difference = Math.abs(10 - time);
+            document.getElementById('result').textContent = `${translations[language].difference}: ${difference.toFixed(2)}s`;
+        }
+
+        function restartGame() {
+            resetGame();
+        }
+
+        function backToMenu() {
+            document.getElementById('gamePage').style.display = 'none';
+            document.getElementById('rulesPage').style.display = 'block';
+        }
+
+        function hideGameControls() {
+            document.getElementById('restartBtn').style.display = 'none';
+            document.getElementById('menuBtn').style.display = 'none';
+        }
+
+        function showGameControls() {
+            document.getElementById('restartBtn').style.display = 'inline-block';
+            document.getElementById('menuBtn').style.display = 'inline-block';
+        }
+
+        function drawRobot() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Scale down the robot to fit the smaller canvas
+            ctx.scale(0.8, 0.8);
+            
+            // Draw body
+            ctx.fillStyle = 'blue';
+            ctx.fillRect(45, 80, 60, 96);
+            
+            // Draw head
+            ctx.fillRect(51, 32, 48, 48);
+            
+            // Draw eyes
+            ctx.fillStyle = 'white';
+            ctx.fillRect(57, 44, 12, 12);
+            ctx.fillRect(81, 44, 12, 12);
+            
+            // Draw arms
+            ctx.fillStyle = 'blue';
+            ctx.fillRect(15, 92, 30, 12);
+            ctx.fillRect(105, 92, 30, 12);
+            
+            // Draw legs
+            ctx.fillRect(51, 176, 18, 24);
+            ctx.fillRect(81, 176, 18, 24);
+            
+            // Draw professor hat
+            ctx.fillStyle = 'black';
+            ctx.fillRect(39, 20, 72, 12);
+            ctx.fillRect(51, 0, 48, 20);
+            
+            // Reset the scale
+            ctx.setTransform(1, 0, 0, 1, 0, 0);
+        }
+
+        document.getElementById('languagePage').style.display = 'block';
+    </script>
+</body>
+</html>

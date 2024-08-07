@@ -121,7 +121,7 @@
     </div>
 
     <div id="gamePage" class="page">
-        
+        <h1 id="gameTitle">Two-Player Card Game</h1>
         <div class="game-area">
             <div id="player1" class="player-cards"></div>
             <canvas id="gameCanvas" width="400" height="300"></canvas>
@@ -141,7 +141,7 @@
 
     <script>
         const player1Controls = ['q', 'w', 'e', 'a', 's', 'd', 'z', 'x', 'c'];
-const player2Controls = ['7', '8', '9', '4', '5', '6', '1', '2', '3'];
+        const player2Controls = ['7', '8', '9', '4', '5', '6', '1', '2', '3'];
         let player1Cards, player2Cards, player1Score, player2Score, roundsPlayed;
         let player1Selection, player2Selection;
         let gameActive = false;
@@ -207,20 +207,20 @@ const player2Controls = ['7', '8', '9', '4', '5', '6', '1', '2', '3'];
         }
 
         function startGame() {
-    player1Cards = [7, 8, 9, 4, 5, 6, 1, 2, 3];
-    player2Cards = [7, 8, 9, 4, 5, 6, 1, 2, 3];
-    player1Score = 0;
-    player2Score = 0;
-    roundsPlayed = 0;
-    player1Selection = null;
-    player2Selection = null;
-    gameActive = true;
-    document.getElementById('gameControls').style.display = 'none';
-    document.getElementById('result').textContent = '';
-    renderCards();
-    updateScoreboard();
-    drawRobots(false, false);
-}
+            player1Cards = [7, 8, 9, 4, 5, 6, 1, 2, 3];
+            player2Cards = [7, 8, 9, 4, 5, 6, 1, 2, 3];
+            player1Score = 0;
+            player2Score = 0;
+            roundsPlayed = 0;
+            player1Selection = null;
+            player2Selection = null;
+            gameActive = true;
+            document.getElementById('gameControls').style.display = 'none';
+            document.getElementById('result').textContent = '';
+            renderCards();
+            updateScoreboard();
+            drawRobots(false, false);
+        }
 
         function renderCards() {
             const player1Element = document.getElementById('player1');
@@ -346,25 +346,7 @@ const player2Controls = ['7', '8', '9', '4', '5', '6', '1', '2', '3'];
             ctx.fillRect(x - 20, y + 30, 15, 40);
             ctx.fillRect(x + 5, y + 30, 15, 40);
         }
-
-        function drawRobot(x, y, color, isPunching) {
-            ctx.fillStyle = color;
-            ctx.fillRect(x - 25, y - 50, 50, 80);
-            ctx.fillRect(x - 20, y - 80, 40, 30);
-            ctx.fillStyle = 'white';
-            ctx.fillRect(x - 15, y - 75, 10, 10);
-            ctx.fillRect(x + 5, y - 75, 10, 10);
-            if (isPunching) {
-                ctx.fillStyle = color;
-                ctx.fillRect(x + (color === 'blue' ? 25 : -65), y - 40, 40, 20);
-            } else {
-                ctx.fillStyle = color;
-                ctx.fillRect(x + (color === 'blue' ? 25 : -35), y - 40, 10, 60);
-            }
-            ctx.fillRect(x - 20, y + 30, 15, 40);
-            ctx.fillRect(x + 5, y + 30, 15, 40);
-        }
-        function drawRobots(isAPunching, isBPunching) {
+function drawRobots(isAPunching, isBPunching) {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             const centerY = canvas.height / 2;
             drawRobot(50, centerY, 'blue', isAPunching);

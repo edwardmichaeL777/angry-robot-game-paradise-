@@ -423,10 +423,7 @@
         }
 
         function backToMenu() {
-            clearInterval(gameInterval);
-            document.removeEventListener('keydown', handleKeyPress);
-            document.getElementById('gamePage').style.display = 'none';
-            document.getElementById('languagePage').style.display = 'block';
+            window.location.href = 'index.html';
         }
 
         document.getElementById('languagePage').style.display = 'block';

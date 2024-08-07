@@ -304,7 +304,9 @@ const player2Controls = ['7', '8', '9', '4', '5', '6', '1', '2', '3'];
         }
 
         function backToMenu() {
-            window.location.href = 'index.html';
+            document.getElementById('gamePage').style.display = 'none';
+            document.getElementById('rulesPage').style.display = 'none';
+            document.getElementById('languagePage').style.display = 'block';
         }
 
         document.addEventListener('keydown', (event) => {

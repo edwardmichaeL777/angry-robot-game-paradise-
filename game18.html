@@ -1,1 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9745408431725056"
+    crossorigin="anonymous"></script>
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>Robot Color Memory Challenge</title>
+   <style>
+       body {
+           font-family: 'Roboto', Arial, sans-serif;
+           line-height: 1.6;
+           margin: 0;
+           padding: 20px;
+           background-color: #0f0f1f;
+           color: #e0e0e0;
+           text-align: center;
+       }
+       .page {
+           display: none;
+           padding-top: 50px;
+       }
+       h1 {
+           color: #3498db;
+           text-shadow: 0 0 5px rgba(52, 152, 219, 0.5);
+       }
+       button {
+           background-color: #2980b9;
+           color: white;
+           border: none;
+           padding: 10px 15px;
+           margin: 10px;
+           cursor: pointer;
+           transition: background-color 0.3s;
+           font-size: 20px;
+       }
+       button:hover {
+           background-color: #3498db;
+       }
+       #game-container {
+           border: 1px solid #3498db;
+           display: block;
+           margin: 20px auto;
+           padding: 20px;
+           box-shadow: 0 0 10px rgba(52, 152, 219, 0.5);
+           max-width: 600px;
+       }
+       #display-area {
+           font-size: 48px;
+           margin-bottom: 20px;
+           height: 60px;
+           color: #3498db;
+       }
+       #user-input {
+           font-size: 24px;
+           padding: 5px;
+           width: 200px;
+           background-color: #1a1a2e;
+           color: #e0e0e0;
+           border: 1px solid #3498db;
+       }
+       #result {
+           font-size: 24px;
+           margin-bottom: 20px;
+       }
+       #score {
+           font-size: 18px;
+       }
+       #rulesSection {
+           margin-top: 30px;
+           padding: 20px;
+           border: 1px solid #3498db;
+           border-radius: 5px;
+           background-color: #1a1a2e;
+           box-shadow: 0 0 10px rgba(52, 152, 219, 0.5);
+       }
+       #input-area {
+           display: flex;
+           flex-direction: column;
+           align-items: center;
+       }
+       #robotCanvas {
+           margin-top: 20px;
+       }
+       .color-option {
+           display: inline-block;
+           width: 30px;
+           height: 30px;
+           border-radius: 50%;
+           cursor: pointer;
+           margin: 5px;
+       }
+       #color-options {
+           margin-top: 20px;
+       }
+       #cancelBtn {
+           background-color: #e74c3c;
+       }
+   </style>
+</head>
+<body>
+   <div id="languagePage" class="page">
+       <h1>Select Language / 选择语言</h1>
+       <button onclick="setLanguage('en')">English</button>
+       <button onclick="setLanguage('zh')">中文</button>
+   </div>
 
+   <div id="rulesPage" class="page">
+       <h1 id="rulesTitle"></h1>
+       <div id="rulesSection"></div>
+       <button onclick="startGame()" id="startGameBtn"></button>
+   </div>
+
+   <div id="gamePage" class="page">
+       <div id="game-container">
+           <div id="display-area"></div>
+           <div id="input-area">
+               <button id="submit-btn" disabled>Submit</button>
+               <button id="cancelBtn" disabled>Cancel</button>
+               <div id="color-options"></div>
+           </div>
+           <div id="result"></div>
+           <div id="score">Score: 0</div>
+       </div>
+       <div id="gameControls">
+           <button onclick="restartGame()" id="restartBtn"></button>
+           <button onclick="backToMenu()" id="menuBtn"></button>
+       </div>
+   </div>
+
+   <script>
+       let language = 'en';
+       let gameOver = false;
+       let score = 0;
+       let level = 1;
+       let currentPattern = [];
+       let userPattern = [];
+
+       const colors = [
+           'red', 'orange', 'yellow', 'green', 'blue', 'indigo', 'violet', 'gray', 'white'
+       ];
+
+       const translations = {
+    rulesTitle: {
+        en: "Game Rules",
+        zh: "游戏规则"
+    },
+    rules: {
+        en: "Remember the pattern of robots shown briefly on the screen. Click the robots in the correct order to score points and advance. One wrong answer ends the game. The challenge increases with each level!",
+        zh: "记住屏幕上短暂显示的机器人图案。按正确的顺序点击机器人以得分并前进。一次错误回答将结束游戏。每一级的挑战都会增加！"
+    },
+    startGame: {
+        en: "Start Game",
+        zh: "开始游戏"
+    },
+    score: {
+        en: "Score",
+        zh: "分数"
+    },
+    gameOver: {
+        en: "Game Over!",
+        zh: "游戏结束！"
+    },
+    finalScore: {
+        en: "Final Score",
+        zh: "最终得分"
+    },
+    restart: {
+        en: "Restart",
+        zh: "重新开始"
+    },
+    backToMenu: {
+        en: "Back to Menu",
+        zh: "返回菜单"
+    },
+    submit: {
+        en: "Submit",
+        zh: "提交"
+    },
+    cancel: {
+        en: "Cancel",
+        zh: "取消"
+    }
+};
+
+function setLanguage(lang) {
+    language = lang;
+    document.getElementById('languagePage').style.display = 'none';
+    document.getElementById('rulesPage').style.display = 'block';
+    updateTexts();
+}
+
+function updateTexts() {
+    document.getElementById('rulesTitle').textContent = translations.rulesTitle[language];
+    document.getElementById('rulesSection').textContent = translations.rules[language];
+    document.getElementById('startGameBtn').textContent = translations.startGame[language];
+    document.getElementById('restartBtn').textContent = translations.restart[language];
+    document.getElementById('menuBtn').textContent = translations.backToMenu[language];
+    document.getElementById('submit-btn').textContent = translations.submit[language];
+    document.getElementById('cancelBtn').textContent = translations.cancel[language];
+}
+
+       function startGame() {
+    document.getElementById('rulesPage').style.display = 'none';
+    document.getElementById('gamePage').style.display = 'block';
+    document.getElementById('gameControls').style.display = 'none'; // Hide controls
+    gameOver = false;
+    score = 0;
+    level = 1;
+    userPattern = [];
+    updateScore();
+    drawColorOptions(); // Draw color options
+    startRound();
+}
+
+       function restartGame() {
+           startGame();
+       }
+
+       function backToMenu() {
+           window.location.href = 'index.html';
+       }
+
+       function generatePattern() {
+           const patternLength = 3 + Math.floor(level / 2);
+           let pattern = [];
+           for (let i = 0; i < patternLength; i++) {
+               const color = colors[Math.floor(Math.random() * colors.length)];
+               pattern.push(color);
+           }
+           return pattern;
+       }
+
+       function startRound() {
+           currentPattern = generatePattern();
+           displayPattern();
+           document.getElementById('submit-btn').disabled = true;
+           document.getElementById('cancelBtn').disabled = true; // Disable cancel button initially
+
+           setTimeout(() => {
+               document.getElementById('display-area').textContent = '';
+               document.getElementById('submit-btn').disabled = false;
+               document.getElementById('cancelBtn').disabled = false; // Enable cancel button after the pattern disappears
+               userPattern = [];
+           }, 2000 + (level * 500));
+       }
+
+       function displayPattern() {
+           const displayArea = document.getElementById('display-area');
+           displayArea.innerHTML = '';
+           currentPattern.forEach(color => {
+               const canvas = document.createElement('canvas');
+               canvas.width = 50;
+               canvas.height = 50;
+               drawRobot(canvas, color);
+               displayArea.appendChild(canvas);
+           });
+       }
+
+       function drawRobot(canvas, color) {
+           const ctx = canvas.getContext('2d');
+
+           // Draw body
+           ctx.fillStyle = color;
+           ctx.fillRect(5, 10, 40, 40);
+
+           // Draw head
+           ctx.fillRect(10, 0, 30, 10);
+
+           // Draw eyes
+           ctx.fillStyle = 'white';
+           ctx.fillRect(15, 2, 5, 5);
+           ctx.fillRect(30, 2, 5, 5);
+
+           // Draw arms
+           ctx.fillStyle = color;
+           ctx.fillRect(0, 20, 5, 10);
+           ctx.fillRect(45, 20, 5, 10);
+
+           // Draw legs
+           ctx.fillRect(15, 50, 5, 10);
+           ctx.fillRect(30, 50, 5, 10);
+       }
+
+       function drawColorOptions() {
+           const colorOptionsContainer = document.getElementById('color-options');
+           colorOptionsContainer.innerHTML = '';
+           colors.forEach(color => {
+               const colorOption = document.createElement('div');
+               colorOption.className = 'color-option';
+               colorOption.style.backgroundColor = color;
+               colorOption.onclick = () => selectColor(color);
+               colorOptionsContainer.appendChild(colorOption);
+           });
+       }
+
+       function selectColor(color) {
+           if (userPattern.length < currentPattern.length) {
+               userPattern.push(color);
+               const canvas = document.createElement('canvas');
+               canvas.width = 50;
+               canvas.height = 50;
+               drawRobot(canvas, color);
+               document.getElementById('display-area').appendChild(canvas);
+           }
+       }
+
+       function cancelSelection() {
+           if (userPattern.length > 0) {
+               userPattern.pop();
+               document.getElementById('display-area').removeChild(document.getElementById('display-area').lastChild);
+           }
+       }
+
+       function checkPattern() {
+           if (JSON.stringify(currentPattern) === JSON.stringify(userPattern)) {
+               score += 10 * level;
+               level++;
+               document.getElementById('result').textContent = 'Correct!';
+               setTimeout(startRound, 1000);
+           } else {
+               document.getElementById('result').textContent = translations.gameOver[language];
+               gameOver = true;
+               document.getElementById('gameControls').style.display = 'block'; // Show controls
+           }
+           updateScore();
+       }
+
+       document.getElementById('submit-btn').addEventListener('click', () => {
+           document.getElementById('submit-btn').disabled = true;
+           document.getElementById('cancelBtn').disabled = true;
+           checkPattern();
+       });
+
+       document.getElementById('cancelBtn').addEventListener('click', () => {
+           cancelSelection();
+       });
+
+       function updateScore() {
+           document.getElementById('score').textContent = `${translations.score[language]}: ${score}`;
+       }
+
+       window.onload = function() {
+           document.getElementById('languagePage').style.display = 'block';
+       }
+   </script>
+</body>
+</html>

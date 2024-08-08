@@ -60,12 +60,6 @@
         <button onclick="setLanguage('zh')">中文</button>
     </div>
 
-    <div id="modePage" class="page" style="display: none;">
-        <h1 id="modeTitle"></h1>
-        <button onclick="setMode('single')" id="singlePlayerBtn"></button>
-        <button onclick="setMode('double')" id="twoPlayersBtn"></button>
-    </div>
-
     <div id="rulesPage" class="page" style="display: none;">
         <h1 id="rulesTitle"></h1>
         <p id="rulesText"></p>
@@ -82,7 +76,6 @@
 
     <script>
     const languagePage = document.getElementById('languagePage');
-    const modePage = document.getElementById('modePage');
     const rulesPage = document.getElementById('rulesPage');
     const gamePage = document.getElementById('gamePage');
     const canvas = document.getElementById('gameCanvas');
@@ -90,10 +83,8 @@
     const gameControls = document.getElementById('gameControls');
 
     let language = 'en';
-    let gameMode = 'single';
     let gameOver = false;
-    let score = [0, 0];
-    let currentPlayer = 0;
+    let score = 0;
     let hats = [];
     let hatSpeed = 2;
     let lastHatTime = 0;
@@ -103,20 +94,9 @@
     const MAX_HATS = 10;
     const HAT_ALTITUDE = canvas.height - 150 - 20 * HAT_HEIGHT;
     const ERROR_ALLOWANCE = 100;
+    const ROBOT_X = 100; // Set the robot's x position
 
     const translations = {
-        modeTitle: {
-            en: "Select Game Mode",
-            zh: "选择游戏模式"
-        },
-        singlePlayer: {
-            en: "Single Player",
-            zh: "单人游戏"
-        },
-        twoPlayers: {
-            en: "Two Players",
-            zh: "双人游戏"
-        },
         rulesTitle: {
             en: "Game Rules",
             zh: "游戏规则"
@@ -124,10 +104,6 @@
         singlePlayerRules: {
             en: "Press 'D' to catch red hats when the hat is directly on the top of your head. Don't miss any hat! This game cannot be performed on mobile devices.",
             zh: "按'D'键接住红色帽子当帽子在你头顶的正上方，不要错过任何帽子！此游戏无法在移动设备上进行运行。"
-        },
-        twoPlayersRules: {
-            en: "Player 1: Press 'D' for red hats. Player 2: Press 'K' for yellow hats. Catch when the hat is directly on the top of your head. Don't miss any hat! This game cannot be performed on mobile devices.",
-            zh: "玩家1：按'D'键接红色帽子。玩家2：按'K'键接黄色帽子当帽子在你头顶的正上方。不要错过任何帽子！此游戏无法在移动设备上进行运行。"
         },
         startGame: {
             en: "Start Game",
@@ -145,18 +121,6 @@
             en: "Final Score",
             zh: "最终得分"
         },
-        player1Wins: {
-            en: "Player 1 Wins!",
-            zh: "玩家1获胜！"
-        },
-        player2Wins: {
-            en: "Player 2 Wins!",
-            zh: "玩家2获胜！"
-        },
-        tie: {
-            en: "It's a Tie!",
-            zh: "平局！"
-        },
         restart: {
             en: "Restart",
             zh: "重新开始"
@@ -170,23 +134,13 @@
     function setLanguage(lang) {
         language = lang;
         languagePage.style.display = 'none';
-        modePage.style.display = 'block';
-        updateTexts();
-    }
-
-    function setMode(mode) {
-        gameMode = mode;
-        modePage.style.display = 'none';
         rulesPage.style.display = 'block';
         updateTexts();
     }
 
     function updateTexts() {
-        document.getElementById('modeTitle').textContent = translations.modeTitle[language];
-        document.getElementById('singlePlayerBtn').textContent = translations.singlePlayer[language];
-        document.getElementById('twoPlayersBtn').textContent = translations.twoPlayers[language];
         document.getElementById('rulesTitle').textContent = translations.rulesTitle[language];
-        document.getElementById('rulesText').textContent = gameMode === 'single' ? translations.singlePlayerRules[language] : translations.twoPlayersRules[language];
+        document.getElementById('rulesText').textContent = translations.singlePlayerRules[language];
         document.getElementById('startGameBtn').textContent = translations.startGame[language];
         document.getElementById('restartBtn').textContent = translations.restart[language];
         document.getElementById('menuBtn').textContent = translations.backToMenu[language];
@@ -247,7 +201,7 @@
     function drawHats(x, y, hatsWorn) {
         const HAT_HEIGHT = 10;
         for (let i = 0; i < hatsWorn; i++) {
-            ctx.fillStyle = i % 2 === 0 ? 'red' : 'yellow';
+            ctx.fillStyle = 'red';
             ctx.beginPath();
             ctx.moveTo(x - 25, y - i * HAT_HEIGHT);
             ctx.lineTo(x, y - 15 - i * HAT_HEIGHT);
@@ -257,21 +211,15 @@
         }
     }
 
-    const robot1 = new Robot(200, canvas.height - 100);
-    const robot2 = new Robot(600, canvas.height - 100);
+    const robot = new Robot(ROBOT_X, canvas.height - 100); // Update the robot's x position
 
     class Hat {
-        constructor(color) {
+        constructor() {
             this.width = 40;
             this.height = HAT_HEIGHT;
-            this.color = color;
-            if (color === 'red') {
-                this.x = canvas.width;
-                this.speed = -hatSpeed;
-            } else {
-                this.x = -this.width;
-                this.speed = hatSpeed;
-            }
+            this.color = 'red';
+            this.x = canvas.width;
+            this.speed = -hatSpeed;
             this.y = HAT_ALTITUDE;
         }
 
@@ -297,8 +245,7 @@
     function drawGame() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         
-        robot1.draw();
-        if (gameMode === 'double') robot2.draw();
+        robot.draw();
         
         hats.forEach(hat => {
             hat.draw();
@@ -308,30 +255,15 @@
         ctx.fillStyle = 'yellow';
         ctx.font = '24px Arial';
         const scoreText = translations.score[language];
-        ctx.fillText(`${scoreText}: ${score[0]}`, 10, 30);
-        if (gameMode === 'double') {
-            ctx.fillText(`${scoreText}: ${score[1]}`, canvas.width - 100, 30);
-        }
+        ctx.fillText(`${scoreText}: ${score}`, 10, 30);
         
         if (gameOver) {
             ctx.fillStyle = 'red';
             ctx.font = '48px Arial';
             ctx.fillText(translations.gameOver[language], canvas.width / 2 - 100, canvas.height / 2);
             ctx.font = '24px Arial';
-            if (gameMode === 'single') {
-                const finalScoreText = translations.finalScore[language];
-                ctx.fillText(`${finalScoreText}: ${score[0]}`, canvas.width / 2 - 80, canvas.height / 2 + 40);
-            } else {
-                let resultText;
-                if (score[0] > score[1]) {
-                    resultText = translations.player1Wins[language];
-                } else if (score[1] > score[0]) {
-                    resultText = translations.player2Wins[language];
-                } else {
-                    resultText = translations.tie[language];
-                }
-                ctx.fillText(resultText, canvas.width / 2 - 80, canvas.height / 2 + 40);
-            }
+            const finalScoreText = translations.finalScore[language];
+            ctx.fillText(`${finalScoreText}: ${score}`, canvas.width / 2 - 80, canvas.height / 2 + 40);
         }
     }
 
@@ -341,21 +273,14 @@
             
             const now = Date.now();
             if (now - lastHatTime > hatInterval) {
-                hats.push(new Hat('red'));
-                if (gameMode === 'double') {
-                    hats.push(new Hat('yellow'));
-                }
+                hats.push(new Hat());
                 lastHatTime = now;
                 hatSpeed += 0.1;
                 hatInterval = Math.max(500, hatInterval - 50);
             }
             
             hats = hats.filter(hat => {
-                if (hat.color === 'red' && hat.x + hat.width < 0) {
-                    gameOver = true;
-                    return false;
-                }
-                if (hat.color === 'yellow' && hat.x > canvas.width) {
+                if (hat.x + hat.width < 0) {
                     gameOver = true;
                     return false;
                 }
@@ -376,14 +301,12 @@
         gameControls.style.display = 'none';
         
         gameOver = false;
-        score = [0, 0];
-        currentPlayer = 0;
+        score = 0;
         hats = [];
         hatSpeed = 2;
         lastHatTime = 0;
         hatInterval = 2000;
-        robot1.hatsWorn = 0;
-        robot2.hatsWorn = 0;
+        robot.hatsWorn = 0;
         
         updateTexts(); // Update texts before starting the game
         gameLoop();
@@ -400,31 +323,20 @@
     document.addEventListener('keydown', (event) => {
         if (gameOver) return;
         
-        if (gameMode === 'single') {
-            if (event.key === 'd') {
-                tryWearHat(robot1, 0, 'red');
-            }
-        } else if (gameMode === 'double') {
-            if (event.key === 'd' && currentPlayer === 0) {
-                tryWearHat(robot1, 0, 'red');
-            } else if (event.key === 'k' && currentPlayer === 1) {
-                tryWearHat(robot2, 1, 'yellow');
-            }
+        if (event.key === 'd') {
+            tryWearHat(robot, 'red');
         }
     });
 
-    function tryWearHat(robot, playerIndex, color) {
+    function tryWearHat(robot, color) {
         const nearbyHat = hats.find(hat => hat.color === color && checkCollision(robot, hat));
         
         if (nearbyHat) {
-            score[playerIndex]++;
-            if (score[playerIndex] <= 10) {
+            score++;
+            if (score <= 10) {
                 robot.hatsWorn++;
             }
             hats = hats.filter(hat => hat !== nearbyHat);
-            if (gameMode === 'double') {
-                currentPlayer = 1 - currentPlayer;
-            }
         } else {
             gameOver = true;
         }

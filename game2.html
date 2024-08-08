@@ -1,8 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9745408431725056"
-     crossorigin="anonymous"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Robot Toilet Game / 机器人马桶游戏</title>
@@ -340,7 +338,8 @@
             
             if (diceRoll !== null) {
                 ctx.drawImage(images[`dice${diceRoll}`], 275 * scale, 100 * scale, 50 * scale, 50 * scale);
-                 }
+            }
+        }
 
         function animateFlush(player, times) {
             let count = 0;
@@ -444,7 +443,7 @@
         };
 
         function backToMenu() {
-            window.location.href = 'index.html';
+            location.reload();
         }
 
         if (deviceType === 'computer') {
@@ -462,7 +461,13 @@
             resizeCanvas();
             drawScene(currentRoll);
         });
-             updateLanguage();
+
+        // Initialize the game when the page loads
+        window.onload = function() {
+            canvas.width = 600;
+            canvas.height = 400;
+            resizeCanvas();
+        };
     </script>
 </body>
 </html>

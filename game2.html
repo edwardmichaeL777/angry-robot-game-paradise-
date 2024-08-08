@@ -442,10 +442,9 @@
             gameInfo.innerHTML = `<p>${message}</p>`;
         };
 
-        function backToMenu() {
-            location.reload();
+         function backToMenu() {
+            window.location.href = 'index.html';
         }
-
         if (deviceType === 'computer') {
             document.addEventListener('keydown', (event) => {
                 if (event.key === 'q' && !hasRolled && remainingPlunges === 0 && !gameOver) {

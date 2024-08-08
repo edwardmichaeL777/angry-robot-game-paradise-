@@ -118,11 +118,12 @@
         let currentRoll = 0;
         let remainingPlunges = 0;
         let gameOver = false;
+        let hasRolled = false;
 
         const translations = {
             en: {
                 title: "Robot Toilet Game",
-                rules: "Rules: Each player takes turns rolling a dice (0-2). If you roll 0, it's the next player's turn. Otherwise, you need to plunge the toilet that many times.The one who makes the toilet explode loses.",
+                rules: "Rules: Each player takes turns rolling a dice (0-2). If you roll 0, it's the next player's turn. Otherwise, you need to plunge the toilet that many times. The one who makes the toilet explode loses.",
                 deviceChoice: "Choose your device:",
                 computerControls: "Computer controls: Press 'q' to roll the dice, press the spacebar to plunge.",
                 cellphoneControls: "Cellphone controls: Use the on-screen buttons to roll the dice and plunge.",
@@ -137,6 +138,8 @@
                 rollDice: "Roll Dice",
                 flushToilet: "Flush Toilet",
                 restartButton: "Restart Game",
+                computer: "Computer",
+                cellphone: "Cellphone"
             },
             zh: {
                 title: "机器人马桶游戏",
@@ -155,8 +158,8 @@
                 rollDice: "掷骰子",
                 flushToilet: "通马桶",
                 restartButton: "重新开始",
-                 computer: "电脑",
-    cellphone: "手机",
+                computer: "电脑",
+                cellphone: "手机"
             }
         };
 
@@ -168,14 +171,13 @@
         }
 
         function updateRulesPage() {
-    document.getElementById('rulesTitle').textContent = translations[language].title;
-    document.getElementById('rules').textContent = translations[language].rules;
-    document.getElementById('deviceChoiceText').textContent = translations[language].deviceChoice;
-    
-    // Update device selection buttons
-    document.querySelector('button[onclick="chooseDevice(\'computer\')"]').textContent = translations[language].computer;
-    document.querySelector('button[onclick="chooseDevice(\'cellphone\')"]').textContent = translations[language].cellphone;
-}
+            document.getElementById('rulesTitle').textContent = translations[language].title;
+            document.getElementById('rules').textContent = translations[language].rules;
+            document.getElementById('deviceChoiceText').textContent = translations[language].deviceChoice;
+            
+            document.querySelector('button[onclick="chooseDevice(\'computer\')"]').textContent = translations[language].computer;
+            document.querySelector('button[onclick="chooseDevice(\'cellphone\')"]').textContent = translations[language].cellphone;
+        }
 
         function chooseDevice(device) {
             deviceType = device;
@@ -187,7 +189,6 @@
             document.getElementById('page3').style.display = 'block';
             document.getElementById('gameTitle').textContent = translations[language].title;
             
-            // Hide the control buttons at game start
             document.querySelector('.control-buttons').style.display = 'none';
             
             if (deviceType === 'cellphone') {
@@ -339,8 +340,7 @@
             
             if (diceRoll !== null) {
                 ctx.drawImage(images[`dice${diceRoll}`], 275 * scale, 100 * scale, 50 * scale, 50 * scale);
-            }
-        }
+                 }
 
         function animateFlush(player, times) {
             let count = 0;
@@ -374,18 +374,21 @@
             remainingPlunges = 0;
             currentRoll = 0;
             gameOver = false;
+            hasRolled = false;
             updateGameInfo(translations[language].rollPrompt.replace("{0}", currentPlayer));
             drawScene();
         };
 
         const handleRollDice = () => {
-            if (gameOver) return;
+            if (gameOver || hasRolled || remainingPlunges > 0) return;
             currentRoll = rollDice();
+            hasRolled = true;
             updateGameInfo(translations[language].rollResult.replace("{0}", currentPlayer).replace("{1}", currentRoll));
             drawScene(currentRoll);
             
             if (currentRoll === 0) {
                 currentPlayer = currentPlayer === 1 ? 2 : 1;
+                hasRolled = false;
                 setTimeout(() => {
                     updateGameInfo(translations[language].rollPrompt.replace("{0}", currentPlayer));
                 }, 1000);
@@ -396,7 +399,7 @@
         };
 
         const handleFlushToilet = () => {
-            if (gameOver || remainingPlunges === 0) return;
+            if (gameOver || remainingPlunges === 0 || !hasRolled) return;
             totalPlunges++;
             remainingPlunges--;
             updateGameInfo(translations[language].plungeResult.replace("{0}", currentPlayer).replace("{1}", remainingPlunges));
@@ -408,12 +411,13 @@
                     ctx.fillStyle = '#8B4513';
                     ctx.fillRect(0, 0, canvas.width, canvas.height);
                     updateGameInfo(translations[language].explosion.replace("{0}", currentPlayer));
-                    showControlButtons(); // Show the control buttons when the game ends
+                    showControlButtons();
                 }, 500);
                 return;
             }
             
             if (remainingPlunges === 0) {
+                hasRolled = false;
                 setTimeout(() => {
                     currentPlayer = currentPlayer === 1 ? 2 : 1;
                     updateGameInfo(translations[language].nextTurn.replace("{0}", currentPlayer));
@@ -429,12 +433,6 @@
 
         function restartGame() {
             document.querySelector('.control-buttons').style.display = 'none';
-            currentPlayer = 1;
-            totalPlunges = 0;
-            explodeNumber = 0;
-            currentRoll = 0;
-            remainingPlunges = 0;
-            gameOver = false;
             initializeGame();
             drawScene();
             updateGameInfo(translations[language].rollPrompt.replace("{0}", currentPlayer));
@@ -451,10 +449,10 @@
 
         if (deviceType === 'computer') {
             document.addEventListener('keydown', (event) => {
-                if (event.key === 'q' && remainingPlunges === 0 && !gameOver) {
+                if (event.key === 'q' && !hasRolled && remainingPlunges === 0 && !gameOver) {
                     handleRollDice();
                 }
-                else if (event.key === ' ' && remainingPlunges > 0 && !gameOver) {
+                else if (event.key === ' ' && hasRolled && remainingPlunges > 0 && !gameOver) {
                     handleFlushToilet();
                 }
             });

@@ -529,8 +529,9 @@
         if (symbol1.includes('Robot')) {
             robotFound = true;
             scores[currentPlayer - 1]++;
+            matchedPairs++; // Add this line to count the Robot as a matched pair
             updateScores();
-            currentPlayer = currentPlayer === 1 ? 2 : 1;
+            // Don't change the current player for the Robot card
         } else {
             scores[currentPlayer - 1] += 2;
             matchedPairs++;
@@ -538,16 +539,14 @@
         }
     } else {
         if (symbol1.includes('Robot') || symbol2.includes('Robot')) {
+            robotFound = true;
+            scores[currentPlayer - 1]++;
+            updateScores();
             if (symbol1.includes('Robot')) {
-                robotFound = true;
-                scores[currentPlayer - 1]++;
                 card2.classList.remove('flipped');
             } else {
-                robotFound = true;
-                scores[currentPlayer - 1]++;
                 card1.classList.remove('flipped');
             }
-            updateScores();
             currentPlayer = currentPlayer === 1 ? 2 : 1;
         } else {
             card1.classList.remove('flipped');
@@ -559,10 +558,11 @@
     flippedCards = [];
     updateCurrentPlayerIndicator();
 
-    if (matchedPairs === 12) {
+    if (matchedPairs === 13) { // Change this to 13 to include the Robot card
         endGame();
     }
 }
+
 
         function updateScores() {
             player1Score.textContent = scores[0];

@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bridge Crossing Puzzle</title>
+    <style>
+        body {
+            font-family: 'Roboto', Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            text-align: center;
+            background-color: #0f0f1f;
+            color: #e0e0e0;
+        }
+        #game-container {
+            background-color: #1a1a2e;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(52, 152, 219, 0.5);
+            padding: 20px;
+        }
+        canvas {
+            border: 1px solid #3498db;
+            margin-bottom: 20px;
+            box-shadow: 0 0 10px rgba(52, 152, 219, 0.5);
+        }
+        button {
+            font-size: 18px;
+            margin: 10px;
+            padding: 10px 20px;
+            cursor: pointer;
+            background-color: #2980b9;
+            color: white;
+            border: none;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #3498db;
+        }
+        h1, h2 {
+            color: #3498db;
+            text-shadow: 0 0 5px rgba(52, 152, 219, 0.5);
+        }
+        #rules-text {
+            text-align: left;
+            padding-left: 20px;
+        }
+        #game-controls {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <div id="language-select">
+            <h1>Select Language</h1>
+            <button onclick="setLanguage('en')">English</button>
+            <button onclick="setLanguage('zh')">中文</button>
+        </div>
+        <div id="rules" style="display: none;">
+            <h1 id="rules-title"></h1>
+            <p id="rules-text"></p>
+            <button onclick="startGame()" id="start-button"></button>
+        </div>
+        <canvas id="gameCanvas" width="600" height="400" style="display: none;"></canvas>
+        <div id="game-controls" style="display: none;">
+            <button onclick="resetGame()" id="reset-button"></button>
+            <button onclick="cleanRestart()" id="clean-restart-button"></button>
+            <button onclick="backToMenu()" id="menu-button"></button>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        let language = 'en';
+        let currentNode = null;
+        let visitedEdges = new Set();
+        let nodes = [];
+        let edges = [];
+        let remainingMoves = 0;
+
+        const translations = {
+            en: {
+                rulesTitle: "Bridge Crossing Puzzle",
+                rulesText: "Cross all bridges without repeating any. Click a yellow node to start, then click connected nodes to move. Your path turns purple. You can't use the same path twice.",
+                startButton: "Start Game",
+                resetButton: "New Map",
+                cleanRestartButton: "Restart Same Map",
+                menuButton: "Back to Menu",
+                gameOver: "Game Over!",
+                youWin: "You Win!",
+                youLose: "You Lose!",
+                movesLeft: "Moves left: "
+            },
+            zh: {
+                rulesTitle: "过桥谜题",
+                rulesText: "穿过所有的桥，但不能重复。点击黄色节点开始，然后点击相连的节点移动。你的路径会变成紫色。你不能使用同一条路径两次。",
+                startButton: "开始游戏",
+                resetButton: "新地图",
+                cleanRestartButton: "重新开始相同地图",
+                menuButton: "返回菜单",
+                gameOver: "游戏结束！",
+                youWin: "你赢了！",
+                youLose: "你输了！",
+                movesLeft: "剩余步数: "
+            }
+        };
+
+        function setLanguage(lang) {
+            language = lang;
+            document.getElementById('language-select').style.display = 'none';
+            document.getElementById('rules').style.display = 'block';
+            updateLanguageTexts();
+        }
+
+        function updateLanguageTexts() {
+            document.getElementById('rules-title').textContent = translations[language].rulesTitle;
+            document.getElementById('rules-text').textContent = translations[language].rulesText;
+            document.getElementById('start-button').textContent = translations[language].startButton;
+            document.getElementById('reset-button').textContent = translations[language].resetButton;
+            document.getElementById('clean-restart-button').textContent = translations[language].cleanRestartButton;
+            document.getElementById('menu-button').textContent = translations[language].menuButton;
+        }
+
+        function startGame() {
+            document.getElementById('rules').style.display = 'none';
+            canvas.style.display = 'block';
+            document.getElementById('game-controls').style.display = 'flex';
+            generateMap();
+            drawGraph();
+        }
+
+        function resetGame() {
+            currentNode = null;
+            visitedEdges.clear();
+            generateMap();
+            drawGraph();
+        }
+
+        function cleanRestart() {
+            currentNode = null;
+            visitedEdges.clear();
+            remainingMoves = edges.length;
+            drawGraph();
+        }
+
+        function backToMenu() {
+            canvas.style.display = 'none';
+            document.getElementById('game-controls').style.display = 'none';
+            document.getElementById('language-select').style.display = 'block';
+        }
+
+        function generateMap() {
+            nodes = [];
+            edges = [];
+            const nodeCount = Math.floor(Math.random() * 3) + 7; // 7 to 9 nodes
+            
+            // Generate nodes with minimum distance
+            const minDistance = 100;
+            for (let i = 0; i < nodeCount; i++) {
+                let x, y, tooClose;
+                do {
+                    x = Math.random() * 500 + 50;
+                    y = Math.random() * 300 + 50;
+                    tooClose = nodes.some(node => 
+                        Math.sqrt((node.x - x) ** 2 + (node.y - y) ** 2) < minDistance
+                    );
+                } while (tooClose);
+                nodes.push({ x, y, connections: [] });
+            }
+            
+            // Generate edges
+            const edgeCount = Math.floor(Math.random() * 3) + 9; // 9 to 11 edges
+            while (edges.length < edgeCount) {
+                const a = Math.floor(Math.random() * nodeCount);
+                const b = Math.floor(Math.random() * nodeCount);
+                if (a !== b && !edges.some(e => (e[0] === a && e[1] === b) || (e[0] === b && e[1] === a))) {
+                    edges.push([a, b]);
+                    nodes[a].connections.push(b);
+                    nodes[b].connections.push(a);
+                }
+            }
+            
+            // Ensure the graph is connected and has an Eulerian path
+            if (!isConnected() || !hasEulerianPath()) {
+                generateMap();
+                return;
+            }
+            
+            // Set the number of allowed moves
+            remainingMoves = edges.length;
+        }
+
+        function isConnected() {
+            const visited = new Set();
+            const dfs = (node) => {
+                visited.add(node);
+                for (let neighbor of nodes[node].connections) {
+                    if (!visited.has(neighbor)) {
+                        dfs(neighbor);
+                    }
+                }
+            };
+            dfs(0);
+            return visited.size === nodes.length;
+        }
+
+        function hasEulerianPath() {
+            let oddDegreeCount = 0;
+            for (let node of nodes) {
+                if (node.connections.length % 2 !== 0) {
+                    oddDegreeCount++;
+                }
+            }
+            return oddDegreeCount === 0 || oddDegreeCount === 2;
+        }
+
+        function drawGraph() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw edges
+            for (let [a, b] of edges) {
+                ctx.beginPath();
+                ctx.moveTo(nodes[a].x, nodes[a].y);
+                ctx.lineTo(nodes[b].x, nodes[b].y);
+                const edgeKey = `${Math.min(a, b)}-${Math.max(a, b)}`;
+                ctx.strokeStyle = visitedEdges.has(edgeKey) ? 'purple' : 'brown';
+                ctx.lineWidth = 5;
+                ctx.stroke();
+            }
+
+            // Draw nodes
+            for (let i = 0; i < nodes.length; i++) {
+                ctx.beginPath();
+                ctx.arc(nodes[i].x, nodes[i].y, 15, 0, 2 * Math.PI);
+                ctx.fillStyle = 'yellow';
+                ctx.fill();
+                ctx.stroke();
+            }
+
+            // Draw player
+            if (currentNode !== null) {
+                ctx.beginPath();
+                ctx.arc(nodes[currentNode].x, nodes[currentNode].y, 10, 0, 2 * Math.PI);
+                ctx.fillStyle = 'blue';
+                ctx.fill();
+            }
+
+            // Draw remaining moves
+            ctx.fillStyle = 'white';
+            ctx.font = '20px Arial';
+            ctx.fillText(`${translations[language].movesLeft}${remainingMoves}`, 10, 30);
+        }
+
+        function checkGameOver() {
+            if (remainingMoves === 0 || visitedEdges.size === edges.length) {
+                let message = visitedEdges.size === edges.length ? 
+                    translations[language].youWin : 
+                    translations[language].youLose;
+                
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                ctx.fillStyle = 'white';
+                ctx.font = '30px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText(message, canvas.width / 2, canvas.height / 2);
+                
+                return true;
+            }
+            return false;
+        }
+
+        function canMove() {
+            if (currentNode === null) return true;
+            for (let neighbor of nodes[currentNode].connections) {
+                const edgeKey = `${Math.min(currentNode, neighbor)}-${Math.max(currentNode, neighbor)}`;
+                if (!visitedEdges.has(edgeKey)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        canvas.addEventListener('click', function(event) {
+            if (checkGameOver()) return;
+
+            const rect = canvas.getBoundingClientRect();
+            const x = event.clientX - rect.left;
+            const y = event.clientY - rect.top;
+
+            for (let i = 0; i < nodes.length; i++) {
+                const dx = x - nodes[i].x;
+                const dy = y - nodes[i].y;
+                if (dx * dx + dy * dy <= 225) { // 15^2 = 225
+                    if (currentNode === null || nodes[currentNode].connections.includes(i)) {
+                        if (currentNode !== null) {
+                            const edgeKey = `${Math.min(currentNode, i)}-${Math.max(currentNode, i)}`;
+                            if (!visitedEdges.has(edgeKey)) {
+                                visitedEdges.add(edgeKey);
+                                remainingMoves--;
+                            } else {
+                                return; // Can't use the same path twice
+                            }
+                        }
+                        currentNode = i;
+                        drawGraph();
+                        if (!canMove()) {
+                            checkGameOver();
+                        }
+                    }
+                    break;
+                }
+            }
+        });
+
+        // Initial setup
+        document.getElementById('rules').style.display = 'none';
+        canvas.style.display = 'none';
+        document.getElementById('game-controls').style.display = 'none';
+    </script>
+</body>
+</html>

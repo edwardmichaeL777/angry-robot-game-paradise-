@@ -26,6 +26,11 @@
             box-shadow: 0 0 20px rgba(52, 152, 219, 0.5);
             max-width: 90vw;
         }
+        h1 {
+            color: #3498db;
+            font-size: 1.5em;
+            text-shadow: 0 0 5px rgba(52, 152, 219, 0.5);
+        }
         #gameArea {
             display: flex;
             flex-direction: column;
@@ -118,7 +123,7 @@
 </head>
 <body>
     <div id="page1" class="page" style="display: block;">
-        <h1>Welcome to Math Challenge<br>欢迎来到数学挑战</h1>
+        <h1>Math Challenge / 数学挑战</h1>
         <p>Choose your language / 选择你的语言</p>
         <button onclick="setLanguage('en')">English</button>
         <button onclick="setLanguage('zh')">中文</button>
@@ -337,7 +342,6 @@
             // Draw body
             ctx.fillStyle = 'blue';
             ctx.fillRect(45, 80, 60, 96);
-            
             // Draw head
             ctx.fillRect(51, 32, 48, 48);
             
@@ -349,7 +353,7 @@
             // Draw arms
             ctx.fillStyle = 'blue';
             ctx.fillRect(15, 92, 30, 12);
-             ctx.fillRect(105, 92, 30, 12);
+            ctx.fillRect(105, 92, 30, 12);
             
             // Draw legs
             ctx.fillRect(51, 176, 18, 24);

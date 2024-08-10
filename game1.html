@@ -9,21 +9,35 @@
     <style>
         body {
             font-family: 'Roboto', Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            margin: 0;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            text-align: center;
             background-color: #0f0f1f;
             color: #e0e0e0;
         }
         .page {
-            text-align: center;
             display: none;
             background-color: #1a1a2e;
-            padding: 20px;
             border-radius: 10px;
             box-shadow: 0 0 20px rgba(52, 152, 219, 0.5);
+            padding: 20px;
+        }
+        #languagePage {
+            display: block;
+        }
+        button {
+            font-size: 18px;
+            margin: 10px;
+            padding: 10px 20px;
+            cursor: pointer;
+            background-color: #2980b9;
+            color: white;
+            border: none;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #3498db;
         }
         #gameCanvas, #cellphoneCanvas {
             border: 1px solid #3498db;
@@ -34,19 +48,6 @@
             font-size: 18px;
             margin: 10px 0;
             color: #3498db;
-        }
-        button {
-            margin: 10px;
-            padding: 10px 20px;
-            font-size: 16px;
-            background-color: #2980b9;
-            color: white;
-            border: none;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-        button:hover {
-            background-color: #3498db;
         }
         .control-buttons, .cellphone-control-buttons {
             margin-top: 20px;
@@ -77,7 +78,13 @@
             color: #3498db;
             text-shadow: 0 0 5px rgba(52, 152, 219, 0.5);
         }
-   
+        #rulesList {
+            text-align: left;
+            padding-left: 20px;
+        }
+        #rulesList li {
+            margin-bottom: 10px;
+        }
     </style>
 </head>
 <body>
@@ -87,10 +94,9 @@
         <button onclick="setLanguage('zh')">中文</button>
     </div>
 
-
     <div id="page2" class="page">
         <h1 id="rulesTitle"></h1>
-        <div id="rules"></div>
+        <ul id="rulesList"></ul>
         <h2 id="deviceChoiceTitle"></h2>
         <button id="computerButton" onclick="startGame('computer')"></button>
         <button id="cellphoneButton" onclick="startGame('cellphone')"></button>
@@ -136,34 +142,82 @@
         let currentDevice = 'computer';
         let canvas, ctx;
 
+        const translations = {
+            en: {
+                rulesTitle: "Robot Boxing Match Rules",
+                rules: [
+                    "The game lasts for 15 seconds.",
+                    "Two robots (A and B) compete to score the most points.",
+                    "Robot A uses the 'Z' key to punch, Robot B uses the 'L' key.",
+                    "Each successful punch scores one point.",
+                    "There's a brief cooldown period between punches.",
+                    "The robot with the highest score at the end wins."
+                ],
+                deviceChoiceTitle: "Choose your device",
+                computerButton: "Computer",
+                cellphoneButton: "Cellphone",
+                gameTitle: "Robot Boxing Match",
+                instructions: {
+                    computer: "Robot A: Press 'Z' to punch | Robot B: Press 'L' to punch",
+                    cellphone: "Tap the buttons to punch"
+                },
+                restartButton: "Restart Game",
+                backButton: "Back to Menu",
+                timerText: "Time: {0} seconds",
+                scoresText: "Robot A: {0} | Robot B: {1}",
+                gameOverText: "Game Over! Robot A Score: {0}, Robot B Score: {1}",
+                robotAWins: "Robot A Wins!",
+                robotBWins: "Robot B Wins!",
+                tie: "It's a Tie!"
+            },
+            zh: {
+                rulesTitle: "机器人拳击赛规则",
+                rules: [
+                    "游戏持续15秒。",
+                    "两个机器人（A和B）竞争得分最高。",
+                    "机器人A使用'Z'键出拳，机器人B使用'L'键。",
+                    "每次成功的出拳得一分。",
+                    "每次出拳之间有短暂的冷却时间。",
+                    "结束时得分最高的机器人获胜。"
+                ],
+                deviceChoiceTitle: "选择你的设备",
+                computerButton: "电脑",
+                cellphoneButton: "手机",
+                gameTitle: "机器人拳击赛",
+                instructions: {
+                    computer: "机器人A: 按'Z'出拳 | 机器人B: 按'L'出拳",
+                    cellphone: "点击按钮出拳"
+                },
+                restartButton: "重新开始",
+                backButton: "返回菜单",
+                timerText: "时间: {0}秒",
+                scoresText: "机器人A: {0} | 机器人B: {1}",
+                gameOverText: "游戏结束！机器人A得分: {0}, 机器人B得分: {1}",
+                robotAWins: "机器人A获胜！",
+                robotBWins: "机器人B获胜！",
+                tie: "平局！"
+            }
+        };
+
         function setLanguage(lang) {
             language = lang;
-            document.getElementById('page1').style.display = 'none';
+            document.getElementById('languagePage').style.display = 'none';
             document.getElementById('page2').style.display = 'block';
             updateRulesPage();
         }
 
         function updateRulesPage() {
-            document.getElementById('rulesTitle').textContent = language === 'en' ? 'Robot Boxing Match Rules' : '机器人拳击赛规则';
-            const rules = language === 'en' ? [
-                "1. The game lasts for 15 seconds.",
-                "2. Two robots (A and B) compete to score the most points.",
-                "3. Robot A uses the 'Z' key to punch, Robot B uses the 'L' key.",
-                "4. Each successful punch scores one point.",
-                "5. There's a brief cooldown period between punches.",
-                "6. The robot with the highest score at the end wins."
-            ] : [
-                "1. 游戏持续15秒。",
-                "2. 两个机器人（A和B）竞争得分最高。",
-                "3. 机器人A使用'Z'键出拳，机器人B使用'L'键。",
-                "4. 每次成功的出拳得一分。",
-                "5. 每次出拳之间有短暂的冷却时间。",
-                "6. 结束时得分最高的机器人获胜。"
-            ];
-            document.getElementById('rules').innerHTML = rules.join('<br>');
-            document.getElementById('deviceChoiceTitle').textContent = language === 'en' ? 'Choose your device' : '选择你的设备';
-            document.getElementById('computerButton').textContent = language === 'en' ? 'Computer' : '电脑';
-            document.getElementById('cellphoneButton').textContent = language === 'en' ? 'Cellphone' : '手机';
+            document.getElementById('rulesTitle').textContent = translations[language].rulesTitle;
+            const rulesList = document.getElementById('rulesList');
+            rulesList.innerHTML = '';
+            translations[language].rules.forEach(rule => {
+                const li = document.createElement('li');
+                li.textContent = rule;
+                rulesList.appendChild(li);
+            });
+            document.getElementById('deviceChoiceTitle').textContent = translations[language].deviceChoiceTitle;
+            document.getElementById('computerButton').textContent = translations[language].computerButton;
+            document.getElementById('cellphoneButton').textContent = translations[language].cellphoneButton;
         }
 
         function startGame(device) {
@@ -190,12 +244,10 @@
         }
 
         function updateGamePage() {
-            const title = language === 'en' ? 'Robot Boxing Match' : '机器人拳击赛';
-            const instructions = language === 'en' ? 
-                (currentDevice === 'computer' ? "Robot A: Press 'Z' to punch | Robot B: Press 'L' to punch" : "Tap the buttons to punch") :
-                (currentDevice === 'computer' ? "机器人A: 按'Z'出拳 | 机器人B: 按'L'出拳" : "点击按钮出拳");
-            const restartText = language === 'en' ? 'Restart Game' : '重新开始';
-            const backText = language === 'en' ? 'Back to Menu' : '返回菜单';
+            const title = translations[language].gameTitle;
+            const instructions = translations[language].instructions[currentDevice];
+            const restartText = translations[language].restartButton;
+            const backText = translations[language].backButton;
             
             if (currentDevice === 'computer') {
                 document.getElementById('gameTitle').textContent = title;
@@ -239,9 +291,7 @@
         }
 
         function updateScores() {
-            const scoresText = language === 'en' ?
-                `Robot A: ${scoreA} | Robot B: ${scoreB}` :
-                `机器人A: ${scoreA} | 机器人B: ${scoreB}`;
+            const scoresText = translations[language].scoresText.replace('{0}', scoreA).replace('{1}', scoreB);
             if (currentDevice === 'computer') {
                 document.getElementById('scores').textContent = scoresText;
             } else {
@@ -251,9 +301,7 @@
 
         function updateTimer() {
             timeLeft--;
-            const timerText = language === 'en' ?
-                `Time: ${timeLeft} seconds` :
-                `时间: ${timeLeft}秒`;
+            const timerText = translations[language].timerText.replace('{0}', timeLeft);
             if (currentDevice === 'computer') {
                 document.getElementById('timer').textContent = timerText;
             } else {
@@ -273,15 +321,13 @@
                 document.getElementById('punchB').removeEventListener('click', () => handlePunch('B'));
             }
 
-            let resultText = language === 'en' ? 
-                `Game Over! Robot A Score: ${scoreA}, Robot B Score: ${scoreB}<br>` :
-                `游戏结束！机器人A得分: ${scoreA}, 机器人B得分: ${scoreB}<br>`;
+            let resultText = translations[language].gameOverText.replace('{0}', scoreA).replace('{1}', scoreB) + '<br>';
             if (scoreA > scoreB) {
-                resultText += language === 'en' ? "Robot A Wins!" : "机器人A获胜！";
+                resultText += translations[language].robotAWins;
             } else if (scoreB > scoreA) {
-                resultText += language === 'en' ? "Robot B Wins!" : "机器人B获胜！";
+                resultText += translations[language].robotBWins;
             } else {
-                resultText += language === 'en' ? "It's a Tie!" : "平局！";
+                resultText += translations[language].tie;
             }
             
             if (currentDevice === 'computer') {
@@ -310,6 +356,7 @@
                 setTimeout(() => drawRobots(false, false), 150);
             } else if (robot === 'B' && currentTime - lastPunchTimeB > reactionTime) {
                 scoreB++;
+                
                 lastPunchTimeB = currentTime;
                 drawRobots(false, true);
                 setTimeout(() => drawRobots(false, false), 150);

@@ -123,7 +123,7 @@
         const translations = {
             en: {
                 title: "Robot Toilet Game",
-                rules: "Rules: Each player takes turns rolling a dice (0-2). If you roll 0, it's the next player's turn. Otherwise, you need to plunge the toilet that many times. The one who makes the toilet explode loses.Computer controls: Press 'q' to roll the dice, press the spacebar to plunge.Cellphone controls: Use the on-screen buttons to roll the dice and plunge.",
+                rules: "Rules: Each player takes turns rolling a dice (0-2). If you roll 0, it's the next player's turn. Otherwise, you need to plunge the toilet that many times. The one who makes the toilet explode loses. Computer controls: Press 'q' to roll the dice, press the spacebar to plunge. Cellphone controls: Use the on-screen buttons to roll the dice and plunge.",
                 deviceChoice: "Choose your device:",
                 computerControls: "Computer controls: Press 'q' to roll the dice, press the spacebar to plunge.",
                 cellphoneControls: "Cellphone controls: Use the on-screen buttons to roll the dice and plunge.",
@@ -444,9 +444,10 @@
             gameInfo.innerHTML = `<p>${message}</p>`;
         };
 
-         function backToMenu() {
+        function backToMenu() {
             window.location.href = 'index.html';
         }
+
         if (deviceType === 'computer') {
             document.addEventListener('keydown', (event) => {
                 if (event.key === 'q' && !hasRolled && remainingPlunges === 0 && !gameOver) {

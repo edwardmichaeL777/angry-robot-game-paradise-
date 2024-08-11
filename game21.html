@@ -1,1 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Robot Firefighter FPS</title>
+    <style>
+        body {
+            font-family: 'Roboto', Arial, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            text-align: center;
+            background-color: #0f0f1f;
+            color: #e0e0e0;
+        }
+        .page {
+            display: none;
+            background-color: #1a1a2e;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(52, 152, 219, 0.5);
+            padding: 20px;
+        }
+        #languagePage {
+            display: block;
+        }
+        #gameCanvas {
+            border: 1px solid #3498db;
+            background-color: #1a1a2e;
+            box-shadow: 0 0 10px rgba(52, 152, 219, 0.5);
+        }
+        #scoreTime, #result {
+            font-size: 18px;
+            margin: 10px 0;
+            color: #3498db;
+        }
+        .control-buttons {
+            margin-top: 20px;
+        }
+        button {
+            font-size: 18px;
+            margin: 10px;
+            padding: 10px 20px;
+            cursor: pointer;
+            background-color: #2980b9;
+            color: white;
+            border: none;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #3498db;
+        }
+        h1, h2 {
+            color: #3498db;
+            text-shadow: 0 0 5px rgba(52, 152, 219, 0.5);
+        }
+        #rulesList {
+            text-align: left;
+            padding-left: 20px;
+        }
+        #rulesList li {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div id="languagePage" class="page">
+        <h1>Select Language / 选择语言</h1>
+        <button onclick="setLanguage('en')">English</button>
+        <button onclick="setLanguage('zh')">中文</button>
+    </div>
 
+    <div id="rulesPage" class="page">
+        <h1 id="rulesTitle"></h1>
+        <ul id="rulesList"></ul>
+        <button id="startButton" onclick="startGame()"></button>
+    </div>
+
+    <div id="gamePage" class="page">
+        <h1 id="gameTitle"></h1>
+        <div id="scoreTime">Score: <span id="score">0</span> | Time: <span id="time">60</span></div>
+        <canvas id="gameCanvas" width="800" height="600"></canvas>
+        <div id="result"></div>
+        <div class="control-buttons">
+            <button id="restartButton" onclick="restartGame()"></button>
+            <button id="backButton" onclick="backToMenu()"></button>
+        </div>
+    </div>
+
+    <script>
+        let language = 'en';
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const scoreElement = document.getElementById('score');
+        const timeElement = document.getElementById('time');
+        const resultElement = document.getElementById('result');
+
+        // Game properties
+        let score = 0;
+        let timeLeft = 60;
+        const player = { x: canvas.width - 50, y: canvas.height - 50, size: 50 };
+        const waterSource = { x: canvas.width / 2, y: canvas.height };
+        const waters = [];
+        const fire = { x: canvas.width / 2, y: 50, size: 20, speed: 3 };
+        let fireDirection = { x: 1, y: 1 };
+        let lastShot = 0;
+        const shootInterval = 100; // Shoot every 100ms (10 times per second)
+        let mouseX = 0, mouseY = 0;
+        let gameInterval;
+        let waterShootInterval;
+
+        const translations = {
+            en: {
+                rulesTitle: "Robot Firefighter FPS Rules",
+                rules: [
+                    "The game lasts for 60 seconds.",
+                    "Move your mouse to aim the water stream.",
+                    "Water automatically shoots 10 times per second.",
+                    "Each time you hit the fire, you score a point.",
+                    "Try to score as many points as possible before time runs out!"
+                ],
+                startButton: "Start Game",
+                gameTitle: "Robot Firefighter FPS",
+                restartButton: "Restart Game",
+                backButton: "Back to Menu",
+                gameOverText: "Game Over! Your score: {0}"
+            },
+            zh: {
+                rulesTitle: "机器人消防员 FPS 规则",
+                rules: [
+                    "游戏持续60秒。",
+                    "移动鼠标来瞄准水流。",
+                    "水流每秒自动发射10次。",
+                    "每次击中火焰都会得到一分。",
+                    "在时间结束前尽可能得到更多分数！"
+                ],
+                startButton: "开始游戏",
+                gameTitle: "机器人消防员 FPS",
+                restartButton: "重新开始",
+                backButton: "返回菜单",
+                gameOverText: "游戏结束！你的得分：{0}"
+            }
+        };
+
+        function setLanguage(lang) {
+            language = lang;
+            document.getElementById('languagePage').style.display = 'none';
+            document.getElementById('rulesPage').style.display = 'block';
+            updateRulesPage();
+        }
+
+        function updateRulesPage() {
+            document.getElementById('rulesTitle').textContent = translations[language].rulesTitle;
+            const rulesList = document.getElementById('rulesList');
+            rulesList.innerHTML = '';
+            translations[language].rules.forEach(rule => {
+                const li = document.createElement('li');
+                li.textContent = rule;
+                rulesList.appendChild(li);
+            });
+            document.getElementById('startButton').textContent = translations[language].startButton;
+        }
+
+        function startGame() {
+            document.getElementById('rulesPage').style.display = 'none';
+            document.getElementById('gamePage').style.display = 'block';
+            document.getElementById('gameTitle').textContent = translations[language].gameTitle;
+            document.getElementById('restartButton').textContent = translations[language].restartButton;
+            document.getElementById('backButton').textContent = translations[language].backButton;
+            resetGame();
+            canvas.addEventListener('mousemove', onMouseMove);
+            gameInterval = setInterval(updateTimer, 1000);
+            waterShootInterval = setInterval(shootWater, shootInterval);
+            gameLoop();
+        }
+
+        function onMouseMove(e) {
+            mouseX = e.clientX - canvas.offsetLeft;
+            mouseY = e.clientY - canvas.offsetTop;
+        }
+
+        function shootWater() {
+            const angle = Math.atan2(mouseY - waterSource.y, mouseX - waterSource.x);
+            waters.push({
+                x: waterSource.x,
+                y: waterSource.y,
+                dx: Math.cos(angle) * 5,
+                dy: Math.sin(angle) * 5,
+                size: 5
+            });
+        }
+
+        function updateFire() {
+            fire.x += fireDirection.x * fire.speed;
+            fire.y += fireDirection.y * fire.speed;
+            
+            if (fire.x <= fire.size || fire.x >= canvas.width - fire.size) {
+                fireDirection.x *= -1;
+            }
+            if (fire.y <= fire.size || fire.y >= canvas.height - fire.size) {
+                fireDirection.y *= -1;
+            }
+            
+            fire.x = Math.max(fire.size, Math.min(canvas.width - fire.size, fire.x));
+            fire.y = Math.max(fire.size, Math.min(canvas.height - fire.size, fire.y));
+            
+            if (Math.random() < 0.02) {
+                fireDirection.x = Math.random() < 0.5 ? -1 : 1;
+                fireDirection.y = Math.random() < 0.5 ? -1 : 1;
+            }
+        }
+
+        function update() {
+            if (timeLeft <= 0) return;
+
+            waters.forEach((water, index) => {
+                water.x += water.dx;
+                water.y += water.dy;
+                if (water.x < 0 || water.x > canvas.width || water.y < 0 || water.y > canvas.height) {
+                    waters.splice(index, 1);
+                }
+            });
+
+            updateFire();
+
+            waters.forEach((water, waterIndex) => {
+                const dx = water.x - fire.x;
+                const dy = water.y - fire.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance < water.size + fire.size) {
+                    waters.splice(waterIndex, 1);
+                    score++;
+                    scoreElement.textContent = score;
+                }
+            });
+        }
+
+        function drawRobot(x, y, color) {
+            ctx.fillStyle = color;
+            ctx.fillRect(x - 25, y - 50, 50, 50);
+            ctx.fillRect(x - 20, y - 70, 40, 20);
+            ctx.fillStyle = 'white';
+            ctx.fillRect(x - 15, y - 65, 10, 10);
+            ctx.fillRect(x + 5, y - 65, 10, 10);
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            drawRobot(player.x, player.y, 'blue');
+
+            ctx.fillStyle = 'cyan';
+            waters.forEach(water => {
+                ctx.beginPath();
+                ctx.arc(water.x, water.y, water.size, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            ctx.fillStyle = 'red';
+            ctx.beginPath();
+            ctx.arc(fire.x, fire.y, fire.size, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        function gameLoop() {
+            update();
+            draw();
+            requestAnimationFrame(gameLoop);
+        }
+
+        function updateTimer() {
+            timeLeft--;
+            timeElement.textContent = timeLeft;
+            if (timeLeft <= 0) {
+                endGame();
+            }
+        }
+
+        function endGame() {
+            clearInterval(gameInterval);
+            clearInterval(waterShootInterval);
+            canvas.removeEventListener('mousemove', onMouseMove);
+            resultElement.textContent = translations[language].gameOverText.replace('{0}', score);
+            document.querySelector('.control-buttons').style.display = 'block';
+        }
+
+        function resetGame() {
+            score = 0;
+            timeLeft = 60;
+            scoreElement.textContent = score;
+            timeElement.textContent = timeLeft;
+            resultElement.textContent = '';
+            document.querySelector('.control-buttons').style.display = 'none';
+        }
+
+        function restartGame() {
+            resetGame();
+            clearInterval(gameInterval);
+            clearInterval(waterShootInterval);
+            gameInterval = setInterval(updateTimer, 1000);
+            waterShootInterval = setInterval(shootWater, shootInterval);
+            canvas.addEventListener('mousemove', onMouseMove);
+        }
+
+        function backToMenu() {
+            document.getElementById('gamePage').style.display = 'none';
+            document.getElementById('languagePage').style.display = 'block';
+            clearInterval(gameInterval);
+            clearInterval(waterShootInterval);
+            canvas.removeEventListener('mousemove', onMouseMove);
+        }
+    </script>
+</body>
+</html>

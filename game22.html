@@ -1,8 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9745408431725056"
-     crossorigin="anonymous"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Rat's Cheese Adventure</title>
@@ -79,7 +77,7 @@
     </div>
 
     <div id="gamePage" class="page">
-        
+        <h1 id="gameTitle"></h1>
         <div id="instructions"></div>
         <div id="timer"></div>
         <canvas id="gameCanvas" width="1200" height="600"></canvas>
@@ -329,7 +327,8 @@
                 ctx.fillRect(wall.x, wall.y, wall.width, wall.height);
             });
         }
-                function drawRat(x, y) {
+
+        function drawRat(x, y) {
             ctx.fillStyle = 'gray';
             ctx.beginPath();
             ctx.ellipse(x + 15, y + 10, 15, 10, 0, 0, 2 * Math.PI);
@@ -347,7 +346,7 @@
             ctx.lineWidth = 2;
             ctx.beginPath();
             ctx.moveTo(x, y + 10);
-            ctx.quadraticCurveTo(x - 10, y + 20, x - 20, y + 15);
+             ctx.quadraticCurveTo(x - 10, y + 20, x - 20, y + 15);
             ctx.stroke();
         }
 
@@ -404,8 +403,8 @@
             gameLoopId = requestAnimationFrame(gameLoop);
         }
 
-         function backToMenu() {
-            window.location.href = 'index.html';
+        function backToMenu() {
+            location.reload();
         }
 
         function handleKeyPress(event) {

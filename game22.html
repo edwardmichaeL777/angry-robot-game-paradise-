@@ -51,6 +51,7 @@
         }
         .control-buttons {
             margin-top: 20px;
+            display: none;
         }
         h1, h2 {
             color: #3498db;
@@ -169,6 +170,7 @@
             initializeGame();
             gameInterval = setInterval(updateTimer, 1000);
             gameLoopId = requestAnimationFrame(gameLoop);
+            document.querySelector('.control-buttons').style.display = 'none';
         }
 
         function updateGamePage() {
@@ -185,7 +187,7 @@
                 y: 200,
                 width: 30,
                 height: 20,
-                speed: 8
+                speed: 10  // Increased speed
             };
 
             cheese = {
@@ -201,10 +203,7 @@
                 { x: 900, y: 200, angle: Math.PI / 2, patrolPath: [{x: 900, y: 200}, {x: 900, y: 400}], patrolIndex: 0, hasLight: true },
                 { x: 400, y: 450, angle: 3 * Math.PI / 4, patrolPath: [{x: 400, y: 450}, {x: 800, y: 450}], patrolIndex: 0, hasLight: true },
                 { x: 700, y: 100, angle: Math.PI, patrolPath: [{x: 700, y: 100}, {x: 700, y: 500}], patrolIndex: 0, hasLight: true },
-                { x: 200, y: 300, angle: 5 * Math.PI / 4, patrolPath: [{x: 200, y: 300}, {x: 500, y: 300}], patrolIndex: 0, hasLight: true },
-                { x: 1000, y: 350, angle: 3 * Math.PI / 2, patrolPath: [{x: 1000, y: 350}, {x: 1000, y: 500}], patrolIndex: 0, hasLight: true },
-                { x: mapWidth / 2 - 100, y: mapHeight / 2, angle: 0, patrolPath: [{x: mapWidth / 2 - 100, y: mapHeight / 2}, {x: mapWidth / 2 + 100, y: mapHeight / 2}], patrolIndex: 0, hasLight: true },
-                { x: mapWidth / 2, y: mapHeight / 2 - 100, angle: Math.PI / 2, patrolPath: [{x: mapWidth / 2, y: mapHeight / 2 - 100}, {x: mapWidth / 2, y: mapHeight / 2 + 100}], patrolIndex: 0, hasLight: true }
+                { x: 1000, y: 350, angle: 3 * Math.PI / 2, patrolPath: [{x: 1000, y: 350}, {x: 1000, y: 500}], patrolIndex: 0, hasLight: true }
             ];
 
             walls = [
@@ -348,7 +347,7 @@
             ctx.lineWidth = 2;
             ctx.beginPath();
             ctx.moveTo(x, y + 10);
-             ctx.quadraticCurveTo(x - 10, y + 20, x - 20, y + 15);
+            ctx.quadraticCurveTo(x - 10, y + 20, x - 20, y + 15);
             ctx.stroke();
         }
 
@@ -369,7 +368,7 @@
             ctx.beginPath();
             ctx.arc(x + 30, y + 20, 3, 0, 2 * Math.PI);
             ctx.fill();
-        }
+            }
 
         function drawRobot(x, y, color) {
             ctx.fillStyle = color;
@@ -428,8 +427,20 @@
                     break;
             }
 
-            rat.x = newX;
-            rat.y = newY;
+            // Check for wall collisions
+            if (!checkWallCollision(newX, newY)) {
+                rat.x = newX;
+                rat.y = newY;
+            }
+        }
+
+        function checkWallCollision(x, y) {
+            return walls.some(wall => 
+                x < wall.x + wall.width &&
+                x + rat.width > wall.x &&
+                y < wall.y + wall.height &&
+                y + rat.height > wall.y
+            );
         }
     </script>
 </body>

@@ -1,36 +1,41 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9745408431725056"
+     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9745408431725056"
      crossorigin="anonymous"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Robot Boxing Match / 机器人拳击赛</title>
+    <title>Robot Toilet Game / 机器人马桶游戏</title>
     <style>
         body {
             font-family: 'Roboto', Arial, sans-serif;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-            text-align: center;
             background-color: #0f0f1f;
             color: #e0e0e0;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
         }
         .page {
-            display: none;
             background-color: #1a1a2e;
             border-radius: 10px;
             box-shadow: 0 0 20px rgba(52, 152, 219, 0.5);
             padding: 20px;
-            margin-bottom: 20px;
+            text-align: center;
+            max-width: 90%;
+            width: 100%;
         }
-        #languagePage {
-            display: block;
+        h1 {
+            color: #3498db;
+            font-size: 1.5em;
+            text-shadow: 0 0 5px rgba(52, 152, 219, 0.5);
         }
         button {
-            font-size: 18px;
             margin: 10px;
             padding: 10px 20px;
+            font-size: 16px;
             cursor: pointer;
             background-color: #2980b9;
             color: white;
@@ -40,100 +45,68 @@
         button:hover {
             background-color: #3498db;
         }
-        #gameCanvas, #cellphoneCanvas {
+        #gameCanvas {
             border: 1px solid #3498db;
-            background-color: #1a1a2e;
+            margin: 20px auto;
+            display: block;
+            max-width: 100%;
+            height: auto;
             box-shadow: 0 0 10px rgba(52, 152, 219, 0.5);
         }
-        #timer, #scores, #result, #cellphoneTimer, #cellphoneScores, #cellphoneResult {
-            font-size: 18px;
-            margin: 10px 0;
+        #game-info {
+            margin-top: 20px;
             color: #3498db;
         }
-        .control-buttons, .cellphone-control-buttons {
+        .control-buttons {
             margin-top: 20px;
         }
-        #cellphoneInterface {
+        .control-buttons button {
+            margin: 0 10px;
+        }
+        #cellphoneControls {
             display: none;
-            text-align: center;
+            margin-top: 20px;
         }
-        .punch-button {
-            width: 100px;
-            height: 100px;
-            border-radius: 50%;
-            font-size: 24px;
-            margin: 10px;
-            background-color: #2980b9;
-            color: white;
-            border: none;
-            cursor: pointer;
-            transition: background-color 0.3s, transform 0.1s;
-        }
-        .punch-button:hover {
-            background-color: #3498db;
-        }
-        .punch-button:active {
-            transform: scale(0.95);
-        }
-        h1, h2 {
-            color: #3498db;
-            text-shadow: 0 0 5px rgba(52, 152, 219, 0.5);
-        }
-        #rulesList {
-            text-align: left;
-            padding-left: 20px;
-        }
-        #rulesList li {
-            margin-bottom: 10px;
+        #cellphoneControls button {
+            font-size: 18px;
+            padding: 15px 20px;
+            width: 45%;
+            max-width: 150px;
         }
     </style>
 </head>
 <body>
-    <div id="languagePage" class="page">
-        <h1>Robot Boxing Match / 机器人拳击赛</h1>
-        <h2>Select Language / 选择语言</h2>
+    <div id="page1" class="page">
+        <h1>Robot Toilet Game / 机器人马桶游戏</h1>
+        <p>Choose your language / 选择你的语言</p>
         <button onclick="setLanguage('en')">English</button>
         <button onclick="setLanguage('zh')">中文</button>
     </div>
 
-    <div id="page2" class="page">
+    <div id="page2" class="page" style="display: none;">
         <h1 id="rulesTitle"></h1>
-        <ul id="rulesList"></ul>
-        <h2 id="deviceChoiceTitle"></h2>
-        <button id="computerButton" onclick="startGame('computer')"></button>
-        <button id="cellphoneButton" onclick="startGame('cellphone')"></button>
+        <div id="rules"></div>
+        <p id="deviceChoiceText"></p>
+        <button onclick="chooseDevice('computer')">Computer</button>
+        <button onclick="chooseDevice('cellphone')">Cellphone</button>
     </div>
 
-    <div id="page3" class="page">
+    <div id="page3" class="page" style="display: none;">
         <h1 id="gameTitle"></h1>
-        <div id="instructions"></div>
-        <div id="timer"></div>
-        <div id="scores"></div>
-        <canvas id="gameCanvas" width="400" height="300"></canvas>
-        <div id="result"></div>
-        <div class="control-buttons">
-            <button id="restartButton" onclick="restartGame()"></button>
-            <button id="backButton" onclick="backToMenu()"></button>
+        <canvas id="gameCanvas"></canvas>
+        <div id="game-info"></div>
+        <div id="cellphoneControls">
+            <button id="rollDiceButton" onclick="handleRollDice()">Roll Dice</button>
+            <button id="flushToiletButton" onclick="handleFlushToilet()">Flush Toilet</button>
         </div>
-    </div>
-
-    <div id="cellphoneInterface" class="page">
-        <h2 id="cellphoneGameTitle"></h2>
-        <p id="cellphoneInstructions"></p>
-        <canvas id="cellphoneCanvas" width="280" height="300"></canvas>
-        <div id="cellphoneTimer"></div>
-        <div id="cellphoneScores"></div>
-        <div id="cellphoneResult"></div>
-        <button id="punchA" class="punch-button">A</button>
-        <button id="punchB" class="punch-button">B</button>
-        <div class="cellphone-control-buttons">
-            <button id="cellphoneRestartButton" onclick="restartGame()"></button>
-            <button id="cellphoneBackButton" onclick="backToMenu()"></button>
+        <div class="control-buttons">
+            <button id="backButton" onclick="backToMenu()"></button>
+            <button id="restartButton" onclick="restartGame()"></button>
         </div>
     </div>
 
     <script>
-       let language = 'en';
+        let language = 'en';
         let deviceType = 'computer';
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
@@ -192,22 +165,26 @@
 
         function setLanguage(lang) {
             language = lang;
-            document.getElementById('languagePage').style.display = 'none';
+            document.getElementById('page1').style.display = 'none';
             document.getElementById('page2').style.display = 'block';
             updateRulesPage();
         }
 
         function updateRulesPage() {
             document.getElementById('rulesTitle').textContent = translations[language].title;
-            document.getElementById('rulesList').innerHTML = `<li>${translations[language].rules}</li>`;
-            document.getElementById('deviceChoiceTitle').textContent = translations[language].deviceChoice;
+            document.getElementById('rules').textContent = translations[language].rules;
+            document.getElementById('deviceChoiceText').textContent = translations[language].deviceChoice;
             
-            document.getElementById('computerButton').textContent = translations[language].computer;
-            document.getElementById('cellphoneButton').textContent = translations[language].cellphone;
+            document.querySelector('button[onclick="chooseDevice(\'computer\')"]').textContent = translations[language].computer;
+            document.querySelector('button[onclick="chooseDevice(\'cellphone\')"]').textContent = translations[language].cellphone;
         }
 
-        function startGame(device) {
+        function chooseDevice(device) {
             deviceType = device;
+            startGame();
+        }
+
+        function startGame() {
             document.getElementById('page2').style.display = 'none';
             document.getElementById('page3').style.display = 'block';
             document.getElementById('gameTitle').textContent = translations[language].title;
@@ -215,9 +192,9 @@
             document.querySelector('.control-buttons').style.display = 'none';
             
             if (deviceType === 'cellphone') {
-                document.getElementById('cellphoneInterface').style.display = 'block';
-                document.getElementById('cellphoneGameTitle').textContent = translations[language].title;
-                document.getElementById('cellphoneInstructions').textContent = translations[language].cellphoneControls;
+                document.getElementById('cellphoneControls').style.display = 'block';
+                document.getElementById('rollDiceButton').textContent = translations[language].rollDice;
+                document.getElementById('flushToiletButton').textContent = translations[language].flushToilet;
             }
             
             resizeCanvas();
@@ -330,168 +307,169 @@
             ctx.closePath();
             ctx.fill();
         }
+
         const images = createImages();
 
-function drawRobot(x, y, color, isPlunging, plunges) {
-    const scale = canvas.width / 600;
-    ctx.fillStyle = color;
-    ctx.fillRect(x * scale - 25 * scale, y * scale - 50 * scale, 50 * scale, 80 * scale);
-    ctx.fillRect(x * scale - 20 * scale, y * scale - 80 * scale, 40 * scale, 30 * scale);
-    ctx.fillStyle = 'white';
-    ctx.fillRect(x * scale - 15 * scale, y * scale - 75 * scale, 10 * scale, 10 * scale);
-    ctx.fillRect(x * scale + 5 * scale, y * scale - 75 * scale, 10 * scale, 10 * scale);
-    
-    if (isPlunging) {
-        let plungerImg = plunges === 1 ? images.plunger1 : images.plunger2;
-        ctx.drawImage(plungerImg, x * scale + (color === 'blue' ? 25 : -65) * scale, y * scale - 40 * scale, 40 * scale, 60 * scale);
-    } else {
-        ctx.drawImage(images.plunger, x * scale + (color === 'blue' ? 25 : -35) * scale, y * scale - 40 * scale, 10 * scale, 60 * scale);
-    }
-    
-    ctx.fillStyle = color;
-    ctx.fillRect(x * scale - 20 * scale, y * scale + 30 * scale, 15 * scale, 40 * scale);
-    ctx.fillRect(x * scale + 5 * scale, y * scale + 30 * scale, 15 * scale, 40 * scale);
-}
+        function drawRobot(x, y, color, isPlunging, plunges) {
+            const scale = canvas.width / 600;
+            ctx.fillStyle = color;
+            ctx.fillRect(x * scale - 25 * scale, y * scale - 50 * scale, 50 * scale, 80 * scale);
+            ctx.fillRect(x * scale - 20 * scale, y * scale - 80 * scale, 40 * scale, 30 * scale);
+            ctx.fillStyle = 'white';
+            ctx.fillRect(x * scale - 15 * scale, y * scale - 75 * scale, 10 * scale, 10 * scale);
+            ctx.fillRect(x * scale + 5 * scale, y * scale - 75 * scale, 10 * scale, 10 * scale);
+            
+            if (isPlunging) {
+                let plungerImg = plunges === 1 ? images.plunger1 : images.plunger2;
+                ctx.drawImage(plungerImg, x * scale + (color === 'blue' ? 25 : -65) * scale, y * scale - 40 * scale, 40 * scale, 60 * scale);
+            } else {
+                ctx.drawImage(images.plunger, x * scale + (color === 'blue' ? 25 : -35) * scale, y * scale - 40 * scale, 10 * scale, 60 * scale);
+            }
+            
+            ctx.fillStyle = color;
+            ctx.fillRect(x * scale - 20 * scale, y * scale + 30 * scale, 15 * scale, 40 * scale);
+            ctx.fillRect(x * scale + 5 * scale, y * scale + 30 * scale, 15 * scale, 40 * scale);
+        }
 
-function drawScene(diceRoll = null) {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    const scale = canvas.width / 600;
-    drawRobot(150, 200, 'blue', false);
-    drawRobot(450, 200, 'red', false);
-    ctx.drawImage(images.toilet, 250 * scale, 200 * scale, 100 * scale, 120 * scale);
-    
-    if (diceRoll !== null) {
-        ctx.drawImage(images[`dice${diceRoll}`], 275 * scale, 100 * scale, 50 * scale, 50 * scale);
-    }
-}
-
-function animateFlush(player, times) {
-    let count = 0;
-    function animate() {
-        if (count < times) {
+        function drawScene(diceRoll = null) {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             const scale = canvas.width / 600;
+            drawRobot(150, 200, 'blue', false);
+            drawRobot(450, 200, 'red', false);
             ctx.drawImage(images.toilet, 250 * scale, 200 * scale, 100 * scale, 120 * scale);
-            if (player === 1) {
-                drawRobot(450, 200, 'red', false);
-                drawRobot(240, 200, 'blue', true, times);
-            } else {
-                drawRobot(150, 200, 'blue', false);
-                drawRobot(360, 200, 'red', true, times);
+            
+            if (diceRoll !== null) {
+                ctx.drawImage(images[`dice${diceRoll}`], 275 * scale, 100 * scale, 50 * scale, 50 * scale);
             }
-            count++;
-            setTimeout(animate, 500);
-        } else {
-            drawScene();
         }
-    }
-    animate();
-}
 
-const rollDice = () => Math.floor(Math.random() * 3);
+        function animateFlush(player, times) {
+            let count = 0;
+            function animate() {
+                if (count < times) {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    const scale = canvas.width / 600;
+                    ctx.drawImage(images.toilet, 250 * scale, 200 * scale, 100 * scale, 120 * scale);
+                    if (player === 1) {
+                        drawRobot(450, 200, 'red', false);
+                        drawRobot(240, 200, 'blue', true, times);
+                    } else {
+                        drawRobot(150, 200, 'blue', false);
+                        drawRobot(360, 200, 'red', true, times);
+                    }
+                    count++;
+                    setTimeout(animate, 500);
+                } else {
+                    drawScene();
+                }
+            }
+            animate();
+        }
 
-const initializeGame = () => {
-    explodeNumber = Math.floor(Math.random() * (MAX_EXPLODE - MIN_EXPLODE + 1)) + MIN_EXPLODE;
-    currentPlayer = 1;
-    totalPlunges = 0;
-    remainingPlunges = 0;
-    currentRoll = 0;
-    gameOver = false;
-    hasRolled = false;
-    updateGameInfo(translations[language].rollPrompt.replace("{0}", currentPlayer));
-    drawScene();
-};
+        const rollDice = () => Math.floor(Math.random() * 3);
 
-const handleRollDice = () => {
-    if (gameOver || hasRolled || remainingPlunges > 0) return;
-    currentRoll = rollDice();
-    hasRolled = true;
-    updateGameInfo(translations[language].rollResult.replace("{0}", currentPlayer).replace("{1}", currentRoll));
-    drawScene(currentRoll);
-    
-    if (currentRoll === 0) {
-        currentPlayer = currentPlayer === 1 ? 2 : 1;
-        hasRolled = false;
-        setTimeout(() => {
+        const initializeGame = () => {
+            explodeNumber = Math.floor(Math.random() * (MAX_EXPLODE - MIN_EXPLODE + 1)) + MIN_EXPLODE;
+            currentPlayer = 1;
+            totalPlunges = 0;
+            remainingPlunges = 0;
+            currentRoll = 0;
+            gameOver = false;
+            hasRolled = false;
             updateGameInfo(translations[language].rollPrompt.replace("{0}", currentPlayer));
-        }, 1000);
-    } else {
-        remainingPlunges = currentRoll;
-        updateGameInfo(translations[language].plungePrompt.replace("{0}", currentPlayer).replace("{1}", remainingPlunges));
-    }
-};
+            drawScene();
+        };
 
-const handleFlushToilet = () => {
-    if (gameOver || remainingPlunges === 0 || !hasRolled) return;
-    totalPlunges++;
-    remainingPlunges--;
-    updateGameInfo(translations[language].plungeResult.replace("{0}", currentPlayer).replace("{1}", remainingPlunges));
-    animateFlush(currentPlayer, 1);
-    
-    if (totalPlunges >= explodeNumber) {
-        gameOver = true;
-        setTimeout(() => {
-            ctx.fillStyle = '#8B4513';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            updateGameInfo(translations[language].explosion.replace("{0}", currentPlayer));
-            showControlButtons();
-        }, 500);
-        return;
-    }
-    
-    if (remainingPlunges === 0) {
-        hasRolled = false;
-        setTimeout(() => {
-            currentPlayer = currentPlayer === 1 ? 2 : 1;
-            updateGameInfo(translations[language].nextTurn.replace("{0}", currentPlayer));
-        }, 500);
-    }
-};
+        const handleRollDice = () => {
+            if (gameOver || hasRolled || remainingPlunges > 0) return;
+            currentRoll = rollDice();
+            hasRolled = true;
+            updateGameInfo(translations[language].rollResult.replace("{0}", currentPlayer).replace("{1}", currentRoll));
+            drawScene(currentRoll);
+            
+            if (currentRoll === 0) {
+                currentPlayer = currentPlayer === 1 ? 2 : 1;
+                hasRolled = false;
+                setTimeout(() => {
+                    updateGameInfo(translations[language].rollPrompt.replace("{0}", currentPlayer));
+                }, 1000);
+            } else {
+                remainingPlunges = currentRoll;
+                updateGameInfo(translations[language].plungePrompt.replace("{0}", currentPlayer).replace("{1}", remainingPlunges));
+            }
+        };
 
-function showControlButtons() {
-    document.querySelector('.control-buttons').style.display = 'block';
-    document.getElementById('backButton').textContent = translations[language].backButton;
-    document.getElementById('restartButton').textContent = translations[language].restartButton;
-}
+        const handleFlushToilet = () => {
+            if (gameOver || remainingPlunges === 0 || !hasRolled) return;
+            totalPlunges++;
+            remainingPlunges--;
+            updateGameInfo(translations[language].plungeResult.replace("{0}", currentPlayer).replace("{1}", remainingPlunges));
+            animateFlush(currentPlayer, 1);
+            
+            if (totalPlunges >= explodeNumber) {
+                gameOver = true;
+                setTimeout(() => {
+                    ctx.fillStyle = '#8B4513';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    updateGameInfo(translations[language].explosion.replace("{0}", currentPlayer));
+                    showControlButtons();
+                }, 500);
+                return;
+            }
+            
+            if (remainingPlunges === 0) {
+                hasRolled = false;
+                setTimeout(() => {
+                    currentPlayer = currentPlayer === 1 ? 2 : 1;
+                    updateGameInfo(translations[language].nextTurn.replace("{0}", currentPlayer));
+                }, 500);
+            }
+        };
 
-function restartGame() {
-    document.querySelector('.control-buttons').style.display = 'none';
-    initializeGame();
-    drawScene();
-    updateGameInfo(translations[language].rollPrompt.replace("{0}", currentPlayer));
-}
-
-const updateGameInfo = (message) => {
-    const gameInfo = document.getElementById('game-info');
-    gameInfo.innerHTML = `<p>${message}</p>`;
-};
-
-function backToMenu() {
-    window.location.href = 'index.html';
-}
-
-if (deviceType === 'computer') {
-    document.addEventListener('keydown', (event) => {
-        if (event.key === 'q' && !hasRolled && remainingPlunges === 0 && !gameOver) {
-            handleRollDice();
+        function showControlButtons() {
+            document.querySelector('.control-buttons').style.display = 'block';
+            document.getElementById('backButton').textContent = translations[language].backButton;
+            document.getElementById('restartButton').textContent = translations[language].restartButton;
         }
-        else if (event.key === ' ' && hasRolled && remainingPlunges > 0 && !gameOver) {
-            handleFlushToilet();
+
+        function restartGame() {
+            document.querySelector('.control-buttons').style.display = 'none';
+            initializeGame();
+            drawScene();
+            updateGameInfo(translations[language].rollPrompt.replace("{0}", currentPlayer));
         }
-    });
-}
 
-window.addEventListener('resize', () => {
-    resizeCanvas();
-    drawScene(currentRoll);
-});
+        const updateGameInfo = (message) => {
+            const gameInfo = document.getElementById('game-info');
+            gameInfo.innerHTML = `<p>${message}</p>`;
+        };
 
-// Initialize the game when the page loads
-window.onload = function() {
-    canvas.width = 600;
-    canvas.height = 400;
-    resizeCanvas();
-};
+        function backToMenu() {
+            window.location.href = 'index.html';
+        }
+
+        if (deviceType === 'computer') {
+            document.addEventListener('keydown', (event) => {
+                if (event.key === 'q' && !hasRolled && remainingPlunges === 0 && !gameOver) {
+                    handleRollDice();
+                }
+                else if (event.key === ' ' && hasRolled && remainingPlunges > 0 && !gameOver) {
+                    handleFlushToilet();
+                }
+            });
+        }
+
+        window.addEventListener('resize', () => {
+            resizeCanvas();
+            drawScene(currentRoll);
+        });
+
+        // Initialize the game when the page loads
+        window.onload = function() {
+            canvas.width = 600;
+            canvas.height = 400;
+            resizeCanvas();
+        };
     </script>
 </body>
 </html>

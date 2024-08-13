@@ -305,7 +305,7 @@
                 const distance = Math.sqrt(dx * dx + dy * dy);
                 
                 if (distance < 20) {
-                    return true; // Collision with robot body
+                    return true; 
                 }
                 
                 if (guard.hasLight) {
@@ -419,11 +419,11 @@
 
         function drawRobot(x, y, color) {
             ctx.fillStyle = color;
-            ctx.fillRect(x - 15, y - 30, 30, 50); // Smaller robot body
-            ctx.fillRect(x - 12, y - 40, 24, 10); // Smaller robot head
+            ctx.fillRect(x - 15, y - 30, 30, 50);
+            ctx.fillRect(x - 12, y - 40, 24, 10); 
             ctx.fillStyle = 'white';
-            ctx.fillRect(x - 9, y - 38, 6, 6); // Left eye
-            ctx.fillRect(x + 3, y - 38, 6, 6); // Right eye
+            ctx.fillRect(x - 9, y - 38, 6, 6); 
+            ctx.fillRect(x + 3, y - 38, 6, 6); 
         }
 
         function updateTimer() {

@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>碰碰車遊戲 / Bumper Car Game</title>
+    <style>
+        body {
+            font-family: 'Roboto', Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            text-align: center;
+            background-color: #0f0f1f;
+            color: #e0e0e0;
+        }
+        #gameCanvas {
+            border: 1px solid #3498db;
+            background-color: #1a1a2e;
+            box-shadow: 0 0 10px rgba(52, 152, 219, 0.5);
+        }
+        h1 {
+            color: #3498db;
+            text-shadow: 0 0 5px rgba(52, 152, 219, 0.5);
+        }
+        p {
+            font-size: 18px;
+            margin: 10px 0;
+            color: #3498db;
+        }
+        #gameInfo {
+            background-color: #1a1a2e;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(52, 152, 219, 0.5);
+            padding: 20px;
+            margin-top: 20px;
+        }
+        .page {
+            display: none;
+            background-color: #1a1a2e;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(52, 152, 219, 0.5);
+            padding: 20px;
+            margin-top: 20px;
+        }
+        #languagePage {
+            display: block;
+        }
+        button {
+            font-size: 18px;
+            margin: 10px;
+            padding: 10px 20px;
+            cursor: pointer;
+            background-color: #2980b9;
+            color: white;
+            border: none;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #3498db;
+        }
+        #rulesList {
+            text-align: left;
+            padding-left: 20px;
+        }
+        #rulesList li {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div id="languagePage" class="page">
+        <h1>選擇語言 / Select Language</h1>
+        <button onclick="setLanguage('zh')">中文</button>
+        <button onclick="setLanguage('en')">English</button>
+    </div>
+
+    <div id="rulesPage" class="page">
+        <h1 id="rulesTitle"></h1>
+        <ul id="rulesList"></ul>
+        <button id="startButton" onclick="startGame()"></button>
+    </div>
+
+    <div id="gamePage" class="page">
+        <h1 id="gameTitle"></h1>
+        <canvas id="gameCanvas" width="800" height="600"></canvas>
+        <div id="gameInfo">
+            <p id="controls"></p>
+            <p id="timerText"></p>
+            <p id="scoresText"></p>
+        </div>
+    </div>
+
+    <script>
+        let language = 'zh';
+        const translations = {
+            zh: {
+                rulesTitle: "碰碰車遊戲規則",
+                rules: [
+                    "遊戲時間為60秒。",
+                    "玩家1使用WASD鍵控制，玩家2使用方向鍵控制。",
+                    "撞擊對手或使對手撞牆可得分。",
+                    "時間結束時，得分最高的玩家獲勝。"
+                ],
+                startButton: "開始遊戲",
+                gameTitle: "碰碰車遊戲",
+                controls: "玩家1: 使用 WASD 鍵控制 | 玩家2: 使用方向鍵控制",
+                timerText: "遊戲時間: {0} 秒",
+                scoresText: "玩家1 得分: {0} | 玩家2 得分: {1}",
+                gameOver: "遊戲結束！",
+                player1Wins: "玩家1獲勝！",
+                player2Wins: "玩家2獲勝！",
+                tie: "平手！"
+            },
+            en: {
+                rulesTitle: "Bumper Car Game Rules",
+                rules: [
+                    "The game lasts for 60 seconds.",
+                    "Player 1 uses WASD keys to control, Player 2 uses arrow keys.",
+                    "Score points by hitting your opponent or making them hit the wall.",
+                    "The player with the highest score at the end wins."
+                ],
+                startButton: "Start Game",
+                gameTitle: "Bumper Car Game",
+                controls: "Player 1: Use WASD keys | Player 2: Use arrow keys",
+                timerText: "Game Time: {0} seconds",
+                scoresText: "Player 1 Score: {0} | Player 2 Score: {1}",
+                gameOver: "Game Over!",
+                player1Wins: "Player 1 Wins!",
+                player2Wins: "Player 2 Wins!",
+                tie: "It's a Tie!"
+            }
+        };
+
+        function setLanguage(lang) {
+            language = lang;
+            document.getElementById('languagePage').style.display = 'none';
+            document.getElementById('rulesPage').style.display = 'block';
+            updateRulesPage();
+        }
+
+        function updateRulesPage() {
+            document.getElementById('rulesTitle').textContent = translations[language].rulesTitle;
+            const rulesList = document.getElementById('rulesList');
+            rulesList.innerHTML = '';
+            translations[language].rules.forEach(rule => {
+                const li = document.createElement('li');
+                li.textContent = rule;
+                rulesList.appendChild(li);
+            });
+            document.getElementById('startButton').textContent = translations[language].startButton;
+        }
+
+        function startGame() {
+            document.getElementById('rulesPage').style.display = 'none';
+            document.getElementById('gamePage').style.display = 'block';
+            document.getElementById('gameTitle').textContent = translations[language].gameTitle;
+            document.getElementById('controls').textContent = translations[language].controls;
+            initializeGame();
+        }
+
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const timerElement = document.getElementById('timerText');
+        const scoresElement = document.getElementById('scoresText');
+
+        class Car {
+            constructor(x, y, color) {
+                this.x = x;
+                this.y = y;
+                this.startX = x;
+                this.startY = y;
+                this.color = color;
+                this.speed = 0;
+                this.angle = 0;
+                this.width = 40;
+                this.height = 60;
+                this.score = 0;
+                this.moveForward = false;
+                this.moveBackward = false;
+                this.rotateLeft = false;
+                this.rotateRight = false;
+            }
+
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate(this.angle);
+                ctx.fillStyle = this.color;
+                ctx.fillRect(-this.width / 2, -this.height / 2, this.width, this.height);
+                
+                // Draw spike
+                ctx.beginPath();
+                ctx.moveTo(0, -this.height / 2);
+                ctx.lineTo(-10, -this.height / 2 - 20);
+                ctx.lineTo(10, -this.height / 2 - 20);
+                ctx.closePath();
+                ctx.fillStyle = 'yellow';
+                ctx.fill();
+                
+                ctx.restore();
+            }
+
+            move() {
+                if (this.moveForward) this.speed = 5;
+                else if (this.moveBackward) this.speed = -5;
+                else this.speed = 0;
+
+                if (this.rotateLeft) this.angle -= 0.05;
+                if (this.rotateRight) this.angle += 0.05;
+
+                this.x += Math.sin(this.angle) * this.speed;
+                this.y -= Math.cos(this.angle) * this.speed;
+                
+                // Wall collision check
+                if (this.x < 20 || this.x > canvas.width - 20 || 
+                    this.y < 20 || this.y > canvas.height - 20) {
+                    return true; // Collision with wall
+                }
+                return false;
+            }
+
+            reset() {
+                this.x = this.startX;
+                this.y = this.startY;
+                this.angle = 0;
+                this.speed = 0;
+                this.moveForward = false;
+                this.moveBackward = false;
+                this.rotateLeft = false;
+                this.rotateRight = false;
+            }
+
+            getSpikePoint() {
+                return {
+                    x: this.x + Math.sin(this.angle) * (this.height / 2 + 20),
+                    y: this.y - Math.cos(this.angle) * (this.height / 2 + 20)
+                };
+            }
+        }
+
+        let car1, car2, gameTime, gameInterval;
+
+        function initializeGame() {
+            car1 = new Car(200, 300, 'red');
+            car2 = new Car(600, 300, 'blue');
+            gameTime = 60;
+            updateScores();
+            updateTimer();
+            resetRound();
+            gameInterval = setInterval(updateTimer, 1000);
+            document.addEventListener('keydown', handleKeyDown);
+            document.addEventListener('keyup', handleKeyUp);
+            gameLoop();
+        }
+
+        function checkCollision(car1, car2) {
+            const spikePoint = car1.getSpikePoint();
+            const dx = spikePoint.x - car2.x;
+            const dy = spikePoint.y - car2.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            
+            if (distance < car2.width / 2) {
+                car1.score++;
+                updateScores();
+                resetRound();
+                return true;
+            }
+            
+            // Check for body collision
+            const carDx = car1.x - car2.x;
+            const carDy = car1.y - car2.y;
+            const carDistance = Math.sqrt(carDx * carDx + carDy * carDy);
+            
+            if (carDistance < (car1.width + car2.width) / 2) {
+                const collisionAngle = Math.atan2(carDy, carDx);
+                car1.x = car2.x + Math.cos(collisionAngle) * (car1.width + car2.width) / 2;
+                car1.y = car2.y + Math.sin(collisionAngle) * (car1.width + car2.width) / 2;
+                
+                const tempSpeed = car1.speed;
+                car1.speed = car2.speed;
+                car2.speed = tempSpeed;
+            }
+            return false;
+        }
+
+        function drawWallSpikes() {
+            ctx.fillStyle = 'gray';
+            for (let i = 0; i < canvas.width; i += 20) {
+                ctx.beginPath();
+                ctx.moveTo(i, 0);
+                ctx.lineTo(i + 10, 20);
+                ctx.lineTo(i + 20, 0);
+                ctx.fill();
+                
+                ctx.beginPath();
+                ctx.moveTo(i, canvas.height);
+                ctx.lineTo(i + 10, canvas.height - 20);
+                ctx.lineTo(i + 20, canvas.height);
+                ctx.fill();
+            }
+            for (let i = 0; i < canvas.height; i += 20) {
+                ctx.beginPath();
+                ctx.moveTo(0, i);
+                ctx.lineTo(20, i + 10);
+                ctx.lineTo(0, i + 20);
+                ctx.fill();
+                
+                ctx.beginPath();
+                ctx.moveTo(canvas.width, i);
+                ctx.lineTo(canvas.width - 20, i + 10);
+                ctx.lineTo(canvas.width, i + 20);
+                ctx.fill();
+            }
+        }
+
+        function gameLoop() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawWallSpikes();
+            
+            if (car1.move()) {
+                car2.score++;
+                updateScores();
+                resetRound();
+            }
+            if (car2.move()) {
+                car1.score++;
+                updateScores();
+                resetRound();
+            }
+            
+            checkCollision(car1, car2);
+            checkCollision(car2, car1);
+            
+            car1.draw();
+            car2.draw();
+            requestAnimationFrame(gameLoop);
+        }
+
+        function updateScores() {
+            scoresElement.textContent = translations[language].scoresText.replace('{0}', car1.score).replace('{1}', car2.score);
+        }
+
+        function resetRound() {
+            car1.reset();
+            car2.reset();
+        }
+
+        function updateTimer() {
+            gameTime--;
+            timerElement.textContent = translations[language].timerText.replace('{0}', gameTime);
+            if (gameTime <= 0) {
+                endGame();
+            }
+        }
+
+        function endGame() {
+            clearInterval(gameInterval);
+            let resultMessage = translations[language].gameOver + " ";
+            if (car1.score > car2.score) {
+                resultMessage += translations[language].player1Wins;
+            } else if (car2.score > car1.score) {
+                resultMessage += translations[language].player2Wins;
+            } else {
+                resultMessage += translations[language].tie;
+            }
+            alert(resultMessage);
+        }
+
+        function handleKeyDown(e) {
+            switch(e.key) {
+                case 'a': car1.rotateLeft = true; break;
+                case 'd': car1.rotateRight = true; break;
+                case 'w': car1.moveForward = true; break;
+                case 's': car1.moveBackward = true; break;
+                case 'ArrowLeft': car2.rotateLeft = true; break;
+                case 'ArrowRight': car2.rotateRight = true; break;
+                case 'ArrowUp': car2.moveForward = true; break;
+                case 'ArrowDown': car2.moveBackward = true; break;
+            }
+        }
+
+        function handleKeyUp(e) {
+            switch(e.key) {
+                case 'a': car1.rotateLeft = false; break;
+                case 'd': car1.rotateRight = false; break;
+                case 'w': car1.moveForward = false; break;
+                case 's': car1.moveBackward = false; break;
+                case 'ArrowLeft': car2.rotateLeft = false; break;
+                case 'ArrowRight': car2.rotateRight = false; break;
+                case 'ArrowUp': car2.moveForward = false; break;
+                case 'ArrowDown': car2.moveBackward = false; break;
+            }
+        }
+    </script>
+</body>
+</html>

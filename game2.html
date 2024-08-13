@@ -5,7 +5,7 @@
      crossorigin="anonymous"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Robot Toilet Game / 机器人马桶游戏</title>
+    <title>Robot Boxing Match / 机器人拳击赛</title>
     <style>
         body {
             font-family: 'Roboto', Arial, sans-serif;
@@ -218,10 +218,6 @@
                 document.getElementById('cellphoneInterface').style.display = 'block';
                 document.getElementById('cellphoneGameTitle').textContent = translations[language].title;
                 document.getElementById('cellphoneInstructions').textContent = translations[language].cellphoneControls;
-                document.getElementById('punchA').textContent = translations[language].rollDice;
-                document.getElementById('punchB').textContent = translations[language].flushToilet;
-            } else {
-                document.getElementById('instructions').textContent = translations[language].computerControls;
             }
             
             resizeCanvas();
@@ -334,169 +330,168 @@
             ctx.closePath();
             ctx.fill();
         }
-
         const images = createImages();
 
-        function drawRobot(x, y, color, isPlunging, plunges) {
-            const scale = canvas.width / 600;
-            ctx.fillStyle = color;
-            ctx.fillRect(x * scale - 25 * scale, y * scale - 50 * scale, 50 * scale, 80 * scale);
-            ctx.fillRect(x * scale - 20 * scale, y * scale - 80 * scale, 40 * scale, 30 * scale);
-            ctx.fillStyle = 'white';
-            ctx.fillRect(x * scale - 15 * scale, y * scale - 75 * scale, 10 * scale, 10 * scale);
-            ctx.fillRect(x * scale + 5 * scale, y * scale -75 * scale, 10 * scale, 10 * scale);
-            
-            if (isPlunging) {
-                let plungerImg = plunges === 1 ? images.plunger1 : images.plunger2;
-                ctx.drawImage(plungerImg, x * scale + (color === 'blue' ? 25 : -65) * scale, y * scale - 40 * scale, 40 * scale, 60 * scale);
-            } else {
-                ctx.drawImage(images.plunger, x * scale + (color === 'blue' ? 25 : -35) * scale, y * scale - 40 * scale, 10 * scale, 60 * scale);
-            }
-            
-            ctx.fillStyle = color;
-            ctx.fillRect(x * scale - 20 * scale, y * scale + 30 * scale, 15 * scale, 40 * scale);
-            ctx.fillRect(x * scale + 5 * scale, y * scale + 30 * scale, 15 * scale, 40 * scale);
-        }
+function drawRobot(x, y, color, isPlunging, plunges) {
+    const scale = canvas.width / 600;
+    ctx.fillStyle = color;
+    ctx.fillRect(x * scale - 25 * scale, y * scale - 50 * scale, 50 * scale, 80 * scale);
+    ctx.fillRect(x * scale - 20 * scale, y * scale - 80 * scale, 40 * scale, 30 * scale);
+    ctx.fillStyle = 'white';
+    ctx.fillRect(x * scale - 15 * scale, y * scale - 75 * scale, 10 * scale, 10 * scale);
+    ctx.fillRect(x * scale + 5 * scale, y * scale - 75 * scale, 10 * scale, 10 * scale);
+    
+    if (isPlunging) {
+        let plungerImg = plunges === 1 ? images.plunger1 : images.plunger2;
+        ctx.drawImage(plungerImg, x * scale + (color === 'blue' ? 25 : -65) * scale, y * scale - 40 * scale, 40 * scale, 60 * scale);
+    } else {
+        ctx.drawImage(images.plunger, x * scale + (color === 'blue' ? 25 : -35) * scale, y * scale - 40 * scale, 10 * scale, 60 * scale);
+    }
+    
+    ctx.fillStyle = color;
+    ctx.fillRect(x * scale - 20 * scale, y * scale + 30 * scale, 15 * scale, 40 * scale);
+    ctx.fillRect(x * scale + 5 * scale, y * scale + 30 * scale, 15 * scale, 40 * scale);
+}
 
-        function drawScene(diceRoll = null) {
+function drawScene(diceRoll = null) {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const scale = canvas.width / 600;
+    drawRobot(150, 200, 'blue', false);
+    drawRobot(450, 200, 'red', false);
+    ctx.drawImage(images.toilet, 250 * scale, 200 * scale, 100 * scale, 120 * scale);
+    
+    if (diceRoll !== null) {
+        ctx.drawImage(images[`dice${diceRoll}`], 275 * scale, 100 * scale, 50 * scale, 50 * scale);
+    }
+}
+
+function animateFlush(player, times) {
+    let count = 0;
+    function animate() {
+        if (count < times) {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             const scale = canvas.width / 600;
-            drawRobot(150, 200, 'blue', false);
-            drawRobot(450, 200, 'red', false);
             ctx.drawImage(images.toilet, 250 * scale, 200 * scale, 100 * scale, 120 * scale);
-            
-            if (diceRoll !== null) {
-                ctx.drawImage(images[`dice${diceRoll}`], 275 * scale, 100 * scale, 50 * scale, 50 * scale);
-            }
-        }
-
-        function animateFlush(player, times) {
-            let count = 0;
-            function animate() {
-                if (count < times) {
-                    ctx.clearRect(0, 0, canvas.width, canvas.height);
-                    const scale = canvas.width / 600;
-                    ctx.drawImage(images.toilet, 250 * scale, 200 * scale, 100 * scale, 120 * scale);
-                    if (player === 1) {
-                        drawRobot(450, 200, 'red', false);
-                        drawRobot(240, 200, 'blue', true, times);
-                    } else {
-                        drawRobot(150, 200, 'blue', false);
-                        drawRobot(360, 200, 'red', true, times);
-                    }
-                    count++;
-                    setTimeout(animate, 500);
-                } else {
-                    drawScene();
-                }
-            }
-            animate();
-        }
-
-        const rollDice = () => Math.floor(Math.random() * 3);
-
-        const initializeGame = () => {
-            explodeNumber = Math.floor(Math.random() * (MAX_EXPLODE - MIN_EXPLODE + 1)) + MIN_EXPLODE;
-            currentPlayer = 1;
-            totalPlunges = 0;
-            remainingPlunges = 0;
-            currentRoll = 0;
-            gameOver = false;
-            hasRolled = false;
-            updateGameInfo(translations[language].rollPrompt.replace("{0}", currentPlayer));
-            drawScene();
-        };
-
-        const handleRollDice = () => {
-            if (gameOver || hasRolled || remainingPlunges > 0) return;
-            currentRoll = rollDice();
-            hasRolled = true;
-            updateGameInfo(translations[language].rollResult.replace("{0}", currentPlayer).replace("{1}", currentRoll));
-            drawScene(currentRoll);
-            
-            if (currentRoll === 0) {
-                currentPlayer = currentPlayer === 1 ? 2 : 1;
-                hasRolled = false;
-                setTimeout(() => {
-                    updateGameInfo(translations[language].rollPrompt.replace("{0}", currentPlayer));
-                }, 1000);
+            if (player === 1) {
+                drawRobot(450, 200, 'red', false);
+                drawRobot(240, 200, 'blue', true, times);
             } else {
-                remainingPlunges = currentRoll;
-                updateGameInfo(translations[language].plungePrompt.replace("{0}", currentPlayer).replace("{1}", remainingPlunges));
+                drawRobot(150, 200, 'blue', false);
+                drawRobot(360, 200, 'red', true, times);
             }
-        };
-
-        const handleFlushToilet = () => {
-            if (gameOver || remainingPlunges === 0 || !hasRolled) return;
-            totalPlunges++;
-            remainingPlunges--;
-            updateGameInfo(translations[language].plungeResult.replace("{0}", currentPlayer).replace("{1}", remainingPlunges));
-            animateFlush(currentPlayer, 1);
-            
-            if (totalPlunges >= explodeNumber) {
-                gameOver = true;
-                setTimeout(() => {
-                    ctx.fillStyle = '#8B4513';
-                    ctx.fillRect(0, 0, canvas.width, canvas.height);
-                    updateGameInfo(translations[language].explosion.replace("{0}", currentPlayer));
-                    showControlButtons();
-                }, 500);
-                return;
-            }
-            
-            if (remainingPlunges === 0) {
-                hasRolled = false;
-                setTimeout(() => {
-                    currentPlayer = currentPlayer === 1 ? 2 : 1;
-                    updateGameInfo(translations[language].nextTurn.replace("{0}", currentPlayer));
-                }, 500);
-            }
-        };
-
-        function showControlButtons() {
-            document.querySelector('.control-buttons').style.display = 'block';
-            document.getElementById('backButton').textContent = translations[language].backButton;
-            document.getElementById('restartButton').textContent = translations[language].restartButton;
-        }
-
-        function restartGame() {
-            document.querySelector('.control-buttons').style.display = 'none';
-            initializeGame();
+            count++;
+            setTimeout(animate, 500);
+        } else {
             drawScene();
+        }
+    }
+    animate();
+}
+
+const rollDice = () => Math.floor(Math.random() * 3);
+
+const initializeGame = () => {
+    explodeNumber = Math.floor(Math.random() * (MAX_EXPLODE - MIN_EXPLODE + 1)) + MIN_EXPLODE;
+    currentPlayer = 1;
+    totalPlunges = 0;
+    remainingPlunges = 0;
+    currentRoll = 0;
+    gameOver = false;
+    hasRolled = false;
+    updateGameInfo(translations[language].rollPrompt.replace("{0}", currentPlayer));
+    drawScene();
+};
+
+const handleRollDice = () => {
+    if (gameOver || hasRolled || remainingPlunges > 0) return;
+    currentRoll = rollDice();
+    hasRolled = true;
+    updateGameInfo(translations[language].rollResult.replace("{0}", currentPlayer).replace("{1}", currentRoll));
+    drawScene(currentRoll);
+    
+    if (currentRoll === 0) {
+        currentPlayer = currentPlayer === 1 ? 2 : 1;
+        hasRolled = false;
+        setTimeout(() => {
             updateGameInfo(translations[language].rollPrompt.replace("{0}", currentPlayer));
+        }, 1000);
+    } else {
+        remainingPlunges = currentRoll;
+        updateGameInfo(translations[language].plungePrompt.replace("{0}", currentPlayer).replace("{1}", remainingPlunges));
+    }
+};
+
+const handleFlushToilet = () => {
+    if (gameOver || remainingPlunges === 0 || !hasRolled) return;
+    totalPlunges++;
+    remainingPlunges--;
+    updateGameInfo(translations[language].plungeResult.replace("{0}", currentPlayer).replace("{1}", remainingPlunges));
+    animateFlush(currentPlayer, 1);
+    
+    if (totalPlunges >= explodeNumber) {
+        gameOver = true;
+        setTimeout(() => {
+            ctx.fillStyle = '#8B4513';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            updateGameInfo(translations[language].explosion.replace("{0}", currentPlayer));
+            showControlButtons();
+        }, 500);
+        return;
+    }
+    
+    if (remainingPlunges === 0) {
+        hasRolled = false;
+        setTimeout(() => {
+            currentPlayer = currentPlayer === 1 ? 2 : 1;
+            updateGameInfo(translations[language].nextTurn.replace("{0}", currentPlayer));
+        }, 500);
+    }
+};
+
+function showControlButtons() {
+    document.querySelector('.control-buttons').style.display = 'block';
+    document.getElementById('backButton').textContent = translations[language].backButton;
+    document.getElementById('restartButton').textContent = translations[language].restartButton;
+}
+
+function restartGame() {
+    document.querySelector('.control-buttons').style.display = 'none';
+    initializeGame();
+    drawScene();
+    updateGameInfo(translations[language].rollPrompt.replace("{0}", currentPlayer));
+}
+
+const updateGameInfo = (message) => {
+    const gameInfo = document.getElementById('game-info');
+    gameInfo.innerHTML = `<p>${message}</p>`;
+};
+
+function backToMenu() {
+    window.location.href = 'index.html';
+}
+
+if (deviceType === 'computer') {
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'q' && !hasRolled && remainingPlunges === 0 && !gameOver) {
+            handleRollDice();
         }
-
-        const updateGameInfo = (message) => {
-            const gameInfo = document.getElementById('game-info');
-            gameInfo.innerHTML = `<p>${message}</p>`;
-        };
-
-        function backToMenu() {
-            window.location.href = 'index.html';
+        else if (event.key === ' ' && hasRolled && remainingPlunges > 0 && !gameOver) {
+            handleFlushToilet();
         }
+    });
+}
 
-        if (deviceType === 'computer') {
-            document.addEventListener('keydown', (event) => {
-                if (event.key === 'q' && !hasRolled && remainingPlunges === 0 && !gameOver) {
-                    handleRollDice();
-                }
-                else if (event.key === ' ' && hasRolled && remainingPlunges > 0 && !gameOver) {
-                    handleFlushToilet();
-                }
-            });
-        }
+window.addEventListener('resize', () => {
+    resizeCanvas();
+    drawScene(currentRoll);
+});
 
-        window.addEventListener('resize', () => {
-            resizeCanvas();
-            drawScene(currentRoll);
-        });
-
-        // Initialize the game when the page loads
-        window.onload = function() {
-            canvas.width = 600;
-            canvas.height = 400;
-            resizeCanvas();
-        };
+// Initialize the game when the page loads
+window.onload = function() {
+    canvas.width = 600;
+    canvas.height = 400;
+    resizeCanvas();
+};
     </script>
 </body>
 </html>

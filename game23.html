@@ -66,6 +66,10 @@
         #rulesList li {
             margin-bottom: 10px;
         }
+        #endGameButtons {
+            display: none;
+            margin-top: 20px;
+        }
     </style>
 </head>
 <body>
@@ -82,56 +86,64 @@
     </div>
 
     <div id="gamePage" class="page">
-        
         <canvas id="gameCanvas" width="800" height="600"></canvas>
         <div id="gameInfo">
             <p id="controls"></p>
             <p id="timerText"></p>
             <p id="scoresText"></p>
         </div>
+        <div id="endGameButtons">
+            <button id="backToMenuButton" onclick="backToMenu()"></button>
+            <button id="restartButton" onclick="restartGame()"></button>
+        </div>
     </div>
 
     <script>
         let language = 'zh';
         const translations = {
-           zh: {
-rulesTitle: "碰碰​​车游戏规则",
-rules: [
-"游戏时间为 60 秒。",
-"玩家 1 使用 WASD 键控制，玩家 2 使用箭头键控制。",
-"用车头撞到对手可得分。",
-"撞到墙壁對手可得分。"
-"时间结束时，得分最高的玩家获胜。""
-],
-startButton: "开始游戏",
-gameTitle: "碰碰​​车游戏",
-controls: "玩家 1：使用 WASD 键控制 | 玩家 2：使用箭头键控制",
-timerText: "游戏时间：{0} 秒",
-scoresText: "玩家 1 得分：{0} | 玩家 2 得分：{1}",
-gameOver: "游戏结束！",
-player1Wins: "玩家 1 获胜！",
-player2Wins: "玩家 2 获胜！",
-tie: "平局！"
-}，
-        en:{
- rulesTitle: "Bumper Car Game Rules",
- rules: [
- "Game time is 60 seconds.",
- "Player 1 uses the WASD keys to control, and player 2 uses the arrow keys to control.",
- "Bumping the front of your car into an opponent scores points.",
- "Hit the wall and the opponent scores points"
- "At the end of time, the player with the highest score wins.This game cannot be played on mobile devices."
- ],
- startButton: "Start game",
- gameTitle: "Bumper Car Game",
- controls: "Player 1: Use WASD keys to control | Player 2: Use arrow keys to control",
- timerText: "Game time: {0} seconds",
- scoresText: "Player 1 score: {0} | Player 2 score: {1}",
- gameOver: "Game Over!",
- player1Wins: "Player 1 wins!",
- player2Wins: "Player 2 wins!",
- tie: "Tie!"
- },
+            zh: {
+                rulesTitle: "碰碰​​车游戏规则",
+                rules: [
+                    "游戏时间为 60 秒。",
+                    "玩家 1 使用 WASD 键控制，玩家 2 使用箭头键控制。",
+                    "用车头撞到对手可得分。",
+                    "撞到墙壁對手得分。",
+                    "时间结束时，得分最高的玩家获胜。"
+                ],
+                startButton: "开始游戏",
+                gameTitle: "碰碰​​车游戏",
+                controls: "玩家 1：使用 WASD 键控制 | 玩家 2：使用箭头键控制",
+                timerText: "游戏时间：{0} 秒",
+                scoresText: "玩家 1 得分：{0} | 玩家 2 得分：{1}",
+                gameOver: "游戏结束！",
+                player1Wins: "玩家 1 获胜！",
+                player2Wins: "玩家 2 获胜！",
+                tie: "平局！",
+                backToMenu: "返回菜单",
+                restart: "重新开始"
+            },
+            en: {
+                rulesTitle: "Bumper Car Game Rules",
+                rules: [
+                    "Game time is 60 seconds.",
+                    "Player 1 uses the WASD keys to control, and player 2 uses the arrow keys to control.",
+                    "Bumping the front of your car into an opponent scores points.",
+                    "Hit the wall and the opponent scores points.",
+                    "At the end of time, the player with the highest score wins."
+                ],
+                startButton: "Start game",
+                gameTitle: "Bumper Car Game",
+                controls: "Player 1: Use WASD keys to control | Player 2: Use arrow keys to control",
+                timerText: "Game time: {0} seconds",
+                scoresText: "Player 1 score: {0} | Player 2 score: {1}",
+                gameOver: "Game Over!",
+                player1Wins: "Player 1 wins!",
+                player2Wins: "Player 2 wins!",
+                tie: "Tie!",
+                backToMenu: "Back to Menu",
+                restart: "Restart"
+            }
+        };
 
         function setLanguage(lang) {
             language = lang;
@@ -150,12 +162,13 @@ tie: "平局！"
                 rulesList.appendChild(li);
             });
             document.getElementById('startButton').textContent = translations[language].startButton;
+            document.getElementById('backToMenuButton').textContent = translations[language].backToMenu;
+            document.getElementById('restartButton').textContent = translations[language].restart;
         }
 
         function startGame() {
             document.getElementById('rulesPage').style.display = 'none';
             document.getElementById('gamePage').style.display = 'block';
-            document.getElementById('gameTitle').textContent = translations[language].gameTitle;
             document.getElementById('controls').textContent = translations[language].controls;
             initializeGame();
         }
@@ -252,6 +265,7 @@ tie: "平局！"
             gameInterval = setInterval(updateTimer, 1000);
             document.addEventListener('keydown', handleKeyDown);
             document.addEventListener('keyup', handleKeyUp);
+            document.getElementById('endGameButtons').style.display = 'none';
             gameLoop();
         }
 
@@ -357,6 +371,8 @@ tie: "平局！"
 
         function endGame() {
             clearInterval(gameInterval);
+            document.removeEventListener('keydown', handleKeyDown);
+            document.removeEventListener('keyup', handleKeyUp);
             let resultMessage = translations[language].gameOver + " ";
             if (car1.score > car2.score) {
                 resultMessage += translations[language].player1Wins;
@@ -366,6 +382,7 @@ tie: "平局！"
                 resultMessage += translations[language].tie;
             }
             alert(resultMessage);
+            document.getElementById('endGameButtons').style.display = 'block';
         }
 
         function handleKeyDown(e) {
@@ -392,6 +409,15 @@ tie: "平局！"
                 case 'ArrowUp': car2.moveForward = false; break;
                 case 'ArrowDown': car2.moveBackward = false; break;
             }
+        }
+
+      function backToMenu() {
+            window.location.href = 'index.html';
+        }
+
+        function restartGame() {
+            document.getElementById('endGameButtons').style.display = 'none';
+            initializeGame();
         }
     </script>
 </body>

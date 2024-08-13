@@ -1,41 +1,36 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9745408431725056"
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9745408431725056"
      crossorigin="anonymous"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Robot Toilet Game / 机器人马桶游戏</title>
+    <title>Robot Boxing Match / 机器人拳击赛</title>
     <style>
         body {
             font-family: 'Roboto', Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            text-align: center;
             background-color: #0f0f1f;
             color: #e0e0e0;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
         }
         .page {
+            display: none;
             background-color: #1a1a2e;
             border-radius: 10px;
             box-shadow: 0 0 20px rgba(52, 152, 219, 0.5);
             padding: 20px;
-            text-align: center;
-            max-width: 90%;
-            width: 100%;
+            margin-bottom: 20px;
         }
-        h1 {
-            color: #3498db;
-            font-size: 1.5em;
-            text-shadow: 0 0 5px rgba(52, 152, 219, 0.5);
+        #languagePage {
+            display: block;
         }
         button {
+            font-size: 18px;
             margin: 10px;
             padding: 10px 20px;
-            font-size: 16px;
             cursor: pointer;
             background-color: #2980b9;
             color: white;
@@ -45,68 +40,100 @@
         button:hover {
             background-color: #3498db;
         }
-        #gameCanvas {
+        #gameCanvas, #cellphoneCanvas {
             border: 1px solid #3498db;
-            margin: 20px auto;
-            display: block;
-            max-width: 100%;
-            height: auto;
+            background-color: #1a1a2e;
             box-shadow: 0 0 10px rgba(52, 152, 219, 0.5);
         }
-        #game-info {
-            margin-top: 20px;
+        #timer, #scores, #result, #cellphoneTimer, #cellphoneScores, #cellphoneResult {
+            font-size: 18px;
+            margin: 10px 0;
             color: #3498db;
         }
-        .control-buttons {
+        .control-buttons, .cellphone-control-buttons {
             margin-top: 20px;
         }
-        .control-buttons button {
-            margin: 0 10px;
-        }
-        #cellphoneControls {
+        #cellphoneInterface {
             display: none;
-            margin-top: 20px;
+            text-align: center;
         }
-        #cellphoneControls button {
-            font-size: 18px;
-            padding: 15px 20px;
-            width: 45%;
-            max-width: 150px;
+        .punch-button {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            font-size: 24px;
+            margin: 10px;
+            background-color: #2980b9;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.1s;
+        }
+        .punch-button:hover {
+            background-color: #3498db;
+        }
+        .punch-button:active {
+            transform: scale(0.95);
+        }
+        h1, h2 {
+            color: #3498db;
+            text-shadow: 0 0 5px rgba(52, 152, 219, 0.5);
+        }
+        #rulesList {
+            text-align: left;
+            padding-left: 20px;
+        }
+        #rulesList li {
+            margin-bottom: 10px;
         }
     </style>
 </head>
 <body>
-    <div id="page1" class="page">
-        <h1>Robot Toilet Game / 机器人马桶游戏</h1>
-        <p>Choose your language / 选择你的语言</p>
+    <div id="languagePage" class="page">
+        <h1>Robot Boxing Match / 机器人拳击赛</h1>
+        <h2>Select Language / 选择语言</h2>
         <button onclick="setLanguage('en')">English</button>
         <button onclick="setLanguage('zh')">中文</button>
     </div>
 
-    <div id="page2" class="page" style="display: none;">
+    <div id="page2" class="page">
         <h1 id="rulesTitle"></h1>
-        <div id="rules"></div>
-        <p id="deviceChoiceText"></p>
-        <button onclick="chooseDevice('computer')">Computer</button>
-        <button onclick="chooseDevice('cellphone')">Cellphone</button>
+        <ul id="rulesList"></ul>
+        <h2 id="deviceChoiceTitle"></h2>
+        <button id="computerButton" onclick="startGame('computer')"></button>
+        <button id="cellphoneButton" onclick="startGame('cellphone')"></button>
     </div>
 
-    <div id="page3" class="page" style="display: none;">
+    <div id="page3" class="page">
         <h1 id="gameTitle"></h1>
-        <canvas id="gameCanvas"></canvas>
-        <div id="game-info"></div>
-        <div id="cellphoneControls">
-            <button id="rollDiceButton" onclick="handleRollDice()">Roll Dice</button>
-            <button id="flushToiletButton" onclick="handleFlushToilet()">Flush Toilet</button>
-        </div>
+        <div id="instructions"></div>
+        <div id="timer"></div>
+        <div id="scores"></div>
+        <canvas id="gameCanvas" width="400" height="300"></canvas>
+        <div id="result"></div>
         <div class="control-buttons">
-            <button id="backButton" onclick="backToMenu()"></button>
             <button id="restartButton" onclick="restartGame()"></button>
+            <button id="backButton" onclick="backToMenu()"></button>
+        </div>
+    </div>
+
+    <div id="cellphoneInterface" class="page">
+        <h2 id="cellphoneGameTitle"></h2>
+        <p id="cellphoneInstructions"></p>
+        <canvas id="cellphoneCanvas" width="280" height="300"></canvas>
+        <div id="cellphoneTimer"></div>
+        <div id="cellphoneScores"></div>
+        <div id="cellphoneResult"></div>
+        <button id="punchA" class="punch-button">A</button>
+        <button id="punchB" class="punch-button">B</button>
+        <div class="cellphone-control-buttons">
+            <button id="cellphoneRestartButton" onclick="restartGame()"></button>
+            <button id="cellphoneBackButton" onclick="backToMenu()"></button>
         </div>
     </div>
 
     <script>
-        let language = 'en';
+       let language = 'en';
         let deviceType = 'computer';
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');

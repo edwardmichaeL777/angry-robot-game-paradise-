@@ -213,7 +213,7 @@
         }
 
         function update() {
-            timeLeft = Math.max(0, 90 - Math.floor((Date.now() - startTime) / 1000));
+            timeLeft = Math.max(0, 60 - Math.floor((Date.now() - startTime) / 1000));
 
             bullets.forEach((bullet, index) => {
                 bullet.x += bullet.dx;

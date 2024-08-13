@@ -5,7 +5,7 @@
      crossorigin="anonymous"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Robot Boxing Match / 机器人拳击赛</title>
+    <title>Robot Toilet Game / 机器人马桶游戏</title>
     <style>
         body {
             font-family: 'Roboto', Arial, sans-serif;
@@ -192,26 +192,22 @@
 
         function setLanguage(lang) {
             language = lang;
-            document.getElementById('page1').style.display = 'none';
+            document.getElementById('languagePage').style.display = 'none';
             document.getElementById('page2').style.display = 'block';
             updateRulesPage();
         }
 
         function updateRulesPage() {
             document.getElementById('rulesTitle').textContent = translations[language].title;
-            document.getElementById('rules').textContent = translations[language].rules;
-            document.getElementById('deviceChoiceText').textContent = translations[language].deviceChoice;
+            document.getElementById('rulesList').innerHTML = `<li>${translations[language].rules}</li>`;
+            document.getElementById('deviceChoiceTitle').textContent = translations[language].deviceChoice;
             
-            document.querySelector('button[onclick="chooseDevice(\'computer\')"]').textContent = translations[language].computer;
-            document.querySelector('button[onclick="chooseDevice(\'cellphone\')"]').textContent = translations[language].cellphone;
+            document.getElementById('computerButton').textContent = translations[language].computer;
+            document.getElementById('cellphoneButton').textContent = translations[language].cellphone;
         }
 
-        function chooseDevice(device) {
+        function startGame(device) {
             deviceType = device;
-            startGame();
-        }
-
-        function startGame() {
             document.getElementById('page2').style.display = 'none';
             document.getElementById('page3').style.display = 'block';
             document.getElementById('gameTitle').textContent = translations[language].title;
@@ -219,9 +215,13 @@
             document.querySelector('.control-buttons').style.display = 'none';
             
             if (deviceType === 'cellphone') {
-                document.getElementById('cellphoneControls').style.display = 'block';
-                document.getElementById('rollDiceButton').textContent = translations[language].rollDice;
-                document.getElementById('flushToiletButton').textContent = translations[language].flushToilet;
+                document.getElementById('cellphoneInterface').style.display = 'block';
+                document.getElementById('cellphoneGameTitle').textContent = translations[language].title;
+                document.getElementById('cellphoneInstructions').textContent = translations[language].cellphoneControls;
+                document.getElementById('punchA').textContent = translations[language].rollDice;
+                document.getElementById('punchB').textContent = translations[language].flushToilet;
+            } else {
+                document.getElementById('instructions').textContent = translations[language].computerControls;
             }
             
             resizeCanvas();

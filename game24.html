@@ -359,7 +359,7 @@
             ctx.fillStyle = '#8B4513';
             ctx.fillRect(house.x, house.y, house.width, house.height);
             
-            // Roof
+            
             ctx.fillStyle = '#A52A2A';
             ctx.beginPath();
             ctx.moveTo(house.x, house.y);
@@ -367,11 +367,11 @@
             ctx.lineTo(house.x + house.width, house.y);
             ctx.closePath();
             ctx.fill();
-             // Door
+             
             ctx.fillStyle = '#4B0082';
             ctx.fillRect(house.x + 20, house.y + 20, 20, 20);
             
-            // Window
+           
             ctx.fillStyle = '#87CEEB';
             ctx.fillRect(house.x + 45, house.y + 10, 10, 10);
         }
@@ -481,7 +481,7 @@
                     break;
             }
 
-            // Check for wall collisions
+            
             if (!checkWallCollision(newX, newY)) {
                 rat.x = newX;
                 rat.y = newY;

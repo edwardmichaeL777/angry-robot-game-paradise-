@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Robot Fuel Race / 机器人燃料赛车</title>
+    <style>
+        body {
+            font-family: 'Roboto', Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            text-align: center;
+            background-color: #0f0f1f;
+            color: #e0e0e0;
+        }
+        .page {
+            display: none;
+            background-color: #1a1a2e;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(52, 152, 219, 0.5);
+            padding: 20px;
+        }
+        #languagePage {
+            display: block;
+        }
+        button {
+            font-size: 18px;
+            margin: 10px;
+            padding: 10px 20px;
+            cursor: pointer;
+            background-color: #2980b9;
+            color: white;
+            border: none;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #3498db;
+        }
+        #gameCanvas {
+            border: 1px solid #3498db;
+            background-color: #1a1a2e;
+            box-shadow: 0 0 10px rgba(52, 152, 219, 0.5);
+        }
+        #timer, #result {
+            font-size: 18px;
+            margin: 10px 0;
+            color: #3498db;
+        }
+        .control-buttons {
+            margin-top: 20px;
+        }
+        h1, h2 {
+            color: #3498db;
+            text-shadow: 0 0 5px rgba(52, 152, 219, 0.5);
+        }
+        #rulesList {
+            text-align: left;
+            padding-left: 20px;
+        }
+        #rulesList li {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div id="languagePage" class="page">
+        <h1>Select Language / 选择语言</h1>
+        <button onclick="setLanguage('en')">English</button>
+        <button onclick="setLanguage('zh')">中文</button>
+    </div>
+
+    <div id="page2" class="page">
+        <h1 id="rulesTitle"></h1>
+        <ul id="rulesList"></ul>
+        <button id="startButton" onclick="startGame()"></button>
+    </div>
+
+    <div id="page3" class="page">
+        <h1 id="gameTitle"></h1>
+        <div id="instructions"></div>
+        <div id="timer"></div>
+        <canvas id="gameCanvas" width="600" height="400"></canvas>
+        <div id="result"></div>
+        <div class="control-buttons">
+            <button id="restartButton" onclick="restartGame()"></button>
+            <button id="backButton" onclick="backToMenu()"></button>
+        </div>
+    </div>
+
+    <script>
+        let language = 'en';
+        let fuelA = 0;
+        let fuelB = 0;
+        let timeLeft = 45;
+        let gameInterval;
+        let gamePhase = 1;
+        let canvas, ctx;
+        let carAPosition = 0;
+        let carBPosition = 0;
+        let animationId;
+        let isFuelingA = false;
+        let isFuelingB = false;
+
+        const translations = {
+            en: {
+                rulesTitle: "Robot Fuel Race Rules",
+                rules: [
+                    "The game has three fueling phases, 15 seconds each.",
+                    "Phase 1: Press 'W' for Robot A and '8' for Robot B to add fuel.",
+                    "Phase 2: Press 'A'/'D' for Robot A and '4'/'6' for Robot B to add fuel.",
+                    "Phase 3: Press 'Z'/'X'/'C' for Robot A and '1'/'2'/'3' for Robot B to add fuel.",
+                    "After fueling, watch the robots race to see who wins!",
+                    "Fuel amounts are hidden during the game."
+                ],
+                startButton: "Start Game",
+                gameTitle: "Robot Fuel Race",
+                instructions: {
+                    1: "Phase 1: Press 'W' for Robot A, '8' for Robot B",
+                    2: "Phase 2: 'A'/'D' for Robot A, '4'/'6' for Robot B",
+                    3: "Phase 3: 'Z'/'X'/'C' for Robot A, '1'/'2'/'3' for Robot B"
+                },
+                restartButton: "Restart Game",
+                backButton: "Back to Menu",
+                timerText: "Time: {0} seconds",
+                gameOverText: "Game Over! Robot A: {0}, Robot B: {1}",
+                robotAWins: "Robot A Wins!",
+                robotBWins: "Robot B Wins!",
+                tie: "It's a Tie!"
+            },
+            zh: {
+                rulesTitle: "机器人燃料赛车规则",
+                rules: [
+                    "游戏分为三个加油阶段，每阶段15秒。",
+                    "第1阶段：按'W'为机器人A加油，按'8'为机器人B加油。",
+                    "第2阶段：按'A'/'D'为机器人A加油，按'4'/'6'为机器人B加油。",
+                    "第3阶段：按'Z'/'X'/'C'为机器人A加油，按'1'/'2'/'3'为机器人B加油。",
+                    "加油结束后，观看机器人赛车，看谁是赢家！",
+                    "游戏过程中燃料数量是隐藏的。"
+                ],
+                startButton: "开始游戏",
+                gameTitle: "机器人燃料赛车",
+                instructions: {
+                    1: "第1阶段：按'W'为机器人A加油，按'8'为机器人B加油",
+                    2: "第2阶段：'A'/'D'为机器人A加油，'4'/'6'为机器人B加油",
+                    3: "第3阶段：'Z'/'X'/'C'为机器人A加油，'1'/'2'/'3'为机器人B加油"
+                },
+                restartButton: "重新开始",
+                backButton: "返回菜单",
+                timerText: "时间: {0}秒",
+                gameOverText: "游戏结束！机器人A: {0}, 机器人B: {1}",
+                robotAWins: "机器人A获胜！",
+                robotBWins: "机器人B获胜！",
+                tie: "平局！"
+            }
+        };
+
+        function setLanguage(lang) {
+            language = lang;
+            document.getElementById('languagePage').style.display = 'none';
+            document.getElementById('page2').style.display = 'block';
+            updateRulesPage();
+        }
+
+        function updateRulesPage() {
+            document.getElementById('rulesTitle').textContent = translations[language].rulesTitle;
+            const rulesList = document.getElementById('rulesList');
+            rulesList.innerHTML = '';
+            translations[language].rules.forEach(rule => {
+                const li = document.createElement('li');
+                li.textContent = rule;
+                rulesList.appendChild(li);
+            });
+            document.getElementById('startButton').textContent = translations[language].startButton;
+        }
+
+        function startGame() {
+            document.getElementById('page2').style.display = 'none';
+            document.getElementById('page3').style.display = 'block';
+            canvas = document.getElementById('gameCanvas');
+            ctx = canvas.getContext('2d');
+            updateGamePage();
+            resetGame();
+            drawGame();
+            document.addEventListener('keydown', handleKeyPress);
+            document.addEventListener('keyup', handleKeyUp);
+            gameInterval = setInterval(updateTimer, 1000);
+        }
+
+        function updateGamePage() {
+            document.getElementById('gameTitle').textContent = translations[language].gameTitle;
+            document.getElementById('instructions').textContent = translations[language].instructions[1];
+            document.getElementById('restartButton').textContent = translations[language].restartButton;
+            document.getElementById('backButton').textContent = translations[language].backButton;
+            updateTimer();
+        }
+
+        function drawRobot(x, y, color) {
+            ctx.fillStyle = color;
+            ctx.fillRect(x - 25, y - 50, 50, 80);  // Body
+            ctx.fillRect(x - 20, y - 70, 40, 20);  // Head
+            ctx.fillStyle = 'white';
+            ctx.fillRect(x - 15, y - 65, 10, 10);  // Left eye
+            ctx.fillRect(x + 5, y - 65, 10, 10);   // Right eye
+            ctx.fillStyle = color;
+            ctx.fillRect(x - 35, y - 40, 10, 60);  // Left arm
+            ctx.fillRect(x + 25, y - 40, 10, 60);  // Right arm
+            ctx.fillRect(x - 20, y + 30, 15, 40);  // Left leg
+            ctx.fillRect(x + 5, y + 30, 15, 40);   // Right leg
+        }
+
+        function drawFuelingGun(x, y, isActive) {
+            ctx.fillStyle = isActive ? 'yellow' : 'gray';
+            ctx.fillRect(x - 5, y - 20, 10, 40);  // Gun body
+            ctx.fillRect(x - 15, y + 20, 30, 10); // Gun nozzle
+        }
+
+        function drawGame() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw robots
+            drawRobot(150, 200, 'blue');
+            drawRobot(450, 200, 'red');
+
+            // Draw fueling guns
+            drawFuelingGun(220, 200, isFuelingA);
+            drawFuelingGun(380, 200, isFuelingB);
+
+            // Draw race track
+            ctx.fillStyle = 'gray';
+            ctx.fillRect(50, 300, 500, 80);
+
+            // Draw cars
+            ctx.fillStyle = 'blue';
+            ctx.fillRect(50 + carAPosition, 310, 30, 20);
+            ctx.fillStyle = 'red';
+            ctx.fillRect(50 + carBPosition, 350, 30, 20);
+        }
+
+        function updateTimer() {
+            timeLeft--;
+            const timerText = translations[language].timerText.replace('{0}', timeLeft);
+            document.getElementById('timer').textContent = timerText;
+            
+            if (timeLeft === 30 || timeLeft === 15) {
+                gamePhase++;
+                document.getElementById('instructions').textContent = translations[language].instructions[gamePhase];
+            }
+            
+            if (timeLeft <= 0) {
+                endGame();
+            }
+            
+            drawGame();
+        }
+
+        function handleKeyPress(event) {
+            const key = event.key.toLowerCase();
+            if (gamePhase === 1) {
+                if (key === 'w') { fuelA++; isFuelingA = true; }
+                if (key === '8') { fuelB++; isFuelingB = true; }
+            } else if (gamePhase === 2) {
+                if (key === 'a' || key === 'd') { fuelA++; isFuelingA = true; }
+                if (key === '4' || key === '6') { fuelB++; isFuelingB = true; }
+            } else if (gamePhase === 3) {
+                if (key === 'z' || key === 'x' || key === 'c') { fuelA++; isFuelingA = true; }
+                if (key === '1' || key === '2' || key === '3') { fuelB++; isFuelingB = true; }
+            }
+            drawGame();
+        }
+
+        function handleKeyUp(event) {
+            const key = event.key.toLowerCase();
+            if (['w', 'a', 'd', 'z', 'x', 'c'].includes(key)) {
+                isFuelingA = false;
+            }
+            if (['8', '4', '6', '1', '2', '3'].includes(key)) {
+                isFuelingB = false;
+            }
+            drawGame();
+        }
+
+        function endGame() {
+            clearInterval(gameInterval);
+            document.removeEventListener('keydown', handleKeyPress);
+            document.removeEventListener('keyup', handleKeyUp);
+            animateRace();
+        }
+
+        function animateRace() {
+            carAPosition += fuelA / 100;
+            carBPosition += fuelB / 100;
+            
+            drawGame();
+            
+            if (carAPosition < 470 && carBPosition < 470) {
+                animationId = requestAnimationFrame(animateRace);
+            } else {
+                cancelAnimationFrame(animationId);
+                showResult();
+            }
+        }
+
+        function showResult() {
+            let resultText = translations[language].gameOverText.replace('{0}', fuelA).replace('{1}', fuelB) + '<br>';
+            if (fuelA > fuelB) {
+                resultText += translations[language].robotAWins;
+            } else if (fuelB > fuelA) {
+                resultText += translations[language].robotBWins;
+            } else {
+                resultText += translations[language].tie;
+            }
+            
+            document.getElementById('result').innerHTML = resultText;
+            document.querySelector('.control-buttons').style.display = 'block';
+        }
+
+        function resetGame() {
+            fuelA = 0;
+            fuelB = 0;
+            timeLeft = 45;
+            gamePhase = 1;
+            carAPosition = 0;
+            carBPosition = 0;
+            isFuelingA = false;
+            isFuelingB = false;
+            document.getElementById('result').innerHTML = '';
+            document.querySelector('.control-buttons').style.display = 'none';
+            document.getElementById('instructions').textContent = translations[language].instructions[1];
+        }
+
+        function restartGame() {
+            resetGame();
+            drawGame();
+            document.addEventListener('keydown', handleKeyPress);
+            document.addEventListener('keyup', handleKeyUp);
+            gameInterval = setInterval(updateTimer, 1000);
+        }
+
+        function backToMenu() {
+            window.location.reload();
+        }
+    </script>
+</body>
+</html>

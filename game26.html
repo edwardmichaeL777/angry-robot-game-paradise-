@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9745408431725056"
+     crossorigin="anonymous"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rat's Cheese Adventure</title>
+    <style>
+        body {
+            font-family: 'Roboto', Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            text-align: center;
+            background-color: #0f0f1f;
+            color: #e0e0e0;
+        }
+        .page {
+            display: none;
+            background-color: #1a1a2e;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(52, 152, 219, 0.5);
+            padding: 20px;
+        }
+        #languagePage {
+            display: block;
+        }
+        button {
+            font-size: 18px;
+            margin: 10px;
+            padding: 10px 20px;
+            cursor: pointer;
+            background-color: #2980b9;
+            color: white;
+            border: none;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #3498db;
+        }
+        #gameCanvas {
+            border: 1px solid #3498db;
+            background-color: #1a1a2e;
+            box-shadow: 0 0 10px rgba(52, 152, 219, 0.5);
+        }
+        #timer, #result {
+            font-size: 18px;
+            margin: 10px 0;
+            color: #3498db;
+        }
+        .control-buttons {
+            margin-top: 20px;
+            display: none;
+        }
+        h1, h2 {
+            color: #3498db;
+            text-shadow: 0 0 5px rgba(52, 152, 219, 0.5);
+        }
+        #rulesList {
+            text-align: left;
+            padding-left: 20px;
+        }
+        #rulesList li {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div id="languagePage" class="page">
+        <h1>Select Language / 选择语言</h1>
+        <button onclick="setLanguage('en')">English</button>
+        <button onclick="setLanguage('zh')">中文</button>
+    </div>
+
+    <div id="rulesPage" class="page">
+        <h1 id="rulesTitle"></h1>
+        <ul id="rulesList"></ul>
+        <button id="startButton" onclick="startGame()"></button>
+    </div>
+
+    <div id="gamePage" class="page">
+        <h1 id="gameTitle"></h1>
+        <div id="instructions"></div>
+        <div id="timer"></div>
+        <canvas id="gameCanvas" width="1200" height="600"></canvas>
+        <div id="result"></div>
+        <div class="control-buttons">
+            <button id="restartButton" onclick="restartGame()"></button>
+            <button id="backButton" onclick="backToMenu()"></button>
+        </div>
+    </div>
+
+    <script>
+        let language = 'en';
+        let timeLeft = 180;
+        let gameInterval;
+        let canvas, ctx;
+        let rat, cheese, house, robotGuards, walls;
+        let gameLoopId;
+        let mapWidth = 1200;
+        let mapHeight = 600;
+        let cameraX = 0;
+        let cameraY = 0;
+        let cheeseReached = false;
+
+        const translations = {
+            en: {
+                rulesTitle: "Rat's Cheese Adventure Rules",
+                rules: [
+                    "Help the rat reach the cheese and return to its house within 180 seconds.",
+                    "Use WASD keys to move the rat.",
+                    "Avoid the robot guards and their detection sectors.",
+                    "Don't touch any robots or their light or you'll lose.",
+                    "Reach the cheese, then return to the house to win!",
+                    "This game cannot be played on mobile devices."
+                ],
+                startButton: "Start Game",
+                gameTitle: "Rat's Cheese Adventure",
+                instructions: "Use WASD keys to move the rat",
+                restartButton: "Restart Game",
+                backButton: "Back to Menu",
+                timerText: "Time: {0} seconds",
+                gameOverWin: "You Win! The rat got the cheese and returned home!",
+                gameOverLose: "Game Over! The rat was caught!",
+                gameOverTime: "Game Over! Time's up!"
+            },
+            zh: {
+                rulesTitle: "老鼠奶酪冒险规则",
+                rules: [
+                    "在180秒内帮助老鼠到达奶酪并返回它的房子。",
+                    "使用WASD键移动老鼠。",
+                    "避开机器人守卫和它们的探测扇区。",
+                    "不要碰到任何机器人或它们的光线，否则你会输。",
+                    "到达奶酪，然后返回房子就能获胜！",
+                    "此游戏无法在移动设备上进行。"
+                ],
+                startButton: "开始游戏",
+                gameTitle: "老鼠奶酪冒险",
+                instructions: "使用WASD键移动老鼠",
+                restartButton: "重新开始",
+                backButton: "返回菜单",
+                timerText: "时间：{0}秒",
+                gameOverWin: "你赢了！老鼠得到了奶酪并回到了家！",
+                gameOverLose: "游戏结束！老鼠被抓住了！",
+                gameOverTime: "游戏结束！时间到了！"
+            }
+        };
+
+        function setLanguage(lang) {
+            language = lang;
+            document.getElementById('languagePage').style.display = 'none';
+            document.getElementById('rulesPage').style.display = 'block';
+            updateRulesPage();
+        }
+
+        function updateRulesPage() {
+            document.getElementById('rulesTitle').textContent = translations[language].rulesTitle;
+            const rulesList = document.getElementById('rulesList');
+            rulesList.innerHTML = '';
+            translations[language].rules.forEach(rule => {
+                const li = document.createElement('li');
+                li.textContent = rule;
+                rulesList.appendChild(li);
+            });
+            document.getElementById('startButton').textContent = translations[language].startButton;
+        }
+
+        function startGame() {
+            document.getElementById('rulesPage').style.display = 'none';
+            document.getElementById('gamePage').style.display = 'block';
+            canvas = document.getElementById('gameCanvas');
+            ctx = canvas.getContext('2d');
+            updateGamePage();
+            initializeGame();
+            gameInterval = setInterval(updateTimer, 1000);
+            gameLoopId = requestAnimationFrame(gameLoop);
+            document.querySelector('.control-buttons').style.display = 'none';
+        }
+
+        function updateGamePage() {
+            document.getElementById('gameTitle').textContent = translations[language].gameTitle;
+            document.getElementById('instructions').textContent = translations[language].instructions;
+            document.getElementById('restartButton').textContent = translations[language].restartButton;
+            document.getElementById('backButton').textContent = translations[language].backButton;
+            updateTimer();
+        }
+
+        function initializeGame() {
+            house = {
+                x: 20,
+                y: mapHeight / 2 - 30,
+                width: 60,
+                height: 60
+            };
+
+            rat = {
+                x: house.x + house.width,
+                y: house.y + house.height / 2 - 10,
+                width: 30,
+                height: 20,
+                speed: 7
+            };
+
+            cheese = {
+                x: mapWidth - 430,
+                y: mapHeight / 2 - 15,
+                width: 40,
+                height: 30
+            };
+
+            robotGuards = [
+                { x: 300, y: 200, angle: 0, patrolPath: [{x: 300, y: 200}, {x: 300, y: 400}], patrolIndex: 0, hasLight: true },
+                { x: 600, y: 300, angle: Math.PI / 4, patrolPath: [{x: 600, y: 300}, {x: 900, y: 300}], patrolIndex: 0, hasLight: true },
+                { x: 900, y: 200, angle: Math.PI / 2, patrolPath: [{x: 900, y: 200}, {x: 900, y: 400}], patrolIndex: 0, hasLight: true },
+                { x: 400, y: 450, angle: 3 * Math.PI / 4, patrolPath: [{x: 400, y: 450}, {x: 800, y: 450}], patrolIndex: 0, hasLight: true },
+                { x: 700, y: 100, angle: Math.PI, patrolPath: [{x: 700, y: 100}, {x: 700, y: 500}], patrolIndex: 0, hasLight: true },
+                { x: 1000, y: 350, angle: 3 * Math.PI / 2, patrolPath: [{x: 1000, y: 350}, {x: 1000, y: 500}], patrolIndex: 0, hasLight: true },
+            ];
+
+            walls = [
+                {x: 10, y: 0, width: mapWidth, height: 20},
+                {x: 10, y: 0, width: 20, height: mapHeight},
+                {x: 10, y: mapHeight - 20, width: mapWidth, height: 20},
+                {x: mapWidth - 20, y: 0, width: 20, height: mapHeight},
+            ];
+
+            cheeseReached = false;
+
+            document.addEventListener('keydown', handleKeyPress);
+        }
+
+        function gameLoop() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            updateRobotGuards();
+            updateCamera();
+            
+            if (checkCollisionWithCheese()) {
+                cheeseReached = true;
+            }
+            
+            if (cheeseReached && checkCollisionWithHouse()) {
+                endGame('win');
+                return;
+            }
+            
+            if (checkCollisionWithRobots()) {
+                endGame('lose');
+                return;
+            }
+            
+            drawGame();
+            
+            gameLoopId = requestAnimationFrame(gameLoop);
+        }
+
+        function updateRobotGuards() {
+            robotGuards.forEach(guard => {
+                if (guard.hasLight) {
+                    guard.angle += 0.02;
+                    if (guard.angle > Math.PI * 2) guard.angle -= Math.PI * 2;
+
+                    const targetPoint = guard.patrolPath[guard.patrolIndex];
+                    const dx = targetPoint.x - guard.x;
+                    const dy = targetPoint.y - guard.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+
+                    if (distance < 2) {
+                        guard.patrolIndex = (guard.patrolIndex + 1) % guard.patrolPath.length;
+                    } else {
+                        guard.x += (dx / distance) * 2;
+                        guard.y += (dy / distance) * 2;
+                    }
+                }
+            });
+        }
+
+        function updateCamera() {
+            cameraX = rat.x - canvas.width / 2;
+            cameraY = rat.y - canvas.height / 2;
+
+            cameraX = Math.max(0, Math.min(cameraX, mapWidth - canvas.width));
+            cameraY = Math.max(0, Math.min(cameraY, mapHeight - canvas.height));
+        }
+
+        function checkCollisionWithCheese() {
+            return (rat.x < cheese.x + cheese.width &&
+                    rat.x + rat.width > cheese.x &&
+                    rat.y < cheese.y + cheese.height &&
+                    rat.y + rat.height > cheese.y);
+        }
+
+        function checkCollisionWithHouse() {
+            return (rat.x < house.x + house.width &&
+                    rat.x + rat.width > house.x &&
+                    rat.y < house.y + house.height &&
+                    rat.y + rat.height > house.y);
+        }
+
+        function checkCollisionWithRobots() {
+            return robotGuards.some(guard => {
+                const dx = rat.x - guard.x;
+                const dy = rat.y - guard.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                if (distance < 20) {
+                    return true; // Collision with robot body
+                }
+                
+                if (guard.hasLight) {
+                    const angleToCheese = Math.atan2(dy, dx);
+                    const angleDiff = Math.abs(angleToCheese - guard.angle);
+                    if (distance < 200 && (angleDiff < Math.PI / 3.5 || angleDiff > Math.PI * 13 / 7)) {
+                        return true; // Collision with light sector
+                    }
+                }
+                
+                return false;
+            });
+        }
+
+        function drawGame() {
+            ctx.save();
+            ctx.translate(-cameraX, -cameraY);
+
+            ctx.fillStyle = '#1a1a2e';
+            ctx.fillRect(cameraX, cameraY, canvas.width, canvas.height);
+
+            drawWalls();
+            drawHouse(house.x, house.y);
+            drawRat(rat.x, rat.y);
+            drawCheese(cheese.x, cheese.y);
+
+            robotGuards.forEach(guard => {
+                drawRobot(guard.x, guard.y, 'red');
+
+                if (guard.hasLight) {
+                    ctx.fillStyle = 'rgba(255, 255, 0, 0.3)';
+                    ctx.beginPath();
+                    ctx.moveTo(guard.x, guard.y);
+                    ctx.arc(guard.x, guard.y, 200, guard.angle - Math.PI / 3.5, guard.angle + Math.PI / 3.5);
+                    ctx.closePath();
+                    ctx.fill();
+                }
+            });
+
+            ctx.restore();
+        }
+
+        function drawWalls() {
+            ctx.fillStyle = '#34495e';
+            walls.forEach(wall => {
+                ctx.fillRect(wall.x, wall.y, wall.width, wall.height);
+            });
+        }
+        function drawHouse(x, y) {
+            ctx.fillStyle = '#8B4200'; 
+            ctx.fillRect(x, y, house.width, house.height);
+            
+            // Roof
+            ctx.fillStyle = '#A52A8A'; 
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            ctx.lineTo(x + house.width / 2, y - 20);
+            ctx.lineTo(x + house.width, y);
+            ctx.closePath();
+            ctx.fill();
+
+            // Door
+            ctx.fillStyle = '#4B0013'; 
+            ctx.fillRect(x + house.width / 2 - 10, y + house.height - 30, 20, 30);
+
+            // Window
+            ctx.fillStyle = '#86CEEB'; 
+            ctx.fillRect(x + 10, y + 10, 15, 15);
+        }
+         
+
+        
+
+        function drawRat(x, y) {
+            ctx.fillStyle = 'gray';
+            ctx.beginPath();
+            ctx.ellipse(x + 15, y + 10, 15, 10, 0, 0, 2 * Math.PI);
+            ctx.fill();
+
+            ctx.fillStyle = 'pink';
+            ctx.beginPath();
+            ctx.ellipse(x + 5, y, 5, 5, 0, 0, 2 * Math.PI);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.ellipse(x + 25, y, 5, 5, 0, 0, 2 * Math.PI);
+            ctx.fill();
+
+            ctx.strokeStyle = 'gray';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(x, y + 10);
+            ctx.quadraticCurveTo(x - 10, y + 20, x - 20, y + 15);
+            ctx.stroke();
+        }
+
+        function drawCheese(x, y) {
+            ctx.fillStyle = 'yellow';
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            ctx.lineTo(x + 40, y);
+            ctx.lineTo(x + 40, y + 30);
+            ctx.lineTo(x, y + 30);
+            ctx.closePath();
+            ctx.fill();
+
+            ctx.fillStyle = '#1a1a2e';
+            ctx.beginPath();
+            ctx.arc(x + 10, y + 10, 5, 0, 2 * Math.PI);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(x + 30, y + 20, 3, 0, 2 * Math.PI);
+            ctx.fill();
+        }
+
+        function drawRobot(x, y, color) {
+            ctx.fillStyle = color;
+            ctx.fillRect(x - 15, y - 30, 30, 50); // Smaller robot body
+            ctx.fillRect(x - 12, y - 40, 24, 10); // Smaller robot head
+            ctx.fillStyle = 'white';
+            ctx.fillRect(x - 9, y - 38, 6, 6); // Left eye
+            ctx.fillRect(x + 3, y - 38, 6, 6); // Right eye
+        }
+
+        function updateTimer() {
+            timeLeft--;
+            document.getElementById('timer').textContent = translations[language].timerText.replace('{0}', timeLeft);
+            if (timeLeft <= 0) {
+                endGame('timeout');
+            }
+        }
+
+        function endGame(result) {
+            clearInterval(gameInterval);
+            cancelAnimationFrame(gameLoopId);
+            let resultText;
+            if (result === 'win') {
+                resultText = translations[language].gameOverWin;
+            } else if (result === 'lose') {
+                resultText = translations[language].gameOverLose;
+            } else if (result === 'timeout') {
+                resultText = translations[language].gameOverTime;
+            }
+            document.getElementById('result').textContent = resultText;
+            document.querySelector('.control-buttons').style.display = 'block';
+        }
+
+        function restartGame() {
+            timeLeft = 180;
+            document.getElementById('result').textContent = '';
+            document.querySelector('.control-buttons').style.display = 'none';
+            initializeGame();
+            gameInterval = setInterval(updateTimer, 1000);
+            gameLoopId = requestAnimationFrame(gameLoop);
+        }
+
+        function backToMenu() {
+            window.location.href = 'index.html';
+        }
+
+        function handleKeyPress(event) {
+            let newX = rat.x;
+            let newY = rat.y;
+
+            switch(event.key.toLowerCase()) {
+                case 'w':
+                    newY = Math.max(0, rat.y - rat.speed);
+                    break;
+                case 's':
+                    newY = Math.min(mapHeight - rat.height, rat.y + rat.speed);
+                    break;
+                case 'a':
+                    newX = Math.max(0, rat.x - rat.speed);
+                    break;
+                case 'd':
+                    newX = Math.min(mapWidth - rat.width, rat.x + rat.speed);
+                    break;
+            }
+
+            // Check for wall collisions
+            if (!checkWallCollision(newX, newY)) {
+                rat.x = newX;
+                rat.y = newY;
+            }
+        }
+
+        function checkWallCollision(x, y) {
+            return walls.some(wall => 
+                x < wall.x + wall.width &&
+                x + rat.width > wall.x &&
+                y < wall.y + wall.height &&
+                y + rat.height > wall.y
+            );
+        }
+    </script>
+</body>
+</html>

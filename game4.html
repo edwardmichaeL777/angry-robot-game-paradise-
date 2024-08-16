@@ -63,7 +63,9 @@
     <div id="rulesPage" class="page" style="display: none;">
         <h1 id="rulesTitle"></h1>
         <p id="rulesText"></p>
-        <button onclick="startGame()" id="startGameBtn"></button>
+        <h2 id="deviceTitle"></h2>
+        <button onclick="selectDevice('computer')" id="computerBtn"></button>
+        <button onclick="selectDevice('cellphone')" id="cellphoneBtn"></button>
     </div>
 
     <div id="gamePage" style="display: none;">
@@ -94,7 +96,7 @@
     const MAX_HATS = 10;
     const HAT_ALTITUDE = canvas.height - 150 - 20 * HAT_HEIGHT;
     const ERROR_ALLOWANCE = 100;
-    const ROBOT_X = 100; // Set the robot's x position
+    const ROBOT_X = 100;
 
     const translations = {
         rulesTitle: {
@@ -102,8 +104,8 @@
             zh: "游戏规则"
         },
         singlePlayerRules: {
-            en: "Press 'D' to catch red hats when the hat is directly on the top of your head. Don't miss any hat! This game cannot be performed on mobile devices.",
-            zh: "按'D'键接住红色帽子当帽子在你头顶的正上方，不要错过任何帽子！此游戏无法在移动设备上进行运行。"
+            en: "Press 'D' to catch red hats when the hat is directly on the top of your head. Don't miss any hat!",
+            zh: "按'D'键接住红色帽子当帽子在你头顶的正上方，不要错过任何帽子！"
         },
         startGame: {
             en: "Start Game",
@@ -128,6 +130,18 @@
         backToMenu: {
             en: "Back to Menu",
             zh: "返回菜单"
+        },
+        deviceTitle: {
+            en: "Select Your Device",
+            zh: "选择您的设备"
+        },
+        computer: {
+            en: "Computer",
+            zh: "电脑"
+        },
+        cellphone: {
+            en: "Cellphone",
+            zh: "手机"
         }
     };
 
@@ -141,9 +155,19 @@
     function updateTexts() {
         document.getElementById('rulesTitle').textContent = translations.rulesTitle[language];
         document.getElementById('rulesText').textContent = translations.singlePlayerRules[language];
-        document.getElementById('startGameBtn').textContent = translations.startGame[language];
+        document.getElementById('deviceTitle').textContent = translations.deviceTitle[language];
+        document.getElementById('computerBtn').textContent = translations.computer[language];
+        document.getElementById('cellphoneBtn').textContent = translations.cellphone[language];
         document.getElementById('restartBtn').textContent = translations.restart[language];
         document.getElementById('menuBtn').textContent = translations.backToMenu[language];
+    }
+
+    function selectDevice(device) {
+        if (device === 'computer') {
+            startGame();
+        } else if (device === 'cellphone') {
+            window.location.href = 'game4.1.html';
+        }
     }
 
     class Robot {
@@ -211,7 +235,7 @@
         }
     }
 
-    const robot = new Robot(ROBOT_X, canvas.height - 100); // Update the robot's x position
+    const robot = new Robot(ROBOT_X, canvas.height - 100);
 
     class Hat {
         constructor() {
@@ -308,7 +332,7 @@
         hatInterval = 2000;
         robot.hatsWorn = 0;
         
-        updateTexts(); // Update texts before starting the game
+        updateTexts();
         gameLoop();
     }
 

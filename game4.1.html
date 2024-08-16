@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9745408431725056"
+     crossorigin="anonymous"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Robot Hat Trick - Mobile</title>
+    <style>
+        body {
+            font-family: 'Roboto', Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #0f0f1f;
+            color: #e0e0e0;
+            text-align: center;
+            touch-action: manipulation;
+        }
+        #gameCanvas {
+            border: 1px solid #3498db;
+            display: block;
+            margin: 20px auto;
+            box-shadow: 0 0 10px rgba(52, 152, 219, 0.5);
+        }
+        button {
+            background-color: #2980b9;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            margin: 10px;
+            cursor: pointer;
+            font-size: 18px;
+            touch-action: manipulation;
+        }
+        button:hover {
+            background-color: #3498db;
+        }
+        #gameControls {
+            margin-top: 20px;
+        }
+        #wearButton {
+            background-color: #e74c3c;
+            font-size: 22px;
+            padding: 20px 40px;
+        }
+        #languageToggle {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 16px;
+            padding: 5px 10px;
+        }
+    </style>
+</head>
+<body>
+    <button id="languageToggle">EN/中文</button>
+    <div id="gamePage">
+        <canvas id="gameCanvas" width="800" height="600"></canvas>
+        <div id="gameControls">
+            <button id="wearButton">Wear Hat<br>戴帽子</button>
+            <button onclick="restartGame()" id="restartBtn">Restart<br>重新开始</button>
+            <button onclick="backToMenu()" id="menuBtn">Back to Menu<br>返回菜单</button>
+        </div>
+    </div>
+
+    <script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const wearButton = document.getElementById('wearButton');
+    const gameControls = document.getElementById('gameControls');
+    const languageToggle = document.getElementById('languageToggle');
+
+    let gameOver = false;
+    let score = 0;
+    let hats = [];
+    let hatSpeed = 2;
+    let lastHatTime = 0;
+    let hatInterval = 2000;
+    let language = 'en';
+
+    const HAT_HEIGHT = 10;
+    const MAX_HATS = 10;
+    const ERROR_ALLOWANCE = 100;
+    const ROBOT_X = 100;
+    const HAT_ALTITUDE = canvas.height - 150 - 20 * HAT_HEIGHT;
+
+    const translations = {
+        wearHat: {
+            en: "Wear Hat",
+            zh: "戴帽子"
+        },
+        restart: {
+            en: "Restart",
+            zh: "重新开始"
+        },
+        backToMenu: {
+            en: "Back to Menu",
+            zh: "返回菜单"
+        },
+        score: {
+            en: "Score",
+            zh: "分数"
+        },
+        gameOver: {
+            en: "Game Over!",
+            zh: "游戏结束！"
+        },
+        finalScore: {
+            en: "Final Score",
+            zh: "最终得分"
+        }
+    };
+
+    class Robot {
+        constructor(x, y) {
+            this.x = x;
+            this.y = y;
+            this.width = 40;
+            this.height = 80;
+            this.hatsWorn = 0;
+        }
+
+        draw() {
+            drawRobot(this.x, this.y, 'gray', this.hatsWorn);
+        }
+    }
+
+    function drawRobot(x, y, color, hatsWorn) {
+        // Body
+        ctx.fillStyle = color;
+        ctx.fillRect(x - 25, y - 50, 50, 80);
+        
+        // Head
+        ctx.fillRect(x - 20, y - 80, 40, 30);
+        
+        // Eyes
+        ctx.fillStyle = 'black';
+        ctx.fillRect(x - 15, y - 75, 10, 10);
+        ctx.fillRect(x + 5, y - 75, 10, 10);
+        
+        // Antenna
+        ctx.strokeStyle = 'gray';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(x, y - 80);
+        ctx.lineTo(x, y - 95);
+        ctx.stroke();
+        ctx.fillStyle = 'red';
+        ctx.beginPath();
+        ctx.arc(x, y - 95, 3, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Arms
+        ctx.fillStyle = color;
+        ctx.fillRect(x - 35, y - 40, 10, 60);
+        ctx.fillRect(x + 25, y - 40, 10, 60);
+        
+        // Legs
+        ctx.fillRect(x - 20, y + 30, 15, 40);
+        ctx.fillRect(x + 5, y + 30, 15, 40);
+        
+        // Draw hats
+        drawHats(x, y - 80, hatsWorn);
+    }
+
+    function drawHats(x, y, hatsWorn) {
+        for (let i = 0; i < hatsWorn; i++) {
+            ctx.fillStyle = 'red';
+            ctx.beginPath();
+            ctx.moveTo(x - 25, y - i * HAT_HEIGHT);
+            ctx.lineTo(x, y - 15 - i * HAT_HEIGHT);
+            ctx.lineTo(x + 25, y - i * HAT_HEIGHT);
+            ctx.closePath();
+            ctx.fill();
+        }
+    }
+
+    class Hat {
+        constructor() {
+            this.width = 40;
+            this.height = HAT_HEIGHT;
+            this.color = 'red';
+            this.x = canvas.width;
+            this.speed = -hatSpeed;
+            this.y = HAT_ALTITUDE;
+        }
+
+        draw() {
+            ctx.fillStyle = this.color;
+            ctx.beginPath();
+            ctx.moveTo(this.x, this.y);
+            ctx.lineTo(this.x + this.width / 2, this.y - 15);
+            ctx.lineTo(this.x + this.width, this.y);
+            ctx.closePath();
+            ctx.fill();
+        }
+
+        update() {
+            this.x += this.speed;
+        }
+    }
+
+    function checkCollision(robot, hat) {
+        return Math.abs(robot.x - hat.x) < ERROR_ALLOWANCE;
+    }
+
+    function drawGame() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        robot.draw();
+        
+        hats.forEach(hat => {
+            hat.draw();
+            hat.update();
+        });
+        
+        ctx.fillStyle = 'yellow';
+        ctx.font = '24px Arial';
+        const scoreText = `${translations.score[language]}: ${score}`;
+        ctx.fillText(scoreText, 10, 30);
+        ctx.fillText(scoreText === "Score: " + score ? "分数: " + score : "Score: " + score, 10, 60);
+        
+        if (gameOver) {
+            ctx.fillStyle = 'red';
+            ctx.font = '48px Arial';
+            const gameOverText = translations.gameOver[language];
+            ctx.fillText(gameOverText, canvas.width / 2 - 100, canvas.height / 2 - 40);
+            ctx.fillText(gameOverText === "Game Over!" ? "游戏结束！" : "Game Over!", canvas.width / 2 - 100, canvas.height / 2 + 20);
+            ctx.font = '24px Arial';
+            const finalScoreText = `${translations.finalScore[language]}: ${score}`;
+            ctx.fillText(finalScoreText, canvas.width / 2 - 80, canvas.height / 2 + 80);
+            ctx.fillText(finalScoreText === `Final Score: ${score}` ? `最终得分: ${score}` : `Final Score: ${score}`, canvas.width / 2 - 80, canvas.height / 2 + 120);
+        }
+    }
+
+    function gameLoop() {
+        if (!gameOver) {
+            drawGame();
+            
+            const now = Date.now();
+            if (now - lastHatTime > hatInterval) {
+                hats.push(new Hat());
+                lastHatTime = now;
+                hatSpeed += 0.1;
+                hatInterval = Math.max(500, hatInterval - 50);
+            }
+            
+            hats = hats.filter(hat => {
+                if (hat.x + hat.width < 0) {
+                    gameOver = true;
+                    return false;
+                }
+                return true;
+            });
+            
+            requestAnimationFrame(gameLoop);
+        } else {
+            drawGame();
+            wearButton.disabled = true;
+        }
+    }
+
+    function startGame() {
+        gameOver = false;
+        score = 0;
+        hats = [];
+        hatSpeed = 2;
+        lastHatTime = 0;
+        hatInterval = 2000;
+
+        robot = new Robot(ROBOT_X, canvas.height - 100);
+        robot.hatsWorn = 0;
+        
+        wearButton.disabled = false;
+        gameLoop();
+    }
+
+    function restartGame() {
+        startGame();
+    }
+
+    function backToMenu() {
+        window.location.href = 'index.html';
+    }
+
+    wearButton.addEventListener('click', () => {
+        if (gameOver) return;
+        tryWearHat(robot, 'red');
+    });
+
+    function tryWearHat(robot, color) {
+        const nearbyHat = hats.find(hat => hat.color === color && checkCollision(robot, hat));
+        
+        if (nearbyHat) {
+            score++;
+            if (score <= 10) {
+                robot.hatsWorn++;
+            }
+            hats = hats.filter(hat => hat !== nearbyHat);
+        } else {
+            gameOver = true;
+        }
+    }
+
+    function updateLanguage() {
+        language = language === 'en' ? 'zh' : 'en';
+        wearButton.innerHTML = `${translations.wearHat.en}<br>${translations.wearHat.zh}`;
+        document.getElementById('restartBtn').innerHTML = `${translations.restart.en}<br>${translations.restart.zh}`;
+        document.getElementById('menuBtn').innerHTML = `${translations.backToMenu.en}<br>${translations.backToMenu.zh}`;
+    }
+
+    languageToggle.addEventListener('click', updateLanguage);
+
+    window.addEventListener('load', startGame);
+    </script>
+</body>
+</html>

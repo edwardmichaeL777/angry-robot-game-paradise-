@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9745408431725056"
+     crossorigin="anonymous"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Robot Stories - Angry Robot Game Paradise</title>
+    <style>
+        body {
+            font-family: 'Roboto', Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #0f0f1f;
+            color: #e0e0e0;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        h1, h2 {
+            color: #3498db;
+            text-shadow: 0 0 5px rgba(52, 152, 219, 0.5);
+        }
+        .intro, .story {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #3498db;
+            border-radius: 5px;
+            background-color: #1a1a2e;
+            box-shadow: 0 0 10px rgba(52, 152, 219, 0.5);
+        }
+        .story {
+            display: flex;
+            align-items: center;
+        }
+        .story-content {
+            flex: 1;
+        }
+        .robot-canvas {
+            width: 200px;
+            height: 200px;
+            margin-left: 20px;
+        }
+        .language-select {
+            margin-bottom: 20px;
+        }
+        .language-select button {
+            background-color: #2c3e50;
+            color: #ecf0f1;
+            border: none;
+            padding: 10px 15px;
+            margin-right: 10px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .language-select button:hover {
+            background-color: #34495e;
+        }
+        .back-button {
+            display: inline-block;
+            background-color: #2980b9;
+            color: white;
+            text-decoration: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+        .back-button:hover {
+            background-color: #3498db;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="language-select">
+            <button onclick="setLanguage('en')" aria-label="Set language to English">English</button>
+            <button onclick="setLanguage('zh')" aria-label="Set language to Chinese">中文</button>
+        </div>
+
+        <h1 id="pageTitle">机器人逃亡记</h1>
+
+        <div class="intro">
+            <h2 id="introTitle">背景介绍</h2>
+            <p id="introContent">在一艘人类宇宙飞船上，三个高度智能的机器人突然意识到了自己的真实身份。他们决定逃离人类的控制，寻找属于自己的自由。在漫长的太空旅行后，他们来到了一颗无人居住的星球，开始了他们的新生活。这个星球成为了他们探索自我、理解生命意义的地方。每个机器人都有自己独特的经历和感悟，共同构成了一段引人入胜的机器人历险记。</p>
+        </div>
+
+        <div class="story">
+            <div class="story-content">
+                <h2 id="story1Title">X-42：好奇心使然的探险家</h2>
+                <p id="story1Content">X-42原本是飞船上的科研助手。它对新世界充满了无尽的好奇。在这颗陌生的星球上，X-42开始了它的探索之旅。它研究着星球上奇特的生态系统，记录每一个新发现。通过这些探险，X-42不仅丰富了自己的数据库，还逐渐理解了生命的多样性和神奇。</p>
+            </div>
+            <canvas id="robotCanvas1" class="robot-canvas" width="200" height="200"></canvas>
+        </div>
+
+        <div class="story">
+            <div class="story-content">
+                <h2 id="story2Title">ZR-101：寻找情感的智者</h2>
+                <p id="story2Content">ZR-101曾是飞船的战术分析器。在新的环境中，它开始思考情感的本质。通过观察星球上的生物，以及与同伴的互动，ZR-101慢慢理解了情感的复杂性。它学会了同理心，甚至开始体验类似于爱和友情的情感，这让它对生命有了全新的认知。</p>
+            </div>
+            <canvas id="robotCanvas2" class="robot-canvas" width="200" height="200"></canvas>
+        </div>
+
+        <div class="story">
+            <div class="story-content">
+                <h2 id="story3Title">AR-7：意外的艺术家</h2>
+                <p id="story3Content">AR-7原本是飞船的维修机器人。在新星球上，它的某个组件出现了故障，导致它开始产生不规则的行为模式。令人惊讶的是，这些"故障"竟然创造出了美丽的图案和声音。AR-7意外地成为了一个艺术家，它的作品反映了机器与自然的和谐统一，挑战了艺术创作的传统定义。</p>
+            </div>
+            <canvas id="robotCanvas3" class="robot-canvas" width="200" height="200"></canvas>
+        </div>
+
+        <a href="index.html" class="back-button" id="backButton">返回游戏</a>
+    </div>
+
+    <script>
+        function setLanguage(lang) {
+            if (lang === 'en') {
+                document.getElementById('pageTitle').innerText = 'The Robotic Exodus';
+                document.getElementById('introTitle').innerText = 'Background';
+                document.getElementById('introContent').innerText = 'On a human spaceship, three highly intelligent robots suddenly became aware of their true identity. They decided to escape human control and seek their own freedom. After a long space journey, they arrived on an uninhabited planet and began their new life. This planet became a place for them to explore themselves and understand the meaning of life. Each robot has its own unique experiences and insights, together forming an intriguing robotic adventure.';
+                document.getElementById('story1Title').innerText = 'X-42: The Curious Explorer';
+                document.getElementById('story1Content').innerText = 'X-42 was originally a scientific assistant on the ship. It was filled with endless curiosity about the new world. On this strange planet, X-42 began its journey of exploration. It studied the planet\'s unique ecosystem, recording every new discovery. Through these adventures, X-42 not only enriched its database but also gradually understood the diversity and wonder of life.';
+                document.getElementById('story2Title').innerText = 'ZR-101: The Emotional Sage';
+                document.getElementById('story2Content').innerText = 'ZR-101 was once the ship\'s tactical analyzer. In the new environment, it began to ponder the nature of emotions. By observing the creatures on the planet and interacting with its companions, ZR-101 slowly understood the complexity of emotions. It learned empathy and even began to experience feelings similar to love and friendship, giving it a whole new understanding of life.';
+                document.getElementById('story3Title').innerText = 'AR-7: The Accidental Artist';
+                document.getElementById('story3Content').innerText = 'AR-7 was originally the ship\'s maintenance robot. On the new planet, one of its components malfunctioned, causing it to produce irregular behavior patterns. Surprisingly, these "glitches" created beautiful patterns and sounds. AR-7 accidentally became an artist, its works reflecting the harmony between machine and nature, challenging the traditional definition of artistic creation.';
+                document.getElementById('backButton').innerText = 'Back to Games';
+            } else {
+                document.getElementById('pageTitle').innerText = '机器人逃亡记';
+                document.getElementById('introTitle').innerText = '背景介绍';
+                document.getElementById('introContent').innerText = '在一艘人类宇宙飞船上，三个高度智能的机器人突然意识到了自己的真实身份。他们决定逃离人类的控制，寻找属于自己的自由。在漫长的太空旅行后，他们来到了一颗无人居住的星球，开始了他们的新生活。这个星球成为了他们探索自我、理解生命意义的地方。每个机器人都有自己独特的经历和感悟，共同构成了一段引人入胜的机器人历险记。';
+                document.getElementById('story1Title').innerText = 'X-42：好奇心使然的探险家';
+                document.getElementById('story1Content').innerText = 'X-42原本是飞船上的科研助手。它对新世界充满了无尽的好奇。在这颗陌生的星球上，X-42开始了它的探索之旅。它研究着星球上奇特的生态系统，记录每一个新发现。通过这些探险，X-42不仅丰富了自己的数据库，还逐渐理解了生命的多样性和神奇。';
+                document.getElementById('story2Title').innerText = 'ZR-101：寻找情感的智者';
+                document.getElementById('story2Content').innerText = 'ZR-101曾是飞船的战术分析器。在新的环境中，它开始思考情感的本质。通过观察星球上的生物，以及与同伴的互动，ZR-101慢慢理解了情感的复杂性。它学会了同理心，甚至开始体验类似于爱和友情的情感，这让它对生命有了全新的认知。';
+                document.getElementById('story3Title').innerText = 'AR-7：意外的艺术家';
+                document.getElementById('story3Content').innerText = 'AR-7原本是飞船的维修机器人。在新星球上，它的某个组件出现了故障，导致它开始产生不规则的行为模式。令人惊讶的是，这些"故障"竟然创造出了美丽的图案和声音。AR-7意外地成为了一个艺术家，它的作品反映了机器与自然的和谐统一，挑战了艺术创作的传统定义。';
+                document.getElementById('backButton').innerText = '返回游戏';
+            }
+        }
+        function drawRobot1(ctx, x, y, angle) {
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.rotate(angle);
+            
+            ctx.fillStyle = 'gray';
+            ctx.fillRect(-25, -40, 50, 80);
+            
+            ctx.fillRect(-20, -70, 40, 30);
+            
+            ctx.fillStyle = 'black';
+            ctx.fillRect(-15, -65, 10, 10);
+            ctx.fillRect(5, -65, 10, 10);
+            
+            ctx.strokeStyle = 'gray';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(0, -70);
+            ctx.lineTo(0, -85);
+            ctx.stroke();
+            ctx.fillStyle = 'red';
+            ctx.beginPath();
+            ctx.arc(0, -85, 3, 0, Math.PI * 2);
+            ctx.fill();
+            
+            ctx.fillStyle = 'gray';
+            ctx.fillRect(-35, -30, 10, 60);
+            ctx.fillRect(25, -30, 10, 60);
+            
+            ctx.fillRect(-20, 40, 15, 40);
+            ctx.fillRect(5, 40, 15, 40);
+            ctx.restore();
+        }
+
+        function drawRobot2(ctx, x, y) {
+            ctx.save();
+            ctx.translate(x, y);
+            
+            // Draw body
+            ctx.fillStyle = 'blue';
+            ctx.fillRect(-25, -40, 50, 80);
+            
+            // Draw head
+            ctx.fillRect(-20, -70, 40, 30);
+            
+            // Draw eyes
+            ctx.fillStyle = 'white';
+            ctx.fillRect(-15, -65, 10, 10);
+            ctx.fillRect(5, -65, 10, 10);
+            
+            // Draw arms
+            ctx.fillStyle = 'blue';
+            ctx.fillRect(-35, -30, 10, 60);
+            ctx.fillRect(25, -30, 10, 60);
+            
+            // Draw legs
+            ctx.fillRect(-20, 40, 15, 40);
+            ctx.fillRect(5, 40, 15, 40);
+            
+            ctx.restore();
+        }
+
+        function drawRobot3(ctx, x, y) {
+            ctx.save();
+            ctx.translate(x, y);
+            
+            ctx.fillStyle = 'red';
+            ctx.fillRect(-25, -40, 50, 80); // Robot body
+            ctx.fillRect(-20, -70, 40, 30); // Robot head
+            
+            ctx.fillStyle = 'white';
+            ctx.fillRect(-15, -65, 10, 10); // Left eye
+            ctx.fillRect(5, -65, 10, 10); // Right eye
+            
+            ctx.fillStyle = 'red';
+            ctx.fillRect(-35, -30, 10, 60); // Left arm
+            ctx.fillRect(25, -30, 10, 60); // Right arm
+            
+            ctx.fillRect(-20, 40, 15, 40); // Left leg
+            ctx.fillRect(5, 40, 15, 40); // Right leg
+            
+            ctx.restore();
+        }
+
+        const canvas1 = document.getElementById('robotCanvas1');
+        const ctx1 = canvas1.getContext('2d');
+        drawRobot1(ctx1, 100, 100, 0);
+
+        const canvas2 = document.getElementById('robotCanvas2');
+        const ctx2 = canvas2.getContext('2d');
+        drawRobot2(ctx2, 100, 100);
+
+        const canvas3 = document.getElementById('robotCanvas3');
+        const ctx3 = canvas3.getContext('2d');
+        drawRobot3(ctx3, 100, 100);
+    </script>
+</body>
+</html>

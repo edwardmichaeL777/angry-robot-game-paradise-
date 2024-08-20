@@ -64,7 +64,7 @@
         .game-item button:hover {
             background-color: #3498db;
         }
-        .quote-section, .story-section, .contact-section {
+        .quote-section, .story-section, .contact-section, .robot-story-section {
             margin-top: 30px;
             padding: 20px;
             border: 1px solid #3498db;
@@ -279,6 +279,12 @@
         </div>
     </div>
 
+    <div class="robot-story-section">
+        <h2 id="robotStoryTitle">Robot Stories</h2>
+        <p id="robotStoryIntro">Explore fascinating tales of robots and their adventures!</p>
+        <a href="story.html"><button id="readStories">Read Robot Stories</button></a>
+    </div>
+
     <div class="contact-section">
         <h2 id="contactTitle">Contact & Advice</h2>
         <p id="contactIntro">We value your feedback! Please share your advice or any other comments.</p>
@@ -373,13 +379,16 @@
                 document.getElementById('desc27').innerText = '机器人燃料赛车';
                 document.getElementById('play27').innerText = '玩游戏 27';
                 document.getElementById('quoteTitle').innerText = '每月一语';
-                document.getElementById('quoteContent').innerText = '“我们对明天的实现唯一的限制是今天的怀疑。” - 富兰克林·D·罗斯福';
+                document.getElementById('quoteContent').innerText = '"我们对明天的实现唯一的限制是今天的怀疑。" - 富兰克林·D·罗斯福';
                 document.getElementById('storyTitle').innerText = '我的网站创作故事';
                 document.getElementById('storyButton').innerText = '显示故事';
                 document.getElementById('contactTitle').innerText = '联系与建议';
                 document.getElementById('contactIntro').innerText = '我们重视您的反馈！请分享您的建议或其他意见。';
                 document.getElementById('emailAddress').innerText = '电子邮件：rmpcjgps@gmail.com';
                 document.getElementById('quoteOfAdvice').innerText = '"预测未来的最好方法就是创造未来。" - 艾伦·凯';
+                document.getElementById('robotStoryTitle').innerText = '机器人故事';
+                document.getElementById('robotStoryIntro').innerText = '探索引人入胜的机器人冒险故事！';
+                document.getElementById('readStories').innerText = '阅读机器人故事';
             } else {
                 document.getElementById('title').innerText = 'Angry Robot Game Paradise';
                 document.getElementById('intro').innerText = 'Enjoy my selection of exciting games!Some games are not playable on mobile devices.';
@@ -472,6 +481,9 @@
                 document.getElementById('contactIntro').innerText = 'We value your feedback! Please share your advice or any other comments.';
                 document.getElementById('emailAddress').innerText = 'Email: rmpcjgps@gmail.com';
                 document.getElementById('quoteOfAdvice').innerText = '"The best way to predict the future is to create it." - Alan Kay';
+                document.getElementById('robotStoryTitle').innerText = 'Robot Stories';
+                document.getElementById('robotStoryIntro').innerText = 'Explore fascinating tales of robots and their adventures!';
+                document.getElementById('readStories').innerText = 'Read Robot Stories';
             }
         }
 

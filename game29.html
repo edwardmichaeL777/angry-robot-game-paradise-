@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Traffic Light Reaction Game / 交通灯反应游戏</title>
+    <style>
+        body {
+            font-family: 'Roboto', Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            text-align: center;
+            background-color: #0f0f1f;
+            color: #e0e0e0;
+        }
+        .page {
+            display: none;
+            background-color: #1a1a2e;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(52, 152, 219, 0.5);
+            padding: 20px;
+        }
+        #languagePage {
+            display: block;
+        }
+        button {
+            font-size: 18px;
+            margin: 10px;
+            padding: 10px 20px;
+            cursor: pointer;
+            background-color: #2980b9;
+            color: white;
+            border: none;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #3498db;
+        }
+        #gameCanvas {
+            border: 1px solid #3498db;
+            background-color: #1a1a2e;
+            box-shadow: 0 0 10px rgba(52, 152, 219, 0.5);
+        }
+        #result, #score {
+            font-size: 18px;
+            margin: 10px 0;
+            color: #3498db;
+        }
+        .control-buttons {
+            margin-top: 20px;
+            display: none;
+        }
+        .control-buttons.visible {
+            display: block;
+        }
+        h1, h2 {
+            color: #3498db;
+            text-shadow: 0 0 5px rgba(52, 152, 219, 0.5);
+        }
+        #rulesList {
+            text-align: left;
+            padding-left: 20px;
+        }
+        #rulesList li {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div id="languagePage" class="page">
+        <h1>Select Language / 选择语言</h1>
+        <button onclick="setLanguage('en')">English</button>
+        <button onclick="setLanguage('zh')">中文</button>
+    </div>
+
+    <div id="rulesPage" class="page">
+        <h1 id="rulesTitle"></h1>
+        <ul id="rulesList"></ul>
+        <button id="startButton" onclick="startGame()"></button>
+    </div>
+
+    <div id="gamePage" class="page">
+        <h1 id="gameTitle"></h1>
+        <div id="instructions"></div>
+        <canvas id="gameCanvas" width="400" height="300"></canvas>
+        <div id="result"></div>
+        <div id="score"></div>
+        <div class="control-buttons">
+            <button id="restartButton" onclick="restartGame()"></button>
+            <button id="backButton" onclick="backToMenu()"></button>
+        </div>
+    </div>
+
+    <script>
+        let language = 'en';
+        let gameActive = false;
+        let greenLightTime;
+        let scores = [0, 0];
+        let roundsPlayed = 0;
+        let canvas, ctx;
+
+        const translations = {
+            en: {
+                rulesTitle: "Traffic Light Reaction Game Rules",
+                rules: [
+                    "The first player to win a round wins the game.",
+                    "A red traffic light will appear and turn green after 5-15 seconds.",
+                    "Player 1 uses the 'A' key, Player 2 uses the 'P' key to respond.Once the light turns green, the first player to press their key wins the round.",
+                    "If a player presses their key before the light turns green, their opponent gets 1 point."
+                ],
+                startButton: "Start Game",
+                gameTitle: "Traffic Light Reaction Game",
+                instructions: "Player 1: Press 'A' | Player 2: Press 'P'",
+                restartButton: "Restart Game",
+                backButton: "Back to Menu",
+                waitingText: "Wait for green...",
+                scoreText: "Player 1: {0} | Player 2: {1}",
+                roundWinText: "Player {0} wins the game!",
+                earlyPressText: "Player {0} pressed too early! Player {1} gets 1 point.",
+                newGameText: "Press Space to start a new game"
+            },
+            zh: {
+                rulesTitle: "交通灯反应游戏规则",
+                rules: [
+                    "首先获得一分的玩家赢得游戏。",
+                    "红色交通灯会出现，并在5-15秒后变成绿色。",
+                    "玩家1使用'A'键，玩家2使用'P'键来响应。一旦灯变绿，第一个按下按键的玩家将赢得该回合。",
+                    "如果玩家在灯光变绿之前按键，对方获得1分。"
+                ],
+                startButton: "开始游戏",
+                gameTitle: "交通灯反应游戏",
+                instructions: "玩家1: 按'A' | 玩家2: 按'P'",
+                restartButton: "重新开始",
+                backButton: "返回菜单",
+                waitingText: "等待绿灯...",
+                scoreText: "玩家1: {0} | 玩家2: {1}",
+                roundWinText: "玩家 {0} 赢得游戏！",
+                earlyPressText: "玩家 {0} 过早按键！玩家 {1} 获得1分。",
+                newGameText: "按空格键开始新游戏"
+            }
+        };
+
+        function setLanguage(lang) {
+            language = lang;
+            document.getElementById('languagePage').style.display = 'none';
+            document.getElementById('rulesPage').style.display = 'block';
+            updateRulesPage();
+        }
+
+        function updateRulesPage() {
+            document.getElementById('rulesTitle').textContent = translations[language].rulesTitle;
+            const rulesList = document.getElementById('rulesList');
+            rulesList.innerHTML = '';
+            translations[language].rules.forEach(rule => {
+                const li = document.createElement('li');
+                li.textContent = rule;
+                rulesList.appendChild(li);
+            });
+            document.getElementById('startButton').textContent = translations[language].startButton;
+        }
+
+        function startGame() {
+            document.getElementById('rulesPage').style.display = 'none';
+            document.getElementById('gamePage').style.display = 'block';
+            canvas = document.getElementById('gameCanvas');
+            ctx = canvas.getContext('2d');
+            updateGamePage();
+            resetGame();
+            startRound();
+        }
+
+        function updateGamePage() {
+            document.getElementById('gameTitle').textContent = translations[language].gameTitle;
+            document.getElementById('instructions').textContent = translations[language].instructions;
+            document.querySelector('.control-buttons').classList.remove('visible');
+            document.getElementById('restartButton').textContent = translations[language].restartButton;
+            document.getElementById('backButton').textContent = translations[language].backButton;
+            updateScore();
+        }
+
+        function drawTrafficLight(color) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.beginPath();
+            ctx.arc(canvas.width / 2, canvas.height / 2, 50, 0, 2 * Math.PI);
+            ctx.fillStyle = color;
+            ctx.fill();
+            drawRobots(false, false);
+        }
+
+        function updateScore() {
+            document.getElementById('score').textContent = translations[language].scoreText.replace('{0}', scores[0]).replace('{1}', scores[1]);
+        }
+
+        function startRound() {
+            gameActive = true;
+            document.getElementById('result').textContent = translations[language].waitingText;
+            drawTrafficLight('red');
+            const randomDelay = Math.floor(Math.random() * 10000) + 5000; // 5 to 15 seconds
+            greenLightTime = Date.now() + randomDelay;
+
+            setTimeout(() => {
+                if (gameActive) {
+                    drawTrafficLight('green');
+                }
+            }, randomDelay);
+        }
+
+        function endRound(winner, earlyPress = false) {
+            gameActive = false;
+            if (earlyPress) {
+                document.getElementById('result').textContent = translations[language].earlyPressText.replace('{0}', 3 - winner).replace('{1}', winner);
+                scores[winner - 1]++; // Give 1 point to the opponent
+            } else {
+                document.getElementById('result').textContent = translations[language].roundWinText.replace('{0}', winner);
+                scores[winner - 1] = 1; // Set the winner's score to 1
+                scores[1 - (winner - 1)] = 0; // Reset the loser's score
+            }
+            updateScore();
+            roundsPlayed++;
+
+            if (scores[0] === 1 || scores[1] === 1) {
+                document.querySelector('.control-buttons').classList.add('visible');
+                endGame();
+            } else {
+                document.getElementById('result').textContent += ' ' + translations[language].newGameText;
+            }
+        }
+
+        function endGame() {
+            const winner = scores[0] > scores[1] ? 1 : 2;
+            document.getElementById('result').textContent = translations[language].roundWinText.replace('{0}', winner);
+        }
+
+        function resetGame() {
+            scores = [0, 0];
+            roundsPlayed = 0;
+            updateScore();
+            document.getElementById('result').textContent = '';
+            document.querySelector('.control-buttons').classList.remove('visible');
+        }
+
+        function restartGame() {
+            resetGame();
+            startRound();
+        }
+
+        function backToMenu() {
+            window.location.href = 'index.html';
+        }
+
+        function drawRobot(x, y, color, isPunching) {
+            ctx.fillStyle = color;
+            ctx.fillRect(x - 25, y - 50, 50, 80);
+            ctx.fillRect(x - 20, y - 80, 40, 30);
+            ctx.fillStyle = 'white';
+            ctx.fillRect(x - 15, y - 75, 10, 10);
+            ctx.fillRect(x + 5, y - 75, 10, 10);
+            if (isPunching) {
+                ctx.fillStyle = color;
+                ctx.fillRect(x + (color === 'blue' ? 25 : -65), y - 40, 40, 20);
+            } else {
+                ctx.fillStyle = color;
+                ctx.fillRect(x + (color === 'blue' ? 25 : -35), y - 40, 10, 60);
+            }
+            ctx.fillRect(x - 20, y + 30, 15, 40);
+            ctx.fillRect(x + 5, y + 30, 15, 40);
+        }
+
+        function drawRobots(isAPunching, isBPunching) {
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            drawRobot(centerX - 100, centerY, 'blue', isAPunching);
+            drawRobot(centerX + 100, centerY, 'red', isBPunching);
+        }
+
+        document.addEventListener('keydown', (event) => {
+            if (event.code === 'Space' && !gameActive) {
+                resetGame();
+                startRound();
+            }
+
+            if (!gameActive) return;
+
+            const now = Date.now();
+            if (event.key.toLowerCase() === 'a') {
+                if (now < greenLightTime) {
+                    endRound(2, true); // Opponent (Player 2) gets 1 point
+                } else {
+                    endRound(1);
+                }
+            } else if (event.key.toLowerCase() === 'p') {
+                if (now < greenLightTime) {
+                    endRound(1, true); // Opponent (Player 1) gets 1 point
+                } else {
+                    endRound(2);
+                }
+            }
+        });
+    </script>
+</body>
+</html>

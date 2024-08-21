@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Robot Diving Adventure / 机器人潜水冒险</title>
+    <style>
+        body {
+            font-family: 'Roboto', Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            text-align: center;
+            background-color: #0f0f1f;
+            color: #e0e0e0;
+        }
+        .page {
+            display: none;
+            background-color: #1a1a2e;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(52, 152, 219, 0.5);
+            padding: 20px;
+        }
+        #languagePage {
+            display: block;
+        }
+        button {
+            font-size: 18px;
+            margin: 10px;
+            padding: 10px 20px;
+            cursor: pointer;
+            background-color: #2980b9;
+            color: white;
+            border: none;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #3498db;
+        }
+        #gameCanvas {
+            border: 1px solid #3498db;
+            background-color: #1a1a2e;
+            box-shadow: 0 0 10px rgba(52, 152, 219, 0.5);
+        }
+        #score, #energy, #result {
+            font-size: 18px;
+            margin: 10px 0;
+            color: #3498db;
+        }
+        .control-buttons {
+            margin-top: 20px;
+            display: none;
+        }
+        h1, h2 {
+            color: #3498db;
+            text-shadow: 0 0 5px rgba(52, 152, 219, 0.5);
+        }
+        #rulesList {
+            text-align: left;
+            padding-left: 20px;
+        }
+        #rulesList li {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div id="languagePage" class="page">
+        <h1>Select Language / 选择语言</h1>
+        <button onclick="setLanguage('en')">English</button>
+        <button onclick="setLanguage('zh')">中文</button>
+    </div>
+
+    <div id="rulesPage" class="page">
+        <h1 id="rulesTitle"></h1>
+        <ul id="rulesList"></ul>
+        <button id="startButton" onclick="startGame()"></button>
+    </div>
+
+    <div id="gamePage" class="page">
+        <h1 id="gameTitle"></h1>
+        <div id="instructions"></div>
+        <div id="score"></div>
+        <div id="energy"></div>
+        <canvas id="gameCanvas" width="400" height="600"></canvas>
+        <div id="result"></div>
+        <div class="control-buttons">
+            <button id="restartButton" onclick="restartGame()"></button>
+            <button id="backButton" onclick="backToMenu()"></button>
+        </div>
+    </div>
+
+    <script>
+        let language = 'en';
+        let score = 0;
+        let energy = 100;
+        let isGameOver = false;
+        let gameLoop;
+        let robot, batteries, sharks;
+        let canvas, ctx;
+        let difficulty = 1;
+        let difficultyIncreaseRate = 0.01;
+
+        const translations = {
+            en: {
+                rulesTitle: "Robot Diving Adventure Rules",
+                rules: [
+                    "Control the robot to collect batteries and avoid sharks.",
+                    "Use WASD keys to move the robot.",
+                    "Collecting batteries increases energy and score.",
+                    "Avoiding sharks is crucial for survival.",
+                    "The game gets harder as your score increases.",
+                    "The game ends when energy reaches 0 or a shark is hit.",
+                    "Try to achieve the highest score possible!"
+                ],
+                startButton: "Start Game",
+                gameTitle: "Robot Diving Adventure",
+                instructions: "Use WASD keys to move the robot",
+                restartButton: "Restart Game",
+                backButton: "Back to Menu",
+                scoreText: "Score: {0}",
+                energyText: "Energy: {0}%",
+                gameOverText: "Game Over! Your score: {0}"
+            },
+            zh: {
+                rulesTitle: "机器人潜水冒险规则",
+                rules: [
+                    "控制机器人收集电池并避开鲨鱼。",
+                    "使用WASD键移动机器人。",
+                    "收集电池可以增加能量和分数。",
+                    "避开鲨鱼对生存至关重要。",
+                    "游戏难度会随着分数增加而提高。",
+                    "当能量降至0或撞到鲨鱼时游戏结束。",
+                    "尽可能获得最高分数！"
+                ],
+                startButton: "开始游戏",
+                gameTitle: "机器人潜水冒险",
+                instructions: "使用WASD键移动机器人",
+                restartButton: "重新开始",
+                backButton: "返回菜单",
+                scoreText: "分数: {0}",
+                energyText: "能量: {0}%",
+                gameOverText: "游戏结束！你的分数: {0}"
+            }
+        };
+
+        function setLanguage(lang) {
+            language = lang;
+            document.getElementById('languagePage').style.display = 'none';
+            document.getElementById('rulesPage').style.display = 'block';
+            updateRulesPage();
+        }
+
+        function updateRulesPage() {
+            document.getElementById('rulesTitle').textContent = translations[language].rulesTitle;
+            const rulesList = document.getElementById('rulesList');
+            rulesList.innerHTML = '';
+            translations[language].rules.forEach(rule => {
+                const li = document.createElement('li');
+                li.textContent = rule;
+                rulesList.appendChild(li);
+            });
+            document.getElementById('startButton').textContent = translations[language].startButton;
+        }
+
+        function startGame() {
+            document.getElementById('rulesPage').style.display = 'none';
+            document.getElementById('gamePage').style.display = 'block';
+            canvas = document.getElementById('gameCanvas');
+            ctx = canvas.getContext('2d');
+            updateGamePage();
+            initGame();
+            gameLoop = setInterval(updateGame, 20);
+        }
+
+        function updateGamePage() {
+            document.getElementById('gameTitle').textContent = translations[language].gameTitle;
+            document.getElementById('instructions').textContent = translations[language].instructions;
+            document.getElementById('restartButton').textContent = translations[language].restartButton;
+            document.getElementById('backButton').textContent = translations[language].backButton;
+            updateScore();
+            updateEnergy();
+        }
+
+        class GameObject {
+            constructor(x, y, width, height, color) {
+                this.x = x;
+                this.y = y;
+                this.width = width;
+                this.height = height;
+                this.color = color;
+            }
+
+            draw() {
+                ctx.fillStyle = this.color;
+                ctx.fillRect(this.x, this.y, this.width, this.height);
+            }
+        }
+
+        class Robot extends GameObject {
+            constructor(x, y) {
+                super(x, y, 30, 40, 'blue');
+                this.speed = 7;
+            }
+
+            move(dx, dy) {
+                this.x = Math.max(0, Math.min(this.x + dx * this.speed, canvas.width - this.width));
+                this.y = Math.max(0, Math.min(this.y + dy * this.speed, canvas.height - this.height));
+            }
+
+            draw() {
+                // Body
+                ctx.fillStyle = this.color;
+                ctx.fillRect(this.x, this.y, this.width, this.height * 0.8);
+                // Head
+                ctx.fillRect(this.x + this.width * 0.2, this.y - this.height * 0.2, this.width * 0.6, this.height * 0.2);
+                // Eyes
+                ctx.fillStyle = 'white';
+                ctx.fillRect(this.x + this.width * 0.25, this.y - this.height * 0.15, this.width * 0.2, this.height * 0.1);
+                ctx.fillRect(this.x + this.width * 0.55, this.y - this.height * 0.15, this.width * 0.2, this.height * 0.1);
+                
+                // Legs
+                ctx.fillStyle = this.color;
+                ctx.fillRect(this.x + this.width * 0.1, this.y + this.height * 0.8, this.width * 0.3, this.height * 0.2);
+                ctx.fillRect(this.x + this.width * 0.6, this.y + this.height * 0.8, this.width * 0.3, this.height * 0.2);
+            }
+        }
+
+        class Battery extends GameObject {
+            constructor() {
+                super(
+                    Math.random() * (canvas.width - 20),
+                    canvas.height,
+                    20,
+                    30,
+                    'yellow'
+                );
+                this.speed = 2;
+            }
+
+            update() {
+                this.y -= this.speed * difficulty;
+                if (this.y < 0) {
+                    this.reset();
+                }
+            }
+
+            reset() {
+                this.x = Math.random() * (canvas.width - 20);
+                this.y = canvas.height;
+            }
+
+            draw() {
+                ctx.fillStyle = 'yellow';
+                ctx.fillRect(this.x, this.y, this.width, this.height);
+                ctx.fillStyle = 'gray';
+                ctx.fillRect(this.x + this.width * 0.4, this.y + this.height * 0.9, this.width * 0.2, this.height * 0.1);
+            }
+        }
+
+        class Shark extends GameObject {
+            constructor() {
+                super(
+                    Math.random() * (canvas.width - 60),
+                    canvas.height,
+                    60,
+                    30,
+                    'gray'
+                );
+                this.speed = 6; // Double the shark's speed
+            }
+
+            update() {
+                this.y -= this.speed * difficulty;
+                if (this.y < 0) {
+                    this.reset();
+                }
+            }
+
+            reset() {
+                this.x = Math.random() * (canvas.width - 60);
+                this.y = canvas.height;
+            }
+
+            draw() {
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.moveTo(this.x, this.y + this.height / 2);
+                ctx.lineTo(this.x + this.width * 0.25, this.y);
+                ctx.lineTo(this.x + this.width * 0.75, this.y);
+                ctx.lineTo(this.x + this.width, this.y + this.height / 2);
+                ctx.lineTo(this.x + this.width * 0.75, this.y + this.height);
+                ctx.lineTo(this.x + this.width * 0.25, this.y + this.height);
+                ctx.closePath();
+                ctx.fill();
+
+                // Eye
+                ctx.fillStyle = 'white';
+                ctx.beginPath();
+                ctx.arc(this.x + this.width * 0.15, this.y + this.height * 0.3, this.height * 0.15, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Pupil
+                ctx.fillStyle = 'black';
+                ctx.beginPath();
+                ctx.arc(this.x + this.width * 0.15, this.y + this.height * 0.3, this.height * 0.07, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Fin
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.moveTo(this.x + this.width * 0.5, this.y + this.height);
+                ctx.lineTo(this.x + this.width * 0.7, this.y + this.height + this.height * 0.3);
+                ctx.lineTo(this.x + this.width * 0.8, this.y + this.height);
+                ctx.closePath();
+                ctx.fill();
+            }
+        }
+
+        function initGame() {
+            robot = new Robot(canvas.width / 2 - 15, 50);
+            batteries = [new Battery(), new Battery()];
+            sharks = [new Shark(), new Shark()];
+            score = 0;
+            energy = 100;
+            difficulty = 1;
+            isGameOver = false;
+            updateScore();
+            updateEnergy();
+            document.addEventListener('keydown', handleKeyPress);
+        }
+
+        function updateGame() {
+            if (isGameOver) return;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            robot.draw();
+
+            batteries.forEach(battery => {
+                battery.update();
+                battery.draw();
+                if (checkCollision(robot, battery)) {
+                    score += 10;
+                    energy = Math.min(energy + 20, 100);
+                    updateScore();
+                    updateEnergy();
+                    battery.reset();
+                }
+            });
+
+            sharks.forEach(shark => {
+                shark.update();
+                shark.draw();
+                if (checkCollision(robot, shark)) {
+                    endGame();
+                }
+            });
+
+            energy -= 0.1 * difficulty;
+            updateEnergy();
+
+            if (energy <= 0) {
+                endGame();
+            }
+
+            // Increase difficulty as score increases
+            difficulty = 1 + Math.floor(score / 100) * difficultyIncreaseRate;
+        }
+
+        function checkCollision(obj1, obj2) {
+            return obj1.x < obj2.x + obj2.width &&
+                   obj1.x + obj1.width > obj2.x &&
+                   obj1.y < obj2.y + obj2.height &&
+                   obj1.y + obj1.height > obj2.y;
+        }
+
+        function updateScore() {
+            document.getElementById('score').textContent = translations[language].scoreText.replace('{0}', score);
+        }
+
+        function updateEnergy() {
+            energy = Math.max(0, energy);
+            document.getElementById('energy').textContent = translations[language].energyText.replace('{0}', Math.round(energy));
+        }
+
+        function handleKeyPress(e) {
+            if (isGameOver) return;
+
+            switch (e.key) {
+                case 'a':
+                    robot.move(-1, 0);
+                    break;
+                case 'd':
+                    robot.move(1, 0);
+                    break;
+                case 'w':
+                    robot.move(0, -1);
+                    break;
+                case 's':
+                    robot.move(0, 1);
+                    break;
+            }
+        }
+
+         function endGame() {
+            isGameOver = true;
+            clearInterval(gameLoop);
+            document.removeEventListener('keydown', handleKeyPress);
+            document.getElementById('result').textContent = translations[language].gameOverText.replace('{0}', score);
+            document.querySelector('.control-buttons').style.display = 'block';
+        }
+
+        function restartGame() {
+            document.getElementById('result').textContent = '';
+            document.querySelector('.control-buttons').style.display = 'none';
+            initGame();
+            gameLoop = setInterval(updateGame, 20);
+        }
+
+        function backToMenu() {
+            document.getElementById('gamePage').style.display = 'none';
+            document.getElementById('languagePage').style.display = 'block';
+        }
+    </script>
+</body>
+</html>

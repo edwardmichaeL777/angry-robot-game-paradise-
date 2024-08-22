@@ -294,7 +294,7 @@
             if (!gameActive) return;
 
             const now = Date.now();
-            if (event.key.toLowerCase() === 'a') {
+             if (event.key.toLowerCase() === 'a') {
         if (now < greenLightTime) {
             endRound(1, true); // Player 1 pressed too early
         } else {
@@ -307,7 +307,7 @@
             endRound(2, false);
         }
     }
-        };
+});
     </script>
 </body>
 </html>

@@ -209,30 +209,9 @@
                 }
             }, randomDelay);
         }
+        
 
-        function endRound(winner, earlyPress = false) {
-            gameActive = false;
-    let winner;
-
-    if (earlyPress) {
-        winner = 3 - pressingPlayer; // The other player wins
-        document.getElementById('result').textContent = translations[language].earlyPressText.replace('{0}', pressingPlayer).replace('{1}', winner);
-    } else {
-        winner = pressingPlayer; // The pressing player wins
-        document.getElementById('result').textContent = translations[language].roundWinText.replace('{0}', winner);
-    }
-
-    roundsWon[winner - 1]++;
-    updateScore();
-    currentRound++;
-
-            if (roundsWon[0] === 2 || roundsWon[1] === 2) {
-                document.querySelector('.control-buttons').classList.add('visible');
-                endGame();
-            } else {
-                document.getElementById('result').textContent += ' ' + translations[language].newGameText;
-            }
-        }
+        
 
         function endGame() {
             const winner = roundsWon[0] > roundsWon[1] ? 1 : 2;
@@ -281,33 +260,61 @@
             drawRobot(centerX + 100, centerY, 'red', isBPunching);
         }
 
-        document.addEventListener('keydown', (event) => {
-            if (event.code === 'Space' && !gameActive) {
-                if (roundsWon[0] < 2 && roundsWon[1] < 2) {
-                    startRound();
-                } else {
-                    resetGame();
-                    startRound();
-                }
-            }
-
-            if (!gameActive) return;
-
-            const now = Date.now();
-             if (event.key.toLowerCase() === 'a') {
-        if (now < greenLightTime) {
-            endRound(1, true); // Player 1 pressed too early
+       document.addEventListener('keydown', (event) => {
+    if (event.code === 'Space' && !gameActive) {
+        if (roundsWon[0] < 2 && roundsWon[1] < 2) {
+            startRound();
         } else {
-            endRound(1, false);
+            resetGame();
+            startRound();
+        }
+    }
+
+    if (!gameActive) return;
+
+    const now = Date.now();
+    let pressingPlayer;
+
+    if (event.key.toLowerCase() === 'a') {
+        pressingPlayer = 1;
+        if (now < greenLightTime) {
+            endRound(pressingPlayer, true); // Player 1 pressed too early
+        } else {
+            endRound(pressingPlayer, false);
         }
     } else if (event.key.toLowerCase() === 'p') {
+        pressingPlayer = 2;
         if (now < greenLightTime) {
-            endRound(2, true); // Player 2 pressed too early
+            endRound(pressingPlayer, true); // Player 2 pressed too early
         } else {
-            endRound(2, false);
+            endRound(pressingPlayer, false);
         }
     }
 });
+
+function endRound(pressingPlayer, earlyPress = false) {
+    gameActive = false;
+    let winner;
+
+    if (earlyPress) {
+        winner = 3 - pressingPlayer; // The other player wins
+        document.getElementById('result').textContent = translations[language].earlyPressText.replace('{0}', pressingPlayer).replace('{1}', winner);
+    } else {
+        winner = pressingPlayer; // The pressing player wins
+        document.getElementById('result').textContent = translations[language].roundWinText.replace('{0}', winner);
+    }
+
+    roundsWon[winner - 1]++;
+    updateScore();
+    currentRound++;
+
+    if (roundsWon[0] === 2 || roundsWon[1] === 2) {
+        document.querySelector('.control-buttons').classList.add('visible');
+        endGame();
+    } else {
+        document.getElementById('result').textContent += ' ' + translations[language].newGameText;
+    }
+}
     </script>
 </body>
 </html>

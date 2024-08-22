@@ -209,7 +209,29 @@
                 }
             }, randomDelay);
         }
-        
+        function endRound(pressingPlayer, earlyPress = false) {
+    gameActive = false;
+    let winner;
+
+    if (earlyPress) {
+        winner = 3 - pressingPlayer; // The other player wins
+        document.getElementById('result').textContent = translations[language].earlyPressText.replace('{0}', pressingPlayer).replace('{1}', winner);
+    } else {
+        winner = pressingPlayer; // The pressing player wins
+        document.getElementById('result').textContent = translations[language].roundWinText.replace('{0}', winner);
+    }
+
+    roundsWon[winner - 1]++;
+    updateScore();
+    currentRound++;
+
+    if (roundsWon[0] === 2 || roundsWon[1] === 2) {
+        document.querySelector('.control-buttons').classList.add('visible');
+        endGame();
+    } else {
+        document.getElementById('result').textContent += ' ' + translations[language].newGameText;
+    }
+}
 
         
 
@@ -292,29 +314,7 @@
     }
 });
 
-function endRound(pressingPlayer, earlyPress = false) {
-    gameActive = false;
-    let winner;
 
-    if (earlyPress) {
-        winner = 3 - pressingPlayer; // The other player wins
-        document.getElementById('result').textContent = translations[language].earlyPressText.replace('{0}', pressingPlayer).replace('{1}', winner);
-    } else {
-        winner = pressingPlayer; // The pressing player wins
-        document.getElementById('result').textContent = translations[language].roundWinText.replace('{0}', winner);
-    }
-
-    roundsWon[winner - 1]++;
-    updateScore();
-    currentRound++;
-
-    if (roundsWon[0] === 2 || roundsWon[1] === 2) {
-        document.querySelector('.control-buttons').classList.add('visible');
-        endGame();
-    } else {
-        document.getElementById('result').textContent += ' ' + translations[language].newGameText;
-    }
-}
     </script>
 </body>
 </html>

@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>King-Civilian-Slave Card Game</title>
+    <style>
+        body {
+            font-family: 'Roboto', Arial, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            text-align: center;
+            background-color: #0f0f1f;
+            color: #e0e0e0;
+        }
+        .page {
+            display: none;
+            background-color: #1a1a2e;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(52, 152, 219, 0.5);
+            padding: 20px;
+        }
+        #languagePage {
+            display: block;
+        }
+        .game-area {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+        }
+        .player-cards {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .card {
+            width: 80px;
+            height: 120px;
+            background-color: #2c3e50;
+            border: 1px solid #3498db;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            cursor: pointer;
+            color: #3498db;
+            transition: background-color 0.3s;
+        }
+        .card:hover {
+            background-color: #34495e;
+        }
+        .card.used {
+            background-color: #1a1a2e;
+            cursor: not-allowed;
+            color: #7f8c8d;
+        }
+        #result, #scoreboard {
+            font-size: 18px;
+            margin-top: 20px;
+            color: #2ecc71;
+        }
+        #gameCanvas {
+            margin: 0 20px;
+        }
+        h1, h2 {
+            color: #3498db;
+            text-shadow: 0 0 5px rgba(52, 152, 219, 0.5);
+        }
+        button {
+            font-size: 18px;
+            margin: 10px;
+            padding: 10px 20px;
+            cursor: pointer;
+            background-color: #2980b9;
+            color: white;
+            border: none;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #3498db;
+        }
+        #rules {
+            text-align: left;
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #2c3e50;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div id="languagePage" class="page">
+        <h1>Select Language / 选择语言</h1>
+        <button onclick="setLanguage('en')">English</button>
+        <button onclick="setLanguage('zh')">中文</button>
+    </div>
+
+    <div id="rulesPage" class="page">
+        <h1 id="rulesTitle">Game Rules</h1>
+        <div id="rules"></div>
+        <button id="startButton" onclick="showGamePage()">Start Game</button>
+    </div>
+
+    <div id="gamePage" class="page">
+        <h1 id="gameTitle">King-Civilian-Slave Card Game</h1>
+        <div class="game-area">
+            <div id="player1" class="player-cards"></div>
+            <canvas id="gameCanvas" width="400" height="300"></canvas>
+            <div id="player2" class="player-cards"></div>
+        </div>
+        <div id="scoreboard"></div>
+        <div id="result"></div>
+    </div>
+
+    <script>
+        const player1Controls = ['q', 'w', 'e', 'r'];
+        const player2Controls = ['9', '8', '7', '6'];
+        let player1Cards, player2Cards, player1Score, player2Score, roundsPlayed, currentRound;
+        let player1Selection, player2Selection;
+        let gameActive = false;
+        let canvas, ctx;
+        let language = 'en';
+
+        const translations = {
+            en: {
+                gameTitle: "King-Civilian-Slave Card Game",
+                rulesTitle: "Game Rules",
+                startButton: "Start Game",
+                player1Wins: "Player 1 wins the round!",
+                player2Wins: "Player 2 wins the round!",
+                tie: "It's a tie!",
+                player1WinsGame: "Player 1 wins the game!",
+                player2WinsGame: "Player 2 wins the game!",
+                tieGame: "It's a tie game!",
+                rules: "Game Rules:<br>1. Each player has 4 cards: 1 special card (king or slave) and 3 civilian cards.<br>2. Players take turns being the king and slave each round.<br>3. Players play all 4 cards each round, one at a time.<br>4. Scoring:<br>   - King vs Slave: Slave player gets 8 points<br>   - King vs Civilian or Civilian vs Slave: King player gets 1 point<br>   - Civilian vs Civilian: No points<br>5. The game lasts for 8 rounds.<br>6. The player with the most points wins.<br><br>Controls:<br>Player 1: Q (special card), W, E, R (civilian cards)<br>Player 2: 9 (special card), 8, 7, 6 (civilian cards)",
+                score: "Score: Player 1: {0} - Player 2: {1}",
+                roundResult: "Round {0} result: Player 1 ({1}) - Player 2 ({2})"
+            },
+            zh: {
+                gameTitle: "国王-平民-奴隶卡牌游戏",
+                rulesTitle: "游戏规则",
+                startButton: "开始游戏",
+                player1Wins: "玩家1赢得回合！",
+                player2Wins: "玩家2赢得回合！",
+                tie: "平局！",
+                player1WinsGame: "玩家1赢得游戏！",
+                player2WinsGame: "玩家2赢得游戏！",
+                tieGame: "游戏平局！",
+                rules: "游戏规则：<br>1. 每位玩家有4张卡牌：1张特殊卡（国王或奴隶）和3张平民卡。<br>2. 玩家每回合轮流成为国王和奴隶。<br>3. 每回合玩家都要出完所有4张牌，一次出一张。<br>4. 计分：<br>   - 国王对奴隶：奴隶玩家得8分<br>   - 国王对平民或平民对奴隶：国王玩家得1分<br>   - 平民对平民：不得分<br>5. 游戏进行8个回合。<br>6. 得分最高的玩家获胜。<br><br>控制键：<br>玩家1：Q（特殊卡），W、E、R（平民卡）<br>玩家2：9（特殊卡），8、7、6（平民卡）",
+                score: "得分：玩家1：{0} - 玩家2：{1}",
+                roundResult: "第{0}回合结果：玩家1（{1}） - 玩家2（{2}）"
+            }
+        };
+
+        function setLanguage(lang) {
+            language = lang;
+            document.getElementById('languagePage').style.display = 'none';
+            document.getElementById('rulesPage').style.display = 'block';
+            updateLanguage();
+        }
+
+        function updateLanguage() {
+            document.getElementById('gameTitle').textContent = translations[language].gameTitle;
+            document.getElementById('rulesTitle').textContent = translations[language].rulesTitle;
+            document.getElementById('startButton').textContent = translations[language].startButton;
+            document.getElementById('rules').innerHTML = translations[language].rules;
+            updateScoreboard();
+        }
+
+        function showGamePage() {
+            document.getElementById('rulesPage').style.display = 'none';
+            document.getElementById('gamePage').style.display = 'block';
+            canvas = document.getElementById('gameCanvas');
+            ctx = canvas.getContext('2d');
+            startGame();
+        }
+
+        function startGame() {
+            player1Score = 0;
+            player2Score = 0;
+            roundsPlayed = 0;
+            currentRound = 0;
+            gameActive = true;
+            startNewRound();
+        }
+
+        function startNewRound() {
+            currentRound++;
+            player1Cards = currentRound % 2 === 1 ? ['👑', '🌾', '🌾', '🌾'] : ['⛓️', '🌾', '🌾', '🌾'];
+            player2Cards = currentRound % 2 === 1 ? ['⛓️', '🌾', '🌾', '🌾'] : ['👑', '🌾', '🌾', '🌾'];
+            player1Selection = null;
+            player2Selection = null;
+            renderCards();
+            updateScoreboard();
+            drawRobots(false, false);
+            document.getElementById('result').textContent = `Round ${currentRound}`;
+        }
+
+        function renderCards() {
+            const player1Element = document.getElementById('player1');
+            const player2Element = document.getElementById('player2');
+            player1Element.innerHTML = '';
+            player2Element.innerHTML = '';
+
+            for (let i = 0; i < 4; i++) {
+                const card1 = document.createElement('div');
+                card1.className = 'card';
+                card1.textContent = player1Cards[i] || '';
+                if (!player1Cards[i]) card1.classList.add('used');
+                player1Element.appendChild(card1);
+
+                const card2 = document.createElement('div');
+                card2.className = 'card';
+                card2.textContent = player2Cards[i] || '';
+                if (!player2Cards[i]) card2.classList.add('used');
+                player2Element.appendChild(card2);
+            }
+        }
+
+        function updateScoreboard() {
+            const scoreText = translations[language].score.replace('{0}', player1Score).replace('{1}', player2Score);
+            document.getElementById('scoreboard').textContent = scoreText;
+        }
+
+        function playRound() {
+            if (player1Selection === null || player2Selection === null) return;
+
+            const card1 = player1Cards[player1Selection];
+            const card2 = player2Cards[player2Selection];
+
+            player1Cards[player1Selection] = null;
+            player2Cards[player2Selection] = null;
+
+            let roundScore1 = 0;
+            let roundScore2 = 0;
+
+            if (card1 === '👑' && card2 === '⛓️') {
+                roundScore2 += 8;
+            } else if (card1 === '⛓️' && card2 === '👑') {
+                roundScore1 += 8;
+            } else if (card1 === '👑' || (card1 === '🌾' && card2 === '⛓️')) {
+                roundScore1 += 1;
+            } else if (card2 === '👑' || (card2 === '🌾' && card1 === '⛓️')) {
+                roundScore2 += 1;
+            }
+
+            player1Score += roundScore1;
+            player2Score += roundScore2;
+
+            renderCards();
+            updateScoreboard();
+
+            const roundResult = translations[language].roundResult
+                .replace('{0}', currentRound)
+                .replace('{1}', roundScore1)
+                .replace('{2}', roundScore2);
+            document.getElementById('result').textContent = roundResult;
+
+            player1Selection = null;
+            player2Selection = null;
+
+            if (player1Cards.every(card => card === null) && player2Cards.every(card => card === null)) {
+                roundsPlayed++;
+                if (roundsPlayed === 8) {
+                    endGame();
+                } else {
+                    setTimeout(() => {
+                        startNewRound();
+                    }, 2000);
+                }
+            }
+        }
+
+        function endGame() {
+            gameActive = false;
+            let result = '';
+            if (player1Score > player2Score) {
+                result = translations[language].player1WinsGame;
+            } else if (player2Score > player1Score) {
+                result = translations[language].player2WinsGame;
+            } else {
+                result = translations[language].tieGame;
+            }
+            result += ` (${player1Score} - ${player2Score})`;
+            document.getElementById('result').textContent = result;
+        }
+
+        document.addEventListener('keydown', (event) => {
+            if (!gameActive) return;
+
+            const key = event.key.toLowerCase();
+            const player1Choice = player1Controls.indexOf(key);
+            const player2Choice = player2Controls.indexOf(key);
+
+            if (player1Choice !== -1 && player1Cards[player1Choice]) {
+                player1Selection = player1Choice;
+            }
+
+            if (player2Choice !== -1 && player2Cards[player2Choice]) {
+                player2Selection = player2Choice;
+            }
+
+            if (player1Selection !== null && player2Selection !== null) {
+                playRound();
+            }
+        });
+
+        function drawRobot(x, y, color, isPunching) {
+            ctx.fillStyle = color;
+            ctx.fillRect(x - 25, y - 50, 50, 80);
+            ctx.fillRect(x - 20, y - 80, 40, 30);
+            ctx.fillStyle = 'white';
+            ctx.fillRect(x - 15, y - 75, 10, 10);
+            ctx.fillRect(x + 5, y - 75, 10, 10);
+            if (isPunching) {
+                ctx.fillStyle = color;
+                ctx.fillRect(x + (color === 'blue' ? 25 : -65), y - 40, 40, 20);
+            } else {
+                ctx.fillStyle = color;
+                ctx.fillRect(x + (color === 'blue' ? 25 : -35), y - 40, 10, 60);
+            }
+            ctx.fillRect(x - 20, y + 30, 15, 40);
+            ctx.fillRect(x + 5, y + 30, 15, 40);
+        }
+
+        function drawRobots(isAPunching, isBPunching) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            const centerY = canvas.height / 2;
+            drawRobot(50, centerY, 'blue', isAPunching);
+            drawRobot(canvas.width - 50, centerY, 'red', isBPunching);
+        }
+
+        // Initialize the game
+        updateLanguage();
+    </script>
+</body>
+</html>

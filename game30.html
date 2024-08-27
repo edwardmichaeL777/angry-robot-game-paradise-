@@ -138,7 +138,7 @@
                 player1WinsGame: "Player 1 wins the game!",
                 player2WinsGame: "Player 2 wins the game!",
                 tieGame: "It's a tie game!",
-                rules: "Game Rules:<br>1. Each player has 4 cards: 1 special card (king or slave) and 3 civilian cards.<br>2. Players take turns being the king and slave each round.<br>3. Players play all 4 cards each round, one at a time.<br>4. Scoring:<br>   - King vs Slave: Slave player gets 8 points<br>   - King vs Civilian or Civilian vs Slave: King player gets 1 point<br>   - Civilian vs Civilian: No points<br>5. The game lasts for 8 rounds.<br>6. The player with the most points wins.<br><br>Controls:<br>Player 1: Q (special card), W, E, R (civilian cards)<br>Player 2: 9 (special card), 8, 7, 6 (civilian cards)",
+                rules: "Game Rules:<br>1. Each player has 4 cards: 1 special card (king or slave) and 3 civilian cards.<br>2. Players take turns being the king and slave each round.<br>3. Players play all 4 cards each round, one at a time.<br>4. Scoring:<br>   - King vs Slave: Slave player gets 8 points<br>   - King vs Civilian or Civilian vs Slave: King player gets 1 point<br>   - Civilian vs Civilian: No points<br>5. The game lasts for 8 rounds.<br>6. The player with the most points wins.<br><br>Controls:<br>Player 1: Q (special card), W, E, R (civilian cards)<br>Player 2: 9 (special card), 8, 7, 6 (civilian cards)This game cannot be performed in mobile advice",
                 score: "Score: Player 1: {0} - Player 2: {1}",
                 roundResult: "Round {0} result: Player 1 ({1}) - Player 2 ({2})",
                 backToMenu: "Back to Menu",
@@ -154,7 +154,7 @@
                 player1WinsGame: "玩家1赢得游戏！",
                 player2WinsGame: "玩家2赢得游戏！",
                 tieGame: "游戏平局！",
-                rules: "游戏规则：<br>1. 每位玩家有4张卡牌：1张特殊卡（国王或奴隶）和3张平民卡。<br>2. 玩家每回合轮流成为国王和奴隶。<br>3. 每回合玩家都要出完所有4张牌，一次出一张。<br>4. 计分：<br>   - 国王对奴隶：奴隶玩家得8分<br>   - 国王对平民或平民对奴隶：国王玩家得1分<br>   - 平民对平民：不得分<br>5. 游戏进行8个回合。<br>6. 得分最高的玩家获胜。<br><br>控制键：<br>玩家1：Q（特殊卡），W、E、R（平民卡）<br>玩家2：9（特殊卡），8、7、6（平民卡）",
+                rules: "游戏规则：<br>1. 每位玩家有4张卡牌：1张特殊卡（国王或奴隶）和3张平民卡。<br>2. 玩家每回合轮流成为国王和奴隶。<br>3. 每回合玩家都要出完所有4张牌，一次出一张。<br>4. 计分：<br>   - 国王对奴隶：奴隶玩家得8分<br>   - 国王对平民或平民对奴隶：国王玩家得1分<br>   - 平民对平民：不得分<br>5. 游戏进行8个回合。<br>6. 得分最高的玩家获胜。<br><br>控制键：<br>玩家1：Q（特殊卡），W、E、R（平民卡）<br>玩家2：9（特殊卡），8、7、6（平民卡）此游戏无法在移动设备上进行運行。",
                 score: "得分：玩家1：{0} - 玩家2：{1}",
                 roundResult: "第{0}回合结果：玩家1（{1}） - 玩家2（{2}）",
                 backToMenu: "返回菜单",
@@ -344,9 +344,7 @@
         }
 
         function backToMenu() {
-            document.getElementById('gamePage').style.display = 'none';
-            document.getElementById('languagePage').style.display = 'block';
-            hideEndGameButtons();
+            window.location.href = 'index.html';
         }
 
         function restartGame() {

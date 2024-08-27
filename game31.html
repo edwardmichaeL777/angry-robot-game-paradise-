@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Robot Hangrobot Game</title>
+    <style>
+        body {
+            font-family: 'Roboto', Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #0f0f1f;
+            color: #e0e0e0;
+        }
+        .container {
+            text-align: center;
+            background-color: #1a1a2e;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(52, 152, 219, 0.5);
+            padding: 20px;
+            max-width: 600px;
+            width: 100%;
+        }
+        .page {
+            display: none;
+        }
+        #rulesPage {
+            display: block;
+        }
+        h1, h2 {
+            color: #3498db;
+            text-shadow: 0 0 5px rgba(52, 152, 219, 0.5);
+        }
+        button {
+            font-size: 18px;
+            padding: 10px 20px;
+            margin: 10px;
+            background-color: #2980b9;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #3498db;
+        }
+        #word-display {
+            font-size: 24px;
+            margin-bottom: 20px;
+            letter-spacing: 5px;
+            color: #3498db;
+        }
+        #guess-input {
+            font-size: 18px;
+            padding: 5px;
+            width: 30px;
+            text-align: center;
+            background-color: #2980b9;
+            color: white;
+            border: none;
+        }
+        #message {
+            margin-top: 20px;
+            font-weight: bold;
+            color: #3498db;
+        }
+        #gameCanvas {
+            border: 1px solid #3498db;
+            background-color: #1a1a2e;
+            box-shadow: 0 0 10px rgba(52, 152, 219, 0.5);
+        }
+        #rulesList {
+            text-align: left;
+            padding-left: 20px;
+        }
+        #rulesList li {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="rulesPage" class="page">
+            <h1 id="rulesTitle">Robot Hangrobot Game Rules</h1>
+            <ul id="rulesList">
+                <li>Guess the hidden word by suggesting letters.</li>
+                <li>You have 6 incorrect guesses before the robot is fully built.</li>
+                <li>Each wrong guess adds a part to the blue robot.</li>
+                <li>If the robot is completed before you guess the word, you lose.</li>
+                <li>Guess the word before the robot is built to win!</li>
+                
+            </ul>
+            <button id="startGameButton" onclick="showGamePage()">Start Game</button>
+        </div>
+
+        <div id="gamePage" class="page">
+            <h1 id="gameTitle">Robot Hangrobot Game</h1>
+            <div id="word-display"></div>
+            <input type="text" id="guess-input" maxlength="1">
+            <button id="guess-button">Guess</button>
+            <div id="message"></div>
+            <canvas id="gameCanvas" width="400" height="300"></canvas>
+            <button id="newGameButton" onclick="initializeGame()">New Game</button>
+            <button id="backToRulesButton" onclick="showRulesPage()">Back to Rules</button>
+        </div>
+    </div>
+
+    <script>
+        const words = [
+            'elephant', 'giraffe', 'kangaroo', 'penguin', 'butterfly', 'dragonfly', 'crocodile', 'rhinoceros',
+            'hippopotamus', 'octopus', 'porcupine', 'chameleon', 'scorpion', 'pelican', 'flamingo', 'dolphin',
+            'jellyfish', 'lobster', 'mosquito', 'grasshopper', 'caterpillar', 'squirrel', 'platypus', 'hedgehog',
+            'pineapple', 'blueberry', 'strawberry', 'watermelon', 'pomegranate', 'raspberry', 'blackberry',
+            'tangerine', 'cantaloupe', 'cranberry', 'avocado', 'coconut', 'eggplant', 'broccoli', 'cauliflower',
+            'asparagus', 'zucchini', 'artichoke', 'cucumber', 'cinnamon', 'chocolate', 'hamburger', 'spaghetti',
+            'pancakes', 'sandwich', 'birthday', 'vacation', 'adventure', 'festival', 'carnival', 'treasure',
+            'rainbow', 'sunshine', 'moonlight', 'starlight', 'thunderstorm', 'lightning', 'blizzard', 'hurricane',
+            'volcano', 'earthquake', 'mountain', 'waterfall', 'universe', 'galaxy', 'telescope', 'microscope',
+            'computer', 'internet', 'telephone', 'television', 'airplane', 'helicopter', 'submarine', 'spaceship',
+            'railroad', 'bicycle', 'motorcycle', 'ambulance', 'scissors', 'umbrella', 'backpack', 'suitcase',
+            'calendar', 'envelope', 'keyboard', 'microphone', 'headphones', 'newspaper', 'magazine', 'textbook',
+            'notebook', 'painting', 'sculpture', 'symphony', 'orchestra', 'instrument', 'theater', 'concert',
+            'museum', 'library', 'bookstore', 'restaurant', 'supermarket', 'pharmacy', 'hospital', 'university',
+            'classroom', 'playground', 'swimming', 'football', 'baseball', 'basketball', 'volleyball', 'tennis',
+            'golf', 'hockey', 'skateboard', 'surfboard', 'snowboard', 'fireworks', 'celebration', 'wedding',
+            'birthday', 'holiday', 'vacation', 'journey', 'adventure', 'discovery', 'imagination', 'creativity',
+            'knowledge', 'understanding', 'friendship', 'kindness', 'happiness', 'laughter', 'surprise',
+            'excitement', 'courage', 'strength', 'patience', 'wisdom', 'freedom', 'justice', 'respect',
+            'honesty', 'loyalty', 'generosity', 'compassion', 'perseverance', 'determination', 'enthusiasm',
+            'optimism', 'curiosity', 'imagination', 'inspiration', 'achievement', 'success', 'victory',
+            'challenge', 'opportunity', 'experience', 'memories', 'reflection', 'appreciation', 'gratitude',
+            'wonderful', 'fantastic', 'amazing', 'spectacular', 'marvelous', 'extraordinary', 'remarkable',
+            'incredible', 'delightful', 'enchanting', 'captivating', 'fascinating', 'intriguing', 'mysterious',
+            'adventure', 'exploration', 'discovery', 'innovation', 'technology', 'science', 'mathematics',
+            'literature', 'language', 'communication', 'expression', 'perspective', 'imagination', 'creativity',
+            
+        ];
+
+        let selectedWord = '';
+        let guessedLetters = [];
+        let remainingGuesses = 6;
+        let canvas, ctx;
+
+        function showRulesPage() {
+            document.getElementById('rulesPage').style.display = 'block';
+            document.getElementById('gamePage').style.display = 'none';
+        }
+
+        function showGamePage() {
+            document.getElementById('rulesPage').style.display = 'none';
+            document.getElementById('gamePage').style.display = 'block';
+            initializeGame();
+        }
+
+        function initializeGame() {
+            selectedWord = words[Math.floor(Math.random() * words.length)];
+            guessedLetters = [];
+            remainingGuesses = 6;
+            updateWordDisplay();
+            canvas = document.getElementById('gameCanvas');
+            ctx = canvas.getContext('2d');
+            drawRobot(canvas.width / 2, canvas.height / 2, 'blue', false, 0);
+            document.getElementById('message').textContent = '';
+            document.getElementById('guess-input').value = '';
+            document.getElementById('guess-input').focus();
+            document.getElementById('guess-button').disabled = false;
+        }
+
+        function updateWordDisplay() {
+            const wordDisplay = document.getElementById('word-display');
+            wordDisplay.textContent = selectedWord
+                .split('')
+                .map(letter => guessedLetters.includes(letter) ? letter : '_')
+                .join(' ');
+        }
+
+        function drawRobot(x, y, color, isPunching, parts) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = color;
+
+            // Draw body parts based on the number of incorrect guesses
+            if (parts >= 1) ctx.fillRect(x - 25, y - 50, 50, 80); // Body
+            if (parts >= 2) ctx.fillRect(x - 20, y - 80, 40, 30); // Head
+            if (parts >= 3) { // Eyes
+                ctx.fillStyle = 'white';
+                ctx.fillRect(x - 15, y - 75, 10, 10);
+                ctx.fillRect(x + 5, y - 75, 10, 10);
+                ctx.fillStyle = color;
+            }
+            if (parts >= 4) { // Arms
+                if (isPunching) {
+                    ctx.fillRect(x + 25, y - 40, 40, 20);
+                } else {
+                    ctx.fillRect(x + 25, y - 40, 10, 60);
+                }
+                ctx.fillRect(x - 35, y - 40, 10, 60);
+            }
+            if (parts >= 5) ctx.fillRect(x - 20, y + 30, 15, 40); // Left leg
+            if (parts >= 6) ctx.fillRect(x + 5, y + 30, 15, 40); // Right leg
+        }
+
+        function makeGuess() {
+            const guessInput = document.getElementById('guess-input');
+            const message = document.getElementById('message');
+            const guess = guessInput.value.toLowerCase();
+
+            if (guess.length !== 1 || !/[a-z]/.test(guess)) {
+                message.textContent = "Please enter a single letter.";
+                return;
+            }
+
+            if (guessedLetters.includes(guess)) {
+                message.textContent = "You already guessed that letter.";
+                return;
+            }
+
+            guessedLetters.push(guess);
+
+            if (selectedWord.includes(guess)) {
+                updateWordDisplay();
+                if (!document.getElementById('word-display').textContent.includes('_')) {
+                    message.textContent = "Congratulations! You won!";
+                    document.getElementById('guess-button').disabled = true;
+                    drawRobot(canvas.width / 2, canvas.height / 2, 'blue', true, 6);
+                }
+            } else {
+                remainingGuesses--;
+                drawRobot(canvas.width / 2, canvas.height / 2, 'blue', false, 6 - remainingGuesses);
+                if (remainingGuesses === 0) {
+                    message.textContent = `Game over! The word was "${selectedWord}".`;
+                    document.getElementById('guess-button').disabled = true;
+                    drawRobot(canvas.width / 2, canvas.height / 2, 'blue', true, 6);
+                }
+            }
+
+            guessInput.value = '';
+            guessInput.focus();
+        }
+
+        document.getElementById('guess-button').addEventListener('click', makeGuess);
+        document.getElementById('guess-input').addEventListener('keyup', (event) => {
+            if (event.key === 'Enter') {
+                makeGuess();
+            }
+        });
+
+        // Initialize the rules page
+        showRulesPage();
+    </script>
+</body>
+</html>

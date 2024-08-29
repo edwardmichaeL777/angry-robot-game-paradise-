@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Three Cup Monte Game with Robot</title>
+    <style>
+        body {
+            font-family: 'Roboto', Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            text-align: center;
+            background-color: #0f0f1f;
+            color: #e0e0e0;
+        }
+        .page {
+            display: none;
+            background-color: #1a1a2e;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(52, 152, 219, 0.5);
+            padding: 20px;
+        }
+        #languagePage {
+            display: block;
+        }
+        .game-container {
+            text-align: center;
+            position: relative;
+        }
+        canvas {
+            border: 1px solid #3498db;
+            border-radius: 10px;
+        }
+        button {
+            font-size: 18px;
+            margin: 10px;
+            padding: 10px 20px;
+            cursor: pointer;
+            background-color: #2980b9;
+            color: white;
+            border: none;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #3498db;
+        }
+        #message, #score {
+            margin-top: 20px;
+            font-size: 18px;
+            font-weight: bold;
+            color: #3498db;
+        }
+        h1, h2 {
+            color: #3498db;
+            text-shadow: 0 0 5px rgba(52, 152, 219, 0.5);
+        }
+        #rulesList {
+            text-align: left;
+            padding-left: 20px;
+        }
+        #rulesList li {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div id="languagePage" class="page">
+        <h1>Select Language / 选择语言</h1>
+        <button onclick="setLanguage('en')">English</button>
+        <button onclick="setLanguage('zh')">中文</button>
+    </div>
+
+    <div id="rulesPage" class="page">
+        <h1 id="rulesTitle"></h1>
+        <ul id="rulesList"></ul>
+        <button id="startGameButton" onclick="showGamePage()"></button>
+    </div>
+
+    <div id="gamePage" class="page game-container">
+        <canvas id="gameCanvas" width="600" height="400"></canvas>
+        <div id="message"></div>
+        <div id="score"></div>
+        <div id="gameButtons" style="display: none;">
+            <button id="restartButton" onclick="restartGame()"></button>
+            <button id="menuButton" onclick="showMenu()"></button>
+        </div>
+    </div>
+
+    <script>
+        let language = 'en';
+        let ballPosition;
+        let gameStarted = false;
+        let score = 0;
+        let currentDifficulty = 'easy';
+        let round = 0;
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const cupPositions = [150, 300, 450];
+        const difficulty = {
+            easy: { shuffleCount: 5, speed: 300, revealTime: 500 },
+            medium: { shuffleCount: 8, speed: 275, revealTime: 300 },
+            hard: { shuffleCount: 12, speed: 250, revealTime: 200 }
+        };
+
+        const translations = {
+            en: {
+                rulesTitle: "Advanced Three Cup Monte Game Rules",
+                rules: [
+                    "Watch carefully as the ball is briefly revealed under one of the cups.",
+                    "The robot will shuffle the cups at increasing speeds.",
+                    "After shuffling, you have one chance to guess which cup contains the ball.",
+                    "Click on a cup to make your guess.",
+                    "You score a point if you guess correctly and the game continues.",
+                    "The game gets harder with each round.",
+                    "The game ends if you guess incorrectly.",
+                    "The game starts automatically after you read the rules."
+                ],
+                startGameButton: "Start Game",
+                watchClosely: "Watch closely! The ball will appear briefly.",
+                shuffling: "Robot is shuffling the cups...",
+                makeGuess: "Make your guess! Which cup has the ball?",
+                correct: "Correct! You found the ball!",
+                incorrect: "Sorry, that's not the right cup.",
+                gameOver: "Game Over. Your final score: {0}",
+                score: "Score: {0}",
+                restartButton: "Play Again",
+                menuButton: "Back to Menu"
+            },
+            zh: {
+                rulesTitle: "高级三杯赌球游戏规则",
+                rules: [
+                    "仔细观察球在其中一个杯子下短暂出现。",
+                    "机器人会以越来越快的速度洗牌。",
+                    "洗牌后，你有一次机会猜测哪个杯子里有球。",
+                    "点击杯子来猜测。",
+                    "猜对得一分，游戏继续。",
+                    "每轮游戏都会变得更难。",
+                    "猜错游戏结束。",
+                    "阅读规则后，游戏会自动开始。"
+                ],
+                startGameButton: "开始游戏",
+                watchClosely: "仔细看！球将短暂出现。",
+                shuffling: "机器人正在洗牌...",
+                makeGuess: "做出你的猜测！哪个杯子里有球？",
+                correct: "正确！你找到了球！",
+                incorrect: "对不起，不是这个杯子。",
+                gameOver: "游戏结束。你的最终得分：{0}",
+                score: "得分：{0}",
+                restartButton: "再玩一次",
+                menuButton: "返回菜单"
+            }
+        };
+
+        function setLanguage(lang) {
+            language = lang;
+            document.getElementById('languagePage').style.display = 'none';
+            document.getElementById('rulesPage').style.display = 'block';
+            updateRulesPage();
+        }
+
+        function updateRulesPage() {
+            document.getElementById('rulesTitle').textContent = translations[language].rulesTitle;
+            const rulesList = document.getElementById('rulesList');
+            rulesList.innerHTML = '';
+            translations[language].rules.forEach(rule => {
+                const li = document.createElement('li');
+                li.textContent = rule;
+                rulesList.appendChild(li);
+            });
+            document.getElementById('startGameButton').textContent = translations[language].startGameButton;
+        }
+
+        function showGamePage() {
+            document.getElementById('rulesPage').style.display = 'none';
+            document.getElementById('gamePage').style.display = 'block';
+            startGame();
+        }
+
+        function startGame() {
+            if (gameStarted) return;
+            gameStarted = true;
+            round = 0;
+            document.getElementById('gameButtons').style.display = 'none';
+            startNextRound();
+        }
+
+        function startNextRound() {
+            round++;
+            ballPosition = Math.floor(Math.random() * 3);
+            updateDifficulty();
+            drawGame();
+            document.getElementById('message').textContent = translations[language].watchClosely;
+            
+            setTimeout(() => {
+                drawGame(true);  // Show the ball
+                setTimeout(() => {
+                    drawGame();  // Hide the ball
+                    document.getElementById('message').textContent = translations[language].shuffling;
+                    shuffleCups();
+                }, difficulty[currentDifficulty].revealTime);
+            }, 1000);
+        }
+
+        function updateDifficulty() {
+            if (round <= 1) {
+                currentDifficulty = 'easy';
+            } else if (round <= 3) {
+                currentDifficulty = 'medium';
+            } else {
+                currentDifficulty = 'hard';
+            }
+        }
+
+        function drawGame(showBall = false) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw robot (behind the table)
+            drawRobot(300, 200, 0);
+            
+            // Draw table
+            ctx.fillStyle = '#8b4513';
+            ctx.fillRect(50, 250, 500, 100);
+            
+            // Draw cups
+            ctx.fillStyle = '#d2691e';
+            for (let i = 0; i < 3; i++) {
+                drawCup(cupPositions[i], 200);
+            }
+            
+            // Draw ball (if visible)
+            if (showBall) {
+                ctx.fillStyle = 'red';
+                ctx.beginPath();
+                ctx.arc(cupPositions[ballPosition] + 25, 275, 15, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        function drawCup(x, y) {
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            ctx.lineTo(x + 50, y);
+            ctx.lineTo(x + 40, y + 100);
+            ctx.lineTo(x + 10, y + 100);
+            ctx.closePath();
+            ctx.fill();
+        }
+
+        function drawRobot(x, y, angle) {
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.rotate(angle);
+            
+            ctx.fillStyle = 'gray';
+            ctx.fillRect(-25, -40, 50, 80);
+            
+            ctx.fillRect(-20, -70, 40, 30);
+            
+            ctx.fillStyle = 'black';
+            ctx.fillRect(-15, -65, 10, 10);
+            ctx.fillRect(5, -65, 10, 10);
+            
+            ctx.strokeStyle = 'gray';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(0, -70);
+            ctx.lineTo(0, -85);
+            ctx.stroke();
+            ctx.fillStyle = 'red';
+            ctx.beginPath();
+            ctx.arc(0, -85, 3, 0, Math.PI * 2);
+            ctx.fill();
+            
+            ctx.fillStyle = 'gray';
+            ctx.fillRect(-35, -30, 10, 60);
+            ctx.fillRect(25, -30, 10, 60);
+            
+            ctx.fillRect(-20, 40, 15, 40);
+            ctx.fillRect(5, 40, 15, 40);
+            ctx.restore();
+        }
+
+        function shuffleCups() {
+            const { shuffleCount, speed } = difficulty[currentDifficulty];
+            let shuffles = 0;
+
+            function doShuffle() {
+                const cup1 = Math.floor(Math.random() * 3);
+                let cup2 = Math.floor(Math.random() * 3);
+                while (cup2 === cup1) {
+                    cup2 = Math.floor(Math.random() * 3);
+                }
+
+                const tempPosition = cupPositions[cup1];
+                cupPositions[cup1] = cupPositions[cup2];
+                cupPositions[cup2] = tempPosition;
+
+                if (ballPosition === cup1) {
+                    ballPosition = cup2;
+                } else if (ballPosition === cup2) {
+                    ballPosition = cup1;
+                }
+
+                animateCupSwap(cup1, cup2, speed);
+
+                shuffles++;
+                if (shuffles < shuffleCount) {
+                    setTimeout(doShuffle, speed + 50);
+                } else {
+                    document.getElementById('message').textContent = translations[language].makeGuess;
+                    canvas.onclick = handleGuess;
+                }
+            }
+
+            doShuffle();
+        }
+
+        function animateCupSwap(cup1, cup2, speed) {
+            const startTime = Date.now();
+            const startPos1 = cupPositions[cup1];
+            const startPos2 = cupPositions[cup2];
+            const distance = Math.abs(startPos1 - startPos2);
+
+            function animate() {
+                const elapsedTime = Date.now() - startTime;
+                const progress = Math.min(elapsedTime / speed, 1);
+
+                cupPositions[cup1] = startPos1 + (startPos2 - startPos1) * progress;
+                cupPositions[cup2] = startPos2 + (startPos1 - startPos2) * progress;
+
+                drawGame();
+
+                if (progress < 1) {
+                    requestAnimationFrame(animate);
+                }
+            }
+
+            animate();
+        }
+
+        function handleGuess(event) {
+            const rect = canvas.getBoundingClientRect();
+            const x = event.clientX - rect.left;
+            const guessedCup = cupPositions.findIndex(pos => x >= pos && x <= pos + 50);
+
+            if (guessedCup !== -1) {
+                canvas.onclick = null;
+                if (guessedCup === ballPosition) {
+                    document.getElementById('message').textContent = translations[language].correct;
+                    score++;
+                    updateScore();
+                    drawGame(true);  // Show the ball
+                    setTimeout(() => {
+                        startNextRound();
+                    }, 2000);
+                } else {
+                    document.getElementById('message').textContent = translations[language].incorrect;
+                    updateScore();
+                    drawGame(true);  // Show the ball
+                    endGame();
+                }
+                if (round > 5) {
+                difficulty[currentDifficulty].speed = Math.max(100, difficulty[currentDifficulty].speed - 5);
+            }
+            }
+        }
+
+        function updateScore() {
+            document.getElementById('score').textContent = translations[language].score.replace('{0}', score);
+        }
+
+        function endGame() {
+            gameStarted = false;
+            document.getElementById('message').textContent = translations[language].gameOver.replace('{0}', score);
+            document.getElementById('gameButtons').style.display = 'block';
+            document.getElementById('restartButton').textContent = translations[language].restartButton;
+            document.getElementById('menuButton').textContent = translations[language].menuButton;
+        }
+
+        function restartGame() {
+            score = 0;
+            currentDifficulty = 'easy';
+            startGame();
+        }
+
+        function showMenu() {
+            document.getElementById('gamePage').style.display = 'none';
+            document.getElementById('languagePage').style.display = 'block';
+            score = 0;
+            currentDifficulty = 'easy';
+        }
+
+        // Initial game start
+        window.onload = function() {
+            if (document.getElementById('gamePage').style.display === 'block') {
+                startGame();
+            }
+        };
+    </script>
+</body>
+</html>

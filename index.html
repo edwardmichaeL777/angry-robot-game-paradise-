@@ -90,6 +90,14 @@
         button:hover {
             background-color: #3498db;
         }
+        .fortune-section {
+    margin-top: 30px;
+    padding: 20px;
+    border: 1px solid #3498db;
+    border-radius: 5px;
+    background-color: #1a1a2e;
+    box-shadow: 0 0 10px rgba(52, 152, 219, 0.5);
+}
     </style>
 </head>
 <body>
@@ -295,6 +303,11 @@
             <a href="game32.html"><button id="play32">Play Game 32</button></a>
         </div>
     </div>
+    <div class="fortune-section">
+    <h2 id="fortuneTitle">Today's Fortune</h2>
+    <p id="fortuneIntro">Check out today's wealth, love, and overall fortune!</p>
+    <a href="today.html"><button id="readFortune">Read Your Fortune</button></a>
+</div>
 
     <div class="quote-section">
         <h2 id="quoteTitle">Quote of the Month</h2>
@@ -425,6 +438,9 @@
                 document.getElementById('play32').innerText = '玩游戏 32';
                 document.getElementById('quoteTitle').innerText = '每月一语';
                 document.getElementById('quoteContent').innerText = '"我们对明天的实现唯一的限制是今天的怀疑。" - 富兰克林·D·罗斯福';
+                document.getElementById('fortuneTitle').innerText = '今日运势';
+        document.getElementById('fortuneIntro').innerText = '查看今天的财富、爱情和整体运势！';
+        document.getElementById('readFortune').innerText = '查看运势';
                 document.getElementById('storyTitle').innerText = '我的网站创作故事';
                 document.getElementById('storyButton').innerText = '显示故事';
                 document.getElementById('contactTitle').innerText = '联系与建议';
@@ -535,6 +551,9 @@
                 document.getElementById('play32').innerText = 'Play Game 32';
                 document.getElementById('quoteTitle').innerText = 'Quote of the Month';
                 document.getElementById('quoteContent').innerText = '"The only limit to our realization of tomorrow is our doubts of today." - Franklin D. Roosevelt';
+                document.getElementById('fortuneTitle').innerText = "Today's Fortune";
+        document.getElementById('fortuneIntro').innerText = "Check out today's wealth, love, and overall fortune!";
+        document.getElementById('readFortune').innerText = 'Read Your Fortune';
                 document.getElementById('storyTitle').innerText = 'My Website Creation Story';
                 document.getElementById('storyButton').innerText = 'Show Story';
                 document.getElementById('contactTitle').innerText = 'Contact & Advice';

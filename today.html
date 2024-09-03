@@ -1,1 +1,151 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Today's Fortune</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #87CEEB; /* Light sky blue */
+            color: #333;
+            text-align: center;
+            padding: 20px;
+        }
+        .language-select {
+            margin-bottom: 20px;
+        }
+        .language-select button {
+            background-color: #2c3e50;
+            color: #ecf0f1;
+            border: none;
+            padding: 10px 15px;
+            margin: 0 10px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .language-select button:hover {
+            background-color: #34495e;
+        }
+        .fortune-category {
+            margin-bottom: 30px;
+            background-color: rgba(255, 255, 255, 0.7);
+            border-radius: 10px;
+            padding: 10px;
+        }
+        canvas {
+            border: 1px solid #333;
+            margin-top: 10px;
+            background-color: white;
+        }
+        h1, h2 {
+            color: #2c3e50;
+        }
+    </style>
+</head>
+<body>
+    <div class="language-select">
+        <button onclick="setLanguage('en')">English</button>
+        <button onclick="setLanguage('zh')">中文</button>
+    </div>
+
+    <h1 id="title">Today's Fortune</h1>
+
+    <div class="fortune-category">
+        <h2 id="wealthTitle">Wealth</h2>
+        <canvas id="wealthCanvas" width="400" height="100"></canvas>
+    </div>
+
+    <div class="fortune-category">
+        <h2 id="loveTitle">Love</h2>
+        <canvas id="loveCanvas" width="400" height="100"></canvas>
+    </div>
+
+    <div class="fortune-category">
+        <h2 id="overallTitle">Overall</h2>
+        <canvas id="overallCanvas" width="400" height="100"></canvas>
+    </div>
+
+    <script>
+        function setLanguage(lang) {
+            const translations = {
+                en: {
+                    title: "Today's Fortune",
+                    wealth: "Wealth",
+                    love: "Love",
+                    overall: "Overall"
+                },
+                zh: {
+                    title: "今日运势",
+                    wealth: "财富",
+                    love: "爱情",
+                    overall: "整体运势"
+                }
+            };
+
+            document.getElementById('title').innerText = translations[lang].title;
+            document.getElementById('wealthTitle').innerText = translations[lang].wealth;
+            document.getElementById('loveTitle').innerText = translations[lang].love;
+            document.getElementById('overallTitle').innerText = translations[lang].overall;
+        }
+
+        function drawRobot(ctx, x, y, angle, color) {
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.rotate(angle);
+            
+            ctx.fillStyle = color;
+            ctx.fillRect(-25, -40, 50, 80);
+            
+            ctx.fillRect(-20, -70, 40, 30);
+            
+            ctx.fillStyle = 'black';
+            ctx.fillRect(-15, -65, 10, 10);
+            ctx.fillRect(5, -65, 10, 10);
+            
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(0, -70);
+            ctx.lineTo(0, -85);
+            ctx.stroke();
+            ctx.fillStyle = 'red';
+            ctx.beginPath();
+            ctx.arc(0, -85, 3, 0, Math.PI * 2);
+            ctx.fill();
+            
+            ctx.fillStyle = color;
+            ctx.fillRect(-35, -30, 10, 60);
+            ctx.fillRect(25, -30, 10, 60);
+            
+            ctx.fillRect(-20, 40, 15, 40);
+            ctx.fillRect(5, 40, 15, 40);
+            ctx.restore();
+        }
+
+        function generateRobots(canvasId) {
+            const canvas = document.getElementById(canvasId);
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            const coloredRobots = Math.floor(Math.random() * 5) + 1;  // 1 to 5 robots will be colored
+            
+            for (let i = 0; i < 5; i++) {
+                const x = 40 + i * 80;
+                const y = canvas.height / 2;
+                const angle = 0;
+                const color = i < coloredRobots ? 'blue' : 'gray';
+                drawRobot(ctx, x, y, angle, color);
+            }
+        }
+
+        window.onload = function() {
+            generateRobots('wealthCanvas');
+            generateRobots('loveCanvas');
+            generateRobots('overallCanvas');
+            setLanguage('en');  
+        };
+    </script>
+</body>
+</html>

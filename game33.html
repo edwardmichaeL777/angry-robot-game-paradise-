@@ -99,7 +99,7 @@
                     "Collect pink hearts to gain points.",
                     "Avoid alcohol bottles.",
                     "The game ends if you touch an alcohol bottle.",
-                    "Try to get as many points as possible!"
+                    "Try to get as many points as possible!This game cannot be performed in mobile advice"
                 ],
                 startButton: "Start Game",
                 gameTitle: "Robot Confession Game",
@@ -115,7 +115,7 @@
                     "收集粉色心形获得分数。",
                     "避开酒瓶。",
                     "触碰到酒瓶游戏结束。",
-                    "尽可能获得更高的分数！"
+                    "尽可能获得更高的分数！此游戏无法在移动设备上进行運行"
                 ],
                 startButton: "开始游戏",
                 gameTitle: "机器人告白游戏",
@@ -359,15 +359,9 @@
         }
 
         function backToMenu() {
-            clearInterval(gameLoop);
-            document.removeEventListener('keydown', handleKeyPress);
-            document.getElementById('gamePage').style.display = 'none';
-            document.getElementById('languagePage').style.display = 'block';
-            document.getElementById('gameOver').textContent = '';
-            document.getElementById('score').textContent = '';
-            document.getElementById('restartButton').style.display = 'none';
-            document.getElementById('backToMenuButton').style.display = 'none';
+            window.location.href = 'index.html';
         }
+        
     </script>
 </body>
 </html>

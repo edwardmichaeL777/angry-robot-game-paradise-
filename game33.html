@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Robot Confession Game</title>
+    <style>
+        body {
+            font-family: 'Roboto', Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            text-align: center;
+            background-color: #0f0f1f;
+            color: #e0e0e0;
+        }
+        .page {
+            display: none;
+            background-color: #1a1a2e;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(52, 152, 219, 0.5);
+            padding: 20px;
+        }
+        #languagePage {
+            display: block;
+        }
+        button {
+            font-size: 18px;
+            margin: 10px;
+            padding: 10px 20px;
+            cursor: pointer;
+            background-color: #2980b9;
+            color: white;
+            border: none;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #3498db;
+        }
+        #gameCanvas {
+            border: 1px solid #3498db;
+            background-color: #1a1a2e;
+            box-shadow: 0 0 10px rgba(52, 152, 219, 0.5);
+        }
+        #score, #gameOver {
+            font-size: 18px;
+            margin: 10px 0;
+            color: #3498db;
+        }
+        h1, h2 {
+            color: #3498db;
+            text-shadow: 0 0 5px rgba(52, 152, 219, 0.5);
+        }
+        #rulesList {
+            text-align: left;
+            padding-left: 20px;
+        }
+        #rulesList li {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div id="languagePage" class="page">
+        <h1>Select Language / 选择语言</h1>
+        <button onclick="setLanguage('en')">English</button>
+        <button onclick="setLanguage('zh')">中文</button>
+    </div>
+
+    <div id="rulesPage" class="page">
+        <h1 id="rulesTitle"></h1>
+        <ul id="rulesList"></ul>
+        <button id="startButton" onclick="startGame()"></button>
+    </div>
+
+    <div id="gamePage" class="page">
+        <h1 id="gameTitle"></h1>
+        <canvas id="gameCanvas" width="600" height="600"></canvas>
+        <div id="score"></div>
+        <div id="gameOver"></div>
+        <button id="restartButton" onclick="restartGame()"></button>
+        <button id="backToMenuButton" onclick="backToMenu()"></button>
+    </div>
+
+    <script>
+        let language = 'en';
+        let score = 0;
+        let gameLoop;
+        let canvas, ctx;
+        let robot, hearts, alcohols;
+        let lastHeartSpawnTime = 0;
+        let lastAlcoholSpawnTime = 0;
+
+        const translations = {
+            en: {
+                rulesTitle: "Robot Confession Game Rules",
+                rules: [
+                    "Control the blue robot using WASD keys.",
+                    "Collect pink hearts to gain points.",
+                    "Avoid alcohol bottles.",
+                    "The game ends if you touch an alcohol bottle.",
+                    "Try to get as many points as possible!"
+                ],
+                startButton: "Start Game",
+                gameTitle: "Robot Confession Game",
+                scoreText: "Score: {0}",
+                gameOverText: "Game Over! Final Score: {0}",
+                restartButton: "Restart Game",
+                backToMenuButton: "Back to Menu"
+            },
+            zh: {
+                rulesTitle: "机器人告白游戏规则",
+                rules: [
+                    "使用WASD键控制蓝色机器人。",
+                    "收集粉色心形获得分数。",
+                    "避开酒瓶。",
+                    "触碰到酒瓶游戏结束。",
+                    "尽可能获得更高的分数！"
+                ],
+                startButton: "开始游戏",
+                gameTitle: "机器人告白游戏",
+                scoreText: "得分：{0}",
+                gameOverText: "游戏结束！最终得分：{0}",
+                restartButton: "重新开始",
+                backToMenuButton: "返回菜单"
+            }
+        };
+
+        function setLanguage(lang) {
+            language = lang;
+            document.getElementById('languagePage').style.display = 'none';
+            document.getElementById('rulesPage').style.display = 'block';
+            updateRulesPage();
+        }
+
+        function updateRulesPage() {
+            document.getElementById('rulesTitle').textContent = translations[language].rulesTitle;
+            const rulesList = document.getElementById('rulesList');
+            rulesList.innerHTML = '';
+            translations[language].rules.forEach(rule => {
+                const li = document.createElement('li');
+                li.textContent = rule;
+                rulesList.appendChild(li);
+            });
+            document.getElementById('startButton').textContent = translations[language].startButton;
+        }
+
+        function startGame() {
+            document.getElementById('rulesPage').style.display = 'none';
+            document.getElementById('gamePage').style.display = 'block';
+            document.getElementById('gameTitle').textContent = translations[language].gameTitle;
+            document.getElementById('restartButton').textContent = translations[language].restartButton;
+            document.getElementById('backToMenuButton').textContent = translations[language].backToMenuButton;
+            document.getElementById('restartButton').style.display = 'none';
+            document.getElementById('backToMenuButton').style.display = 'none';
+            canvas = document.getElementById('gameCanvas');
+            ctx = canvas.getContext('2d');
+            initGame();
+            gameLoop = setInterval(updateGame, 1000 / 60);
+            document.addEventListener('keydown', handleKeyPress);
+        }
+
+        function initGame() {
+            score = 0;
+            robot = {
+                x: canvas.width / 2 - 20,
+                y: canvas.height / 2 - 20,
+                width: 40,
+                height: 40,
+                speed: 8,
+                color: 'blue'
+            };
+            hearts = [];
+            alcohols = [];
+            lastHeartSpawnTime = 0;
+            lastAlcoholSpawnTime = 0;
+        }
+
+        function spawnHeart() {
+            hearts.push({
+                x: Math.random() * (canvas.width - 20),
+                y: Math.random() * (canvas.height - 20),
+                width: 20,
+                height: 20,
+                speed: 2,
+                dx: (Math.random() - 0.5) * 4,
+                dy: (Math.random() - 0.5) * 4,
+                scale: 0,
+                growing: true
+            });
+        }
+
+        function spawnAlcohol() {
+            let newX, newY;
+            do {
+                newX = Math.random() * (canvas.width - 20);
+                newY = Math.random() * (canvas.height - 20);
+            } while (Math.abs(newX - robot.x) < 60 && Math.abs(newY - robot.y) < 60);
+
+            alcohols.push({
+                x: newX,
+                y: newY,
+                width: 20,
+                height: 20,
+                speed: 3,
+                dx: (Math.random() - 0.5) * 2,
+                dy: (Math.random() - 0.5) * 2,
+                scale: 0,
+                growing: true
+            });
+        }
+
+        function handleKeyPress(event) {
+            switch(event.key.toLowerCase()) {
+                case 'w': robot.y = Math.max(0, robot.y - robot.speed); break;
+                case 's': robot.y = Math.min(canvas.height - robot.height, robot.y + robot.speed); break;
+                case 'a': robot.x = Math.max(0, robot.x - robot.speed); break;
+                case 'd': robot.x = Math.min(canvas.width - robot.width, robot.x + robot.speed); break;
+            }
+        }
+
+        function updateGame() {
+            const currentTime = Date.now();
+            
+            if (currentTime - lastHeartSpawnTime >= 900) {
+                spawnHeart();
+                lastHeartSpawnTime = currentTime;
+            }
+
+            if (currentTime - lastAlcoholSpawnTime >= 7000) {
+                spawnAlcohol();
+                lastAlcoholSpawnTime = currentTime;
+            }
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawRobot();
+            updateAndDrawHearts();
+            updateAndDrawAlcohols();
+            checkCollisions();
+            updateScore();
+        }
+
+        function drawRobot() {
+            ctx.fillStyle = robot.color;
+            ctx.fillRect(robot.x, robot.y, robot.width, robot.height * 0.8);
+            ctx.fillRect(robot.x + robot.width * 0.2, robot.y - robot.height * 0.2, robot.width * 0.6, robot.height * 0.2);
+            ctx.fillStyle = 'white';
+            ctx.fillRect(robot.x + robot.width * 0.25, robot.y - robot.height * 0.15, robot.width * 0.2, robot.height * 0.1);
+            ctx.fillRect(robot.x + robot.width * 0.55, robot.y - robot.height * 0.15, robot.width * 0.2, robot.height * 0.1);
+            ctx.fillStyle = robot.color;
+            ctx.fillRect(robot.x + robot.width * 0.1, robot.y + robot.height * 0.8, robot.width * 0.3, robot.height * 0.2);
+            ctx.fillRect(robot.x + robot.width * 0.6, robot.y + robot.height * 0.8, robot.width * 0.3, robot.height * 0.2);
+        }
+
+        function updateAndDrawHearts() {
+            hearts.forEach(heart => {
+                if (heart.growing) {
+                    heart.scale += 0.05;
+                    if (heart.scale >= 1) {
+                        heart.scale = 1;
+                        heart.growing = false;
+                    }
+                }
+
+                heart.x += heart.dx * heart.scale;
+                heart.y += heart.dy * heart.scale;
+                if (heart.x <= 0 || heart.x + heart.width * heart.scale >= canvas.width) heart.dx *= -1;
+                if (heart.y <= 0 || heart.y + heart.height * heart.scale >= canvas.height) heart.dy *= -1;
+
+                ctx.save();
+                ctx.translate(heart.x + heart.width / 2, heart.y + heart.height / 2);
+                ctx.scale(heart.scale, heart.scale);
+                ctx.translate(-(heart.x + heart.width / 2), -(heart.y + heart.height / 2));
+
+                ctx.fillStyle = 'pink';
+                ctx.beginPath();
+                ctx.moveTo(heart.x + heart.width / 2, heart.y + heart.height / 5);
+                ctx.bezierCurveTo(heart.x + heart.width / 2, heart.y, heart.x, heart.y, heart.x, heart.y + heart.height / 3);
+                ctx.bezierCurveTo(heart.x, heart.y + heart.height * 2 / 3, heart.x + heart.width / 2, heart.y + heart.height, heart.x + heart.width / 2, heart.y + heart.height);
+                ctx.bezierCurveTo(heart.x + heart.width / 2, heart.y + heart.height, heart.x + heart.width, heart.y + heart.height * 2 / 3, heart.x + heart.width, heart.y + heart.height / 3);
+                ctx.bezierCurveTo(heart.x + heart.width, heart.y, heart.x + heart.width / 2, heart.y, heart.x + heart.width / 2, heart.y + heart.height / 5);
+                ctx.fill();
+
+                ctx.restore();
+            });
+        }
+
+        function updateAndDrawAlcohols() {
+            alcohols.forEach(alcohol => {
+                if (alcohol.growing) {
+                    alcohol.scale += 0.05;
+                    if (alcohol.scale >= 1) {
+                        alcohol.scale = 1;
+                        alcohol.growing = false;
+                    }
+                }
+
+                alcohol.x += alcohol.dx * alcohol.speed;
+                alcohol.y += alcohol.dy * alcohol.speed;
+                if (alcohol.x <= 0 || alcohol.x + alcohol.width * alcohol.scale >= canvas.width) alcohol.dx *= -1;
+                if (alcohol.y <= 0 || alcohol.y + alcohol.height * alcohol.scale >= canvas.height) alcohol.dy *= -1;
+
+                ctx.save();
+                ctx.translate(alcohol.x + alcohol.width / 2, alcohol.y + alcohol.height / 2);
+                ctx.scale(alcohol.scale, alcohol.scale);
+                ctx.translate(-(alcohol.x + alcohol.width / 2), -(alcohol.y + alcohol.height / 2));
+
+                ctx.fillStyle = 'green';
+                ctx.fillRect(alcohol.x, alcohol.y + alcohol.height * 0.2, alcohol.width, alcohol.height * 0.8);
+                ctx.fillStyle = 'white';
+                ctx.fillRect(alcohol.x + alcohol.width * 0.3, alcohol.y, alcohol.width * 0.4, alcohol.height * 0.3);
+
+                ctx.restore();
+            });
+        }
+
+        function checkCollisions() {
+            hearts = hearts.filter(heart => {
+                if (isColliding(robot, heart)) {
+                    score++;
+                    return false;
+                }
+                return true;
+            });
+
+            alcohols.forEach(alcohol => {
+                if (isColliding(robot, alcohol)) {
+                    endGame();
+                }
+            });
+        }
+
+        function isColliding(obj1, obj2) {
+            return obj1.x < obj2.x + obj2.width * obj2.scale &&
+                   obj1.x + obj1.width > obj2.x &&
+                   obj1.y < obj2.y + obj2.height * obj2.scale &&
+                   obj1.y + obj1.height > obj2.y;
+        }
+
+        function updateScore() {
+            document.getElementById('score').textContent = translations[language].scoreText.replace('{0}', score);
+        }
+
+
+        function endGame() {
+            clearInterval(gameLoop);
+            document.removeEventListener('keydown', handleKeyPress);
+            document.getElementById('gameOver').textContent = translations[language].gameOverText.replace('{0}', score);
+            document.getElementById('restartButton').style.display = 'block';
+            document.getElementById('backToMenuButton').style.display = 'block';
+        }
+        function restartGame() {
+            document.getElementById('gameOver').textContent = '';
+            document.getElementById('restartButton').style.display = 'none';
+            document.getElementById('backToMenuButton').style.display = 'none';
+            initGame();
+            gameLoop = setInterval(updateGame, 1000 / 60);
+            document.addEventListener('keydown', handleKeyPress);
+        }
+
+        function backToMenu() {
+            clearInterval(gameLoop);
+            document.removeEventListener('keydown', handleKeyPress);
+            document.getElementById('gamePage').style.display = 'none';
+            document.getElementById('languagePage').style.display = 'block';
+            document.getElementById('gameOver').textContent = '';
+            document.getElementById('score').textContent = '';
+            document.getElementById('restartButton').style.display = 'none';
+            document.getElementById('backToMenuButton').style.display = 'none';
+        }
+    </script>
+</body>
+</html>

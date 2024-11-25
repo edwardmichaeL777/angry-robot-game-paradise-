@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Understanding the Martingale Strategy</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+            background-color: #f5f5f5;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            justify-content: center;
+        }
+        .container {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            text-align: left;
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+        .example {
+            background-color: #f0f0f0;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+        .button {
+            display: inline-block;
+            background-color: #3498db;
+            color: white;
+            padding: 12px 24px;
+            text-decoration: none;
+            border-radius: 5px;
+            margin-top: 20px;
+            transition: background-color 0.3s;
+            font-size: 18px;
+            text-align: center;
+            width: 100%;
+        }
+        .button:hover {
+            background-color: #2980b9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>The Martingale Strategy Explained</h1>
+        
+        <p>The Martingale strategy is a betting system based on the principle of doubling your bet after every loss. </p>
+        
+        <div class="example">
+            <strong>Detailed Betting Progression:(a little example: the win rate is 50 percent,and your bet will doubled if you win.)</strong>
+            <ul>
+                <li>First Round:
+                    <ul>
+                        <li>Initial bet: $1,000</li>
+                        <li>Win: Receive $1,000 back + $1,000 bonus</li>
+                        <li>Lose: Lose entire $1,000</li>
+                    </ul>
+                </li>
+                <li>Second Round (if first round lost):
+                    <ul>
+                        <li>New bet: $2,000</li>
+                        <li>Win: Receive $2,000 back + $2,000 bonus(1,000 recover previous lost, 1,000 for the money you win.)</li>
+                        <li>Lose: Total losses now $3,000 ($1,000 + $2,000)</li>
+                    </ul>
+                </li>
+                <li>Third Round (if second round lost):
+                    <ul>
+                        <li>New bet: $4,000</li>
+                        <li>Win: Receive $4,000 back + $4,000 (3,000 recover previous lost, 1,000 for the money you win.)</li>
+                        <li>Lose: Total losses now $7,000 ($1,000 + $2,000 + $4,000)</li>
+                    </ul>
+                </li>
+                <li>Fourth Round (if third round lost):
+                    <ul>
+                        <li>New bet: $8,000</li>
+                        <li>and so on</li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+        <p> The core idea is that by doubling your bet, you'll eventually recover all previous losses and make a profit when you win.</p>
+        <a href="page3.html" class="button">Next Page</a>
+    </div>
+</body>
+</html>

@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Casino Betting Probability Calculator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .input-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        input {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        #result {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f4f4f4;
+            border-radius: 5px;
+        }
+        .button-container {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Casino Betting Probability Calculator</h1>
+    
+    <div class="input-group">
+        <label for="initialBalance">Initial Balance:</label>
+        <input type="number" id="initialBalance" placeholder="Enter initial balance">
+    </div>
+    
+    <div class="input-group">
+        <label for="initialBet">Initial Bet:</label>
+        <input type="number" id="initialBet" placeholder="Enter initial bet">
+    </div>
+    
+    <div class="input-group">
+        <label for="winRate">Win Rate (between 0.01 and 0.99):</label>
+        <input type="number" id="winRate" min="0.01" max="0.99" step="0.01" placeholder="Enter win rate (e.g., 0.5 for 50%)">
+    </div>
+    
+    <div class="button-container">
+        <button onclick="calculateConsecutiveLosses()">Calculate</button>
+        <a href="page5.html" class="button">Next Page</a>
+    </div>
+    
+    <div id="result"></div>
+
+    <script>
+        function calculateConsecutiveLosses() {
+            // Get input values
+            const initialBalance = parseFloat(document.getElementById('initialBalance').value);
+            const initialBet = parseFloat(document.getElementById('initialBet').value);
+            const winRate = parseFloat(document.getElementById('winRate').value);
+
+            // Validate inputs
+            if (isNaN(initialBalance) || isNaN(initialBet)) {
+                alert('Please enter valid numbers for initial balance and bet');
+                return;
+            }
+            if (isNaN(winRate) || winRate < 0.01 || winRate > 0.99) {
+                alert('Please enter a valid win rate between 0.01 and 0.99');
+                return;
+            }
+
+            // Function to calculate consecutive losses
+            function findConsecutiveLosses(initialBalance, initialBet, winRate) {
+                let n = 1;
+                let currentBet = initialBet;
+                let totalBetSum = currentBet;
+
+                while (totalBetSum <= initialBalance) {
+                    n++;
+                    currentBet *= 2;
+                    totalBetSum += currentBet;
+                }
+
+                // Subtract 1 to ensure total bet sum is less than or equal to initial balance
+                n = Math.max(1, n - 1);
+
+                // Recalculate total bet sum with final n
+                currentBet = initialBet;
+                totalBetSum = 0;
+                for (let i = 0; i < n; i++) {
+                    totalBetSum += currentBet;
+                    currentBet *= 2;
+                }
+
+                // Calculate probability of consecutive losses
+                const probabilityOfLoss = Math.pow(1 - winRate, n);
+
+                return { 
+                    consecutiveLosses: n, 
+                    totalBetSum: Math.floor(totalBetSum),
+                    probabilityOfLoss: probabilityOfLoss
+                };
+            }
+
+            // Function to format probability in a more readable way
+            function formatProbability(prob) {
+                if (prob < 0.0001) {
+                    return `${(prob * 100).toFixed(4)}%`;
+                } else if (prob < 0.01) {
+                    return `${(prob * 100).toFixed(2)}%`;
+                } else if (prob < 1) {
+                    return `${(prob * 100).toFixed(1)}%`;
+                } else {
+                    return '100%';
+                }
+            }
+
+            // Calculate consecutive losses
+            const result = findConsecutiveLosses(initialBalance, initialBet, winRate);
+
+            // Display results
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = `
+                <h2>Calculation Results</h2>
+                <p><strong>Consecutive Losses:</strong> ${result.consecutiveLosses}</p>
+                <p><strong>Total Bet Sum (Floor Divided):</strong> ${result.totalBetSum}</p>
+                <p><strong>Remaining Balance:</strong> ${initialBalance - result.totalBetSum}</p>
+                <p><strong>Probability of ${result.consecutiveLosses} Consecutive Losses:</strong> 
+                   ${formatProbability(result.probabilityOfLoss)} 
+                   <small>(${result.probabilityOfLoss.toExponential(4)})</small>
+                </p>
+            `;
+        }
+    </script>
+</body>
+</html>

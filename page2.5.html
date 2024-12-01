@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Betting Simulation</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            max-width: 800px; 
+            margin: 0 auto; 
+            padding: 20px; 
+            line-height: 1.6; 
+            background-color: #f5f5f5; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            min-height: 100vh; 
+            justify-content: center; 
+        }
+        .container { 
+            background-color: white; 
+            padding: 2rem; 
+            border-radius: 10px; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1); 
+            text-align: center; 
+            width: 100%; 
+        }
+        .page-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+        .button-link { 
+            display: inline-block; 
+            background-color: #3498db; 
+            color: white; 
+            padding: 12px 24px; 
+            text-decoration: none; 
+            border-radius: 5px; 
+            margin-top: 20px; 
+            transition: background-color 0.3s; 
+            font-size: 18px; 
+        }
+        .button-link:hover { 
+            background-color: #2980b9; 
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Betting Simulation</h1>
+        <h2>Game Rules</h2>
+        <p>
+            • Starting Balance: $15,000<br>
+            • Initial Bet: $1,000<br>
+            • Win: Reset bet to $1,000<br>
+            • Lose: Lose bet amount, then double bet<br>
+            • Game ends when remaining balance is less than next bet
+        </p>
+        <p>Current Balance: <span id="balance">$15,000</span></p>
+        <p>Current Bet: <span id="currentBet">$1,000</span></p>
+        <p>Total Wins: <span id="totalWins">0</span></p>
+        <p id="result"></p>
+        <button onclick="placeBet()" id="betButton">Place Bet</button>
+        <div class="page-buttons">
+            <a href="page3.html" class="button-link">Next Page</a>
+        </div>
+    </div>
+    <script>
+        let balance = 15000;
+        let currentBet = 1000;
+        let totalWins = 0;
+
+        function placeBet() {
+            if (currentBet > balance) {
+                alert(`Game over! You won ${totalWins} times. Not enough balance to continue.`);
+                document.getElementById('betButton').disabled = true;
+                return;
+            }
+
+            const randomOutcome = Math.random();
+            let resultMessage = '';
+
+            if (randomOutcome < 0.5) {
+                // Win case
+                balance += currentBet;
+                totalWins++;
+                currentBet = 1000; // Reset bet to 1000 after winning
+                resultMessage = `You won! Your balance increased by $${currentBet}.`;
+            } else {
+                // Lose case
+                balance -= currentBet;
+                currentBet *= 2;
+                resultMessage = `You lost! Your balance decreased by $${currentBet/2}.`;
+            }
+
+            document.getElementById('balance').textContent = `$${balance.toLocaleString()}`;
+            document.getElementById('currentBet').textContent = `$${currentBet}`;
+            document.getElementById('totalWins').textContent = totalWins;
+            document.getElementById('result').textContent = resultMessage;
+
+            if (currentBet > balance) {
+                alert(`Game over! You won ${totalWins} times. Not enough balance to continue.`);
+                document.getElementById('betButton').disabled = true;
+            }
+        }
+    </script>
+</body>
+</html>

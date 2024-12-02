@@ -1,0 +1,86 @@
+
+  
+</html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Probability Calculator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h2 {
+            color: #333;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 10px;
+        }
+        .calculator {
+            background-color: #f4f4f4;
+            padding: 20px;
+            border-radius: 5px;
+        }
+        input, button {
+            margin: 10px 0;
+            padding: 5px;
+        }
+        #result {
+            margin-top: 15px;
+            font-weight: bold;
+        }
+        .button {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            text-align: center;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h2>Probability Analysis</h2>
+    <p>37% is less than 50 percent, which means you only have less than a half chance to last more than 512 days</p>
+    <p>63% chance to lose all your money before 512 days</p>
+    
+    
+    <p>by the way when (511/512)^n = 1/2, n is about 354 days</p>
+    
+    <h2>fail</h2>
+    <p>Gambling 511000 at first day has higher chance to last 512 days (50 percent)</p>
+    <p>If you gamble 56 times, you have about a 90% chance of winning $56,000 while keeping your initial balance of $511,000 intact.</p>
+  <p> Martingale strategies may work in the short term but are not sustainable for long-term success.</p>
+    <div class="calculator">
+        <h2>Probability Calculator</h2>
+        <p>Calculate (511/512)^n for a given number of days</p>
+        
+        <label for="days">Enter number of days (n):</label>
+        <input type="number" id="days" min="1">
+        <button onclick="calculate()">Calculate</button>
+        
+        <div id="result"></div>
+    </div>
+
+    <script>
+        function calculate() {
+            const n = document.getElementById('days').value;
+            const probability = Math.pow(511/512, n);
+            const resultDiv = document.getElementById('result');
+            
+            resultDiv.innerHTML = `
+                <p>For ${n} days:</p>
+                <p>(511/512)^${n} = ${probability.toFixed(4)}</p>
+                <p>Interpretation: ${(probability * 100).toFixed(2)}% chance of  winning </p>
+            `;
+        }
+    </script>
+
+    <a href="page7.html" class="button">Next Page</a>
+</body>
+</html>
